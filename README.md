@@ -1,0 +1,1 @@
+Nova is modern high level programming language with focus on speed of development and extensibility.
