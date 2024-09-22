@@ -79,8 +79,7 @@ Value pop() {
     return *vm.top;
 }
 
-InterpretResult interpret(CodeVec *vec) {
-    vm.code = vec;
-    vm.ip = vm.code->code;
-    return run();
+InterpretResult interpret(const char *source) {
+    compile(source);
+    return INTERPRET_OK;
 }

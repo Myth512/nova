@@ -4,6 +4,7 @@
 #include "common.h"
 #include "debug.h"
 #include "code.h"
+#include "compiler.h"
 
 #define STACK_SIZE 256
 
@@ -24,7 +25,7 @@ void initVM();
 
 void freeVM();
 
-InterpretResult interpret(CodeVec *vec);
+InterpretResult interpret(const char *source);
 
 void push(Value value);
 

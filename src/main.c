@@ -3,25 +3,69 @@
 #include "debug.h"
 #include "vm.h"
 
+void repl() {
+	char line[1024];
+	while (true) {
+		printf("> ");
+
+		if (!fgets(line, sizeof(line), stdin)) {
+			printf("\n");
+			break;
+		}
+
+		interpret(line);
+	}
+}
+
+static char *readFile(const char *path) {
+	FILE *file = fopen(path, "rb");
+	if (file == NULL) {
+		fprintf(stderr, "Failed to open file '%s'\n", path);
+		exit(74);
+	}
+
+	fseek(file, 0L, SEEK_END);
+	size_t fileSize = ftell(file);
+	rewind(file);
+
+	char *buffer = (char*)malloc(fileSize + 1);
+	if (buffer == NULL) {
+		fprintf(stderr, "Failed to allocate memory for file '%s'\n", path);
+		exit(74);
+	}
+	size_t bytesRead = fread(buffer, sizeof(char), fileSize, file);
+	if (bytesRead < fileSize) {
+		fprintf(stderr, "Failed to read file '%s'\n", path);
+		exit(74);
+	}
+	buffer[bytesRead] = '\0';
+
+	fclose(file);
+	return buffer;
+}
+
+void runFile(const char *path) {
+	char *source = readFile(path);
+	InterpretResult result = interpret(source);
+	free(source);
+
+	if (result == INTERPRET_COMPILE_ERROR)
+		exit(65);
+	if (result == INTERPRET_RUNTIME_ERROR)
+		exit(70);
+}
+
 int main(int argc, const char *argv[]) {
 	initVM();
-	CodeVec vec;
-	initCodeVec(&vec);
 
-	int constant = pushConstant(&vec, 1.2);
-	pushInstruction(&vec, OP_CONSTANT, 123);
-	pushInstruction(&vec, constant, 123);
+	if (argc == 1) {
+		repl();
+	} else if (argc == 2) {
+		runFile(argv[1]);
+	} else {
+		fprintf(stderr, "Usage: nova [path]\n");
+	}
 
-	int constant2 = pushConstant(&vec, 69);
-	pushInstruction(&vec, OP_CONSTANT, 420);
-	pushInstruction(&vec, constant2, 420);
-
-	pushInstruction(&vec, OP_ADD, 111);
-	pushInstruction(&vec, OP_RETURN, 123);
-
-	interpret(&vec);
 	freeVM();
-	freeCodeVec(&vec);
-
 	return 0;
 }
