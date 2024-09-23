@@ -10,6 +10,8 @@ typedef enum {
     T_COMMA, T_DOT, T_MINUS, T_PLUS,
     T_SLASH, T_STAR, T_MOD,
 
+    T_MINUS_EQUAL, T_PLUS_EQUAL,
+    T_SLASH_EQUAL, T_STAR_EQUAL, T_MOD_EQUAL,
     T_BANG, T_BANG_EQUAL,
     T_EQUAL, T_DOUBLE_EQUAL,
     T_GREATER, T_GREATER_EQUAL,
@@ -28,7 +30,7 @@ typedef enum {
 typedef struct {
     TokenType type;
     const char *start;
-    int lenght;
+    int length;
     int line;
     int column;
 } Token;

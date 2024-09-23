@@ -78,6 +78,16 @@ static char* decodeTokenType(TokenType type) {
             return "STAR";
         case T_MOD:
             return "MOD";
+        case T_MINUS_EQUAL:
+            return "MINUS EQUAL";
+        case T_PLUS_EQUAL:
+            return "PLUS EQUAL";
+        case T_SLASH_EQUAL:
+            return "SLASH EQUAL";
+        case T_STAR_EQUAL:
+            return "STAR EQUAL";
+        case T_MOD_EQUAL:
+            return "MOD EQUAL";
         case T_BANG:
             return "BANG";
         case T_BANG_EQUAL:
@@ -145,8 +155,8 @@ static char* decodeTokenType(TokenType type) {
 
 void printToken(Token token) {
     printf("line: %d \tcolumn: %d \ttype: %s \tdata: \t\"", token.line, token.column, decodeTokenType(token.type));
-    for (int i = 0; i < token.lenght; i++) {
-        char *c = token.start;
+    char *c = token.start;
+    for (int i = 0; i < token.length; i++) {
         if (*c == '\n') {
             putchar('\\');
             putchar('n');
@@ -155,6 +165,6 @@ void printToken(Token token) {
         }
         c++;
     }
-    putchar('\"');
+    putchar('"');
     putchar('\n');
 }

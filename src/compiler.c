@@ -8,9 +8,9 @@ void compile(const char *source) {
         if (token.type == T_EOF)
             break;
     }
-    printCodeLine(source, 13);
-    printArrow(7, 13);
+    // printCodeLine(source, 13);
+    // printArrow(7, 13);
 
-    printCodeLine(source, 9);
-    printArrow(10, 9);
+    // printCodeLine(source, 9);
+    // printArrow(10, 9);
 }
