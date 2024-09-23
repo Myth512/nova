@@ -5,6 +5,8 @@ void compile(const char *source) {
     while (true) {
         Token token = scanToken(false);
         printToken(token);
+        printTokenInCode(source, token);
+
         if (token.type == T_EOF)
             break;
     }

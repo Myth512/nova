@@ -154,8 +154,8 @@ static char* decodeTokenType(TokenType type) {
 }
 
 void printToken(Token token) {
-    printf("line: %d \tcolumn: %d \ttype: %s \tdata: \t\"", token.line, token.column, decodeTokenType(token.type));
-    char *c = token.start;
+    printf("line: %d \tcolumn: %d \tlen: %d \ttype: %s \tdata: \t\"", token.line, token.column, token.length, decodeTokenType(token.type));
+    const char *c = token.start;
     for (int i = 0; i < token.length; i++) {
         if (*c == '\n') {
             putchar('\\');

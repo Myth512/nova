@@ -3,10 +3,10 @@
 
 #include <stdio.h>
 
+#include "token.h"
+
 void printError(const char *format, ...);
 
-void printCodeLine(const char *source, int line);
-
-void printArrow(int offset, int line);
+void printTokenInCode(const char *source, Token token);
 
 #endif

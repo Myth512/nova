@@ -1,20 +1,16 @@
-1234 / 999
+var a = 2 + 2 * 2
 
-777 // hi 
+for (var i = 0; i < 10; i += 1)
+	print(i)
 
-666 /* hi now are you */ / 333
+class Pie {
+	def init(flavor) {
+		self.flavor = flavor
+	}
 
-/*
+	def taste() {
+		print("I love pie")
+	}
+}
 
-var a = "hellow
 
-/* 
-var b = "hi
-
-*/
-
-var c = How are you
-
-*/
-
-5678
