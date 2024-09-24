@@ -3,7 +3,11 @@
 
 #include "scanner.h"
 #include "debug.h"
+#include "code.h"
+#include "error.h"
+#include "code.h"
+#include "common.h"
 
-void compile(const char *source);
+int compile(const char *source, CodeVec *code);
 
 #endif

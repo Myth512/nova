@@ -18,7 +18,7 @@ DEPS = $(OBJS:.o=.d)
 
 # Build final executable
 $(TARGET): $(OBJS) | $(BIN_DIR)
-	$(CC) $(OBJS) -o $(TARGET)
+	$(CC) $(OBJS) -lm -o $(TARGET)
 
 # Compile .c files into .o files and generate .d files
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c | $(OBJ_DIR)

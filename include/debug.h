@@ -10,6 +10,6 @@ void printCodeVec(CodeVec *codeVec, const char *title);
 
 int printInstruction(CodeVec *codeVec, int offset);
 
-void printToken(Token token);
+void printToken(Token *token);
 
 #endif

@@ -4,7 +4,7 @@ void printError(const char *format, ...) {
     return;
 }
 
-static const char* getCodeLine(const char *source, int line) {
+const char* getCodeLine(const char *source, int line) {
     int curLine = 1;
     const char *lineStart = source;
     for (; *lineStart != '\0' && curLine < line; lineStart++)
@@ -12,14 +12,15 @@ static const char* getCodeLine(const char *source, int line) {
     return lineStart;
 }
 
-static void printHightlightedTokenInCode(const char *codeLine, Token token){
-    printf("%4d | ", token.line);
+
+void printHightlightedWordInCode(const char *codeLine, int line, int column, int length){
+    printf("%4d | ", line);
     const char *c = codeLine;
-    for (int i = 1; *c != '\0' && i < token.column; c++, i++)
+    for (int i = 1; *c != '\0' && i < column; c++, i++)
         putchar(*c);
 
     printf("\033[31m");
-    for (int i = 0; *c != '\n' && *c != '\0' && i < token.length; c++, i++)
+    for (int i = 0; *c != '\n' && *c != '\0' && i < length; c++, i++)
         putchar(*c);
     printf("\033[0m");
     for (; *c != '\0' && *c != '\n'; c++)
@@ -27,7 +28,8 @@ static void printHightlightedTokenInCode(const char *codeLine, Token token){
     putchar('\n');
 }
 
-static void printCodeLine(const char *codeLine, int line) {
+
+void printCodeLine(const char *codeLine, int line) {
     printf("%4d | ", line);
 
     for (const char *c = codeLine; *c != '\0' && *c != '\n'; c++)
@@ -35,7 +37,7 @@ static void printCodeLine(const char *codeLine, int line) {
     putchar('\n');
 }
 
-static void printArrow(const char *codeLine, int start, int length) {
+void printArrow(const char *codeLine, int start, int length) {
     printf("     | ");
     int offset = 0;
     for (const char *c = codeLine; *c != '\0' && offset < start - 1; c++, offset++) {
@@ -48,12 +50,11 @@ static void printArrow(const char *codeLine, int start, int length) {
     putchar('^');
     for (int i = 0; i < length - 1; i++)
         putchar('~');
-    printf("\033[0m");
+    printf("\033[0m\n");
 }
 
-void printTokenInCode(const char *source, Token token) {
-    const char *codeLine = getCodeLine(source, token.line);
-    printHightlightedTokenInCode(codeLine, token);
-    printArrow(codeLine, token.column, token.length);
-    printf("\n\n");
+void printTokenInCode(const char *source, Token *token) {
+    const char *codeLine = getCodeLine(source, token->line);
+    printHightlightedWordInCode(codeLine, token->line, token->column, token->length);
+    printArrow(codeLine, token->column, token->length);
 }

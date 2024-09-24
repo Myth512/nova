@@ -32,6 +32,12 @@ int printInstruction(CodeVec *vec, int offset) {
     switch (opcode) {
         case OP_CONSTANT:
             return constantInstruction("CONSTANT", vec, offset);
+        case OP_NIL:
+            return simpleInstruction("NIL", offset);
+        case OP_FALSE:
+            return simpleInstruction("FALSE", offset);
+        case OP_TRUE:
+            return simpleInstruction("TRUE", offset);
         case OP_ADD:
             return simpleInstruction("ADD", offset);
         case OP_SUBTRUCT:
@@ -40,6 +46,10 @@ int printInstruction(CodeVec *vec, int offset) {
             return simpleInstruction("MULTIPLY", offset);
         case OP_DIVIDE:
             return simpleInstruction("DIVIDE", offset);
+        case OP_MOD:
+            return simpleInstruction("MOD", offset);
+        case OP_NOT:
+            return simpleInstruction("NOT", offset);
         case OP_NEGATE:
             return simpleInstruction("NEGATE", offset);
         case OP_RETURN:
@@ -52,111 +62,111 @@ int printInstruction(CodeVec *vec, int offset) {
 
 static char* decodeTokenType(TokenType type) {
     switch (type) {
-        case T_LEFT_PAREN:
+        case TOKEN_LEFT_PAREN:
             return "LEFT PAREN";
-        case T_RIGHT_PAREN:
+        case TOKEN_RIGHT_PAREN:
             return "RIGHT PAREN";
-        case T_LEFT_BRACE:
+        case TOKEN_LEFT_BRACE:
             return "LEFT BRACE";
-        case T_RIGHT_BRACE:
+        case TOKEN_RIGHT_BRACE:
             return "RIGHT BRACE";
-        case T_LEFT_BRACKET:
+        case TOKEN_LEFT_BRACKET:
             return "LEFT BRACKET";
-        case T_RIGHT_BRACKET:
+        case TOKEN_RIGHT_BRACKET:
             return "RIGHT BRACKET";
-        case T_COMMA:
+        case TOKEN_COMMA:
             return "COMMA";
-        case T_DOT:
+        case TOKEN_DOT:
             return "DOT";
-        case T_MINUS:
+        case TOKEN_MINUS:
             return "MINUS";
-        case T_PLUS:
+        case TOKEN_PLUS:
             return "PLUS";
-        case T_SLASH:
+        case TOKEN_SLASH:
             return "SLASH";
-        case T_STAR:
+        case TOKEN_STAR:
             return "STAR";
-        case T_MOD:
+        case TOKEN_MOD:
             return "MOD";
-        case T_MINUS_EQUAL:
+        case TOKEN_MINUS_EQUAL:
             return "MINUS EQUAL";
-        case T_PLUS_EQUAL:
+        case TOKEN_PLUS_EQUAL:
             return "PLUS EQUAL";
-        case T_SLASH_EQUAL:
+        case TOKEN_SLASH_EQUAL:
             return "SLASH EQUAL";
-        case T_STAR_EQUAL:
+        case TOKEN_STAR_EQUAL:
             return "STAR EQUAL";
-        case T_MOD_EQUAL:
+        case TOKEN_MOD_EQUAL:
             return "MOD EQUAL";
-        case T_BANG:
+        case TOKEN_BANG:
             return "BANG";
-        case T_BANG_EQUAL:
+        case TOKEN_BANG_EQUAL:
             return "BANG EQUAL";
-        case T_EQUAL:
+        case TOKEN_EQUAL:
             return "EQUAL";
-        case T_DOUBLE_EQUAL:
+        case TOKEN_DOUBLE_EQUAL:
             return "DOUBLE EQUAL";
-        case T_GREATER:
+        case TOKEN_GREATER:
             return "GREATER";
-        case T_GREATER_EQUAL:
+        case TOKEN_GREATER_EQUAL:
             return "GREATER EQUAL";
-        case T_LESS:
+        case TOKEN_LESS:
             return "LESS";
-        case T_LESS_EQUAL:
+        case TOKEN_LESS_EQUAL:
             return "LESS EQUAL";
-        case T_IDENTIFIER:
+        case TOKEN_IDENTIFIER:
             return "IDENTIFIER";
-        case T_STRING:
+        case TOKEN_STRING:
             return "STRING";
-        case T_NUMBER:
+        case TOKEN_NUMBER:
             return "NUMBER";
-        case T_VAR:
+        case TOKEN_VAR:
             return "VAR";
-        case T_IF:
+        case TOKEN_IF:
             return "IF";
-        case T_ELSE:
+        case TOKEN_ELSE:
             return "ELSE";
-        case T_FOR:
+        case TOKEN_FOR:
             return "FOR";
-        case T_WHILE:
+        case TOKEN_WHILE:
             return "WHILE";
-        case T_AND:
+        case TOKEN_AND:
             return "AND";
-        case T_OR:
+        case TOKEN_OR:
             return "OR";
-        case T_TRUE:
+        case TOKEN_TRUE:
             return "TRUE";
-        case T_FALSE:
+        case TOKEN_FALSE:
             return "FALSE";
-        case T_NIL:
+        case TOKEN_NIL:
             return "NIL";
-        case T_DEF:
+        case TOKEN_DEF:
             return "DEF";
-        case T_RETURN:
+        case TOKEN_RETURN:
             return "RETURN";
-        case T_CLASS:
+        case TOKEN_CLASS:
             return "CLASS";
-        case T_SELF:
+        case TOKEN_SELF:
             return "SELF";
-        case T_SUPER:
+        case TOKEN_SUPER:
             return "SUPER";
-        case T_PRINT:
+        case TOKEN_PRINT:
             return "PRINT";
-        case T_ERROR:
+        case TOKEN_ERROR:
             return "ERROR";
-        case T_EOS:
+        case TOKEN_EOS:
             return "EOS";
-        case T_EOF:
+        case TOKEN_EOF:
             return "EOF";
         default:
             return "Unknow Token";
     }
 }
 
-void printToken(Token token) {
-    printf("line: %d \tcolumn: %d \tlen: %d \ttype: %s \tdata: \t\"", token.line, token.column, token.length, decodeTokenType(token.type));
-    const char *c = token.start;
-    for (int i = 0; i < token.length; i++) {
+void printToken(Token *token) {
+    printf("line: %d \tcolumn: %d \tlen: %d \ttype: %s \tdata: \t\"", token->line, token->column, token->length, decodeTokenType(token->type));
+    const char *c = token->start;
+    for (int i = 0; i < token->length; i++) {
         if (*c == '\n') {
             putchar('\\');
             putchar('n');

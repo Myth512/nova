@@ -115,7 +115,7 @@ static Token createToken(TokenType type) {
 
 static Token createErrorToken(const char *message) {
     Token token;
-    token.type = T_ERROR;
+    token.type = TOKEN_ERROR;
     token.start = message;
     token.length = (int)strlen(message);
     token.line = scanner.line;
@@ -133,13 +133,15 @@ static Token scanString() {
     }
 
     if (reachEnd()) {
-        fprintf(stderr, "Scan Error: Unterminated string, starting here:\n");
-        // printCodeLine(scanner.source, scanner.startLine);
-        // printArrow(scanner.startColumn);
+        return createErrorToken("Unterminated string, staring here");
+        // fprintf(stderr, "Scan Error: Unterminated string, starting here:\n");
+        // const char *codeLine = getCodeLine(scanner.source, scanner.startLine);
+        // printHightlightedWordInCode(codeLine, scanner.startLine, scanner.startColumn, 1);
+        // printArrow(codeLine, scanner.startColumn, 1);
     }
 
     advance();
-    return createToken(T_STRING);
+    return createToken(TOKEN_STRING);
 }
 
 static Token scanNumber() {
@@ -152,20 +154,22 @@ static Token scanNumber() {
             while (isDigit(peek()))
                 advance();
         } else {
-            fprintf(stderr, "Scan Error: Missing fractional part after '.'\n");
-            // printCodeLine(scanner.source, scanner.startLine);
-            // printArrow(scanner.startColumn);
+            return createErrorToken("Missing fractional part after '.");
+            // fprintf(stderr, "Scan Error: Missing fractional part after '.'\n");
+            // const char *codeLine = getCodeLine(scanner.source, scanner.line);
+            // printHightlightedWordInCode(codeLine, scanner.line, scanner.column, 1);
+            // printArrow(codeLine, scanner.column, 1);
         }
     }
 
-    return createToken(T_NUMBER);
+    return createToken(TOKEN_NUMBER);
 }
 
 static TokenType checkKeyword(int start, int length, const char *rest, TokenType type) {
     if (scanner.current - scanner.start == start + length &&
         memcmp(scanner.start + start, rest, length) == 0)
         return type;
-    return T_IDENTIFIER;
+    return TOKEN_IDENTIFIER;
 }
 
 static Token scanIdentifier() {
@@ -174,36 +178,36 @@ static Token scanIdentifier() {
     
     switch (scanner.start[0]) {
         case 'a':
-            return createToken(checkKeyword(1, 2, "nd", T_AND));
+            return createToken(checkKeyword(1, 2, "nd", TOKEN_AND));
         case 'c':
-            return createToken(checkKeyword(1, 4, "lass", T_CLASS));
+            return createToken(checkKeyword(1, 4, "lass", TOKEN_CLASS));
         case 'd':
-            return createToken(checkKeyword(1, 2, "ef", T_DEF));
+            return createToken(checkKeyword(1, 2, "ef", TOKEN_DEF));
         case 'e':
-            return createToken(checkKeyword(1, 3, "lse", T_ELSE));
+            return createToken(checkKeyword(1, 3, "lse", TOKEN_ELSE));
         case 'i':
-            return createToken(checkKeyword(1, 1, "f", T_IF));
+            return createToken(checkKeyword(1, 1, "f", TOKEN_IF));
         case 'n':
-            return createToken(checkKeyword(1, 2, "il", T_NIL));
+            return createToken(checkKeyword(1, 2, "il", TOKEN_NIL));
         case 'o':
-            return createToken(checkKeyword(1, 1, "r", T_OR));
+            return createToken(checkKeyword(1, 1, "r", TOKEN_OR));
         case 'p':
-            return createToken(checkKeyword(1, 4, "rint", T_PRINT));
+            return createToken(checkKeyword(1, 4, "rint", TOKEN_PRINT));
         case 'r':
-            return createToken(checkKeyword(1, 5, "eturn", T_RETURN));
+            return createToken(checkKeyword(1, 5, "eturn", TOKEN_RETURN));
         case 'v':
-            return createToken(checkKeyword(1, 2, "ar", T_VAR));
+            return createToken(checkKeyword(1, 2, "ar", TOKEN_VAR));
         case 'w':
-            return createToken(checkKeyword(1, 4, "hile", T_WHILE));
+            return createToken(checkKeyword(1, 4, "hile", TOKEN_WHILE));
         case 't':
-            return createToken(checkKeyword(1, 3, "rue", T_TRUE));
+            return createToken(checkKeyword(1, 3, "rue", TOKEN_TRUE));
         case 's':
             if (scanner.current - scanner.start > 1) {
                 switch (scanner.start[1]) {
                     case 'e':
-                        return createToken(checkKeyword(2, 2, "lf", T_SELF));
+                        return createToken(checkKeyword(2, 2, "lf", TOKEN_SELF));
                     case 'u':
-                        return createToken(checkKeyword(2, 3, "per", T_SUPER));
+                        return createToken(checkKeyword(2, 3, "per", TOKEN_SUPER));
                 }
             }
             break;
@@ -211,14 +215,14 @@ static Token scanIdentifier() {
             if (scanner.current - scanner.start > 1) {
                 switch (scanner.start[1]) {
                     case 'a':
-                        return createToken(checkKeyword(2, 3, "lse", T_FALSE));
+                        return createToken(checkKeyword(2, 3, "lse", TOKEN_FALSE));
                     case 'o':
-                        return createToken(checkKeyword(2, 1, "r", T_FOR));
+                        return createToken(checkKeyword(2, 1, "r", TOKEN_FOR));
                 }
             }
             break;
     }
-    return createToken(T_IDENTIFIER);
+    return createToken(TOKEN_IDENTIFIER);
 }
 
 void initScanner(const char *source) {
@@ -232,14 +236,14 @@ void initScanner(const char *source) {
 }
 
 Token scanToken(bool skipNewline) {
-    skipWhitespace(skipNewline || scanner.lastToken == T_EOS);
+    skipWhitespace(skipNewline || scanner.lastToken == TOKEN_EOS);
 
     scanner.start = scanner.current;
     scanner.startLine = scanner.line;
     scanner.startColumn = scanner.column;
 
     if (reachEnd())
-        return createToken(T_EOF);
+        return createToken(TOKEN_EOF);
 
     char c = advance();
 
@@ -251,45 +255,45 @@ Token scanToken(bool skipNewline) {
 
     switch (c) {
         case '(':
-            return createToken(T_LEFT_PAREN);
+            return createToken(TOKEN_LEFT_PAREN);
         case ')':
-            return createToken(T_RIGHT_PAREN);
+            return createToken(TOKEN_RIGHT_PAREN);
         case '{':
-            return createToken(T_LEFT_BRACE);
+            return createToken(TOKEN_LEFT_BRACE);
         case '}':
-            return createToken(T_RIGHT_BRACE);
+            return createToken(TOKEN_RIGHT_BRACE);
         case '[':
-            return createToken(T_LEFT_BRACKET);
+            return createToken(TOKEN_LEFT_BRACKET);
         case ']':
-            return createToken(T_RIGHT_BRACKET);
+            return createToken(TOKEN_RIGHT_BRACKET);
         case ';':
-            return createToken(T_EOS);
+            return createToken(TOKEN_EOS);
         case ',':
-            return createToken(T_COMMA);
+            return createToken(TOKEN_COMMA);
         case '.':
-            return createToken(T_DOT);
+            return createToken(TOKEN_DOT);
         case '-':
-            return createToken(match('=') ? T_MINUS_EQUAL : T_MINUS);
+            return createToken(match('=') ? TOKEN_MINUS_EQUAL : TOKEN_MINUS);
         case '+':
-            return createToken(match('=') ? T_PLUS_EQUAL : T_PLUS);
+            return createToken(match('=') ? TOKEN_PLUS_EQUAL : TOKEN_PLUS);
         case '/':
-            return createToken(match('=') ? T_SLASH_EQUAL : T_SLASH);
+            return createToken(match('=') ? TOKEN_SLASH_EQUAL : TOKEN_SLASH);
         case '*':
-            return createToken(match('=') ? T_STAR_EQUAL : T_STAR);
+            return createToken(match('=') ? TOKEN_STAR_EQUAL : TOKEN_STAR);
         case '%':
-            return createToken(match('=') ? T_MOD_EQUAL : T_MOD);
+            return createToken(match('=') ? TOKEN_MOD_EQUAL : TOKEN_MOD);
         case '!':
-            return createToken(match('=') ? T_BANG_EQUAL : T_BANG);
+            return createToken(match('=') ? TOKEN_BANG_EQUAL : TOKEN_BANG);
         case '=':
-            return createToken(match('=') ? T_DOUBLE_EQUAL : T_EQUAL);
+            return createToken(match('=') ? TOKEN_DOUBLE_EQUAL : TOKEN_EQUAL);
         case '<':
-            return createToken(match('=') ? T_LESS_EQUAL : T_LESS);
+            return createToken(match('=') ? TOKEN_LESS_EQUAL : TOKEN_LESS);
         case '>':
-            return createToken(match('=') ? T_GREATER_EQUAL : T_GREATER);
+            return createToken(match('=') ? TOKEN_GREATER_EQUAL : TOKEN_GREATER);
         case '\n':
             scanner.line++;
             scanner.column = 1;
-            return createToken(T_EOS);
+            return createToken(TOKEN_EOS);
         case '\\':
             return scanToken(true);
         case '"':
