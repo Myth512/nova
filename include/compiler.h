@@ -7,6 +7,7 @@
 #include "error.h"
 #include "code.h"
 #include "common.h"
+#include "object.h"
 
 int compile(const char *source, CodeVec *code);
 

@@ -1,10 +1,7 @@
 #ifndef VM_H
 #define VM_H
 
-#include <math.h>
-
 #include "common.h"
-#include "debug.h"
 #include "code.h"
 #include "compiler.h"
 
@@ -15,6 +12,7 @@ typedef struct {
     uint8_t *ip;
     Value stack[STACK_SIZE];
     Value *top;
+    Obj *objects;
 } VM;
 
 typedef enum {
@@ -22,6 +20,8 @@ typedef enum {
     INTERPRET_COMPILE_ERROR,
     INTERPRET_RUNTIME_ERROR,
 } InterpretResult;
+
+extern VM vm;
 
 void initVM();
 

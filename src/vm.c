@@ -1,4 +1,10 @@
+#include <math.h>
+#include <string.h>
+
 #include "vm.h"
+#include "debug.h"
+#include "object.h"
+#include "memory.h"
 
 VM vm;
 
@@ -20,7 +26,27 @@ static Value peek(int distance) {
     return vm.top[-1 - distance];
 }
 
+static inline void concatenate() {
+    ObjString *b = AS_STRING(pop());
+    ObjString *a = AS_STRING(pop());
+
+    int length = a->length + b->length;
+
+    char *chars = ALLOCATE(char, length + 1);
+
+    memcpy(chars, a->chars, a->length);
+    memcpy(chars + a->length, b->chars, b->length);
+    chars[length] = '\0';
+
+    ObjString *result = takeString(chars, length);
+    push(OBJ_VAL(result));
+}
+
 static inline void add() {
+    if (IS_STRING(peek(0)) && IS_STRING(peek(1))) {
+        concatenate();
+        return;
+    }
     if (!IS_NUMBER(peek(0)) || !IS_NUMBER(peek(1))) {
         printf("Operands must be numbers\n");
         return;
@@ -89,32 +115,16 @@ static inline void mod() {
     push(NUMBER_VAL(fmod(a, b)));
 }
 
-static bool valuesEqual(Value a, Value b) {
-    if (a.type != b.type)
-        return false;
-
-    switch (a.type) {
-        case VAL_BOOL:
-            return AS_BOOL(a) == AS_BOOL(b);
-        case VAL_NIL:
-            return true;
-        case VAL_NUMBER:
-            return AS_NUMBER(a) == AS_NUMBER(b);
-        default:
-            return false;
-    }
-}
-
 static inline void equal() {
     Value b = pop();
     Value a = pop();
-    push(BOOL_VAL(valuesEqual(a, b)));
+    push(BOOL_VAL(compareValues(a, b)));
 }
 
 static inline void notEqual() {
     Value b = pop();
     Value a = pop();
-    push(BOOL_VAL(!valuesEqual(a, b)));
+    push(BOOL_VAL(!compareValues(a, b)));
 }
 
 static inline void greater() {
@@ -257,9 +267,11 @@ static InterpretResult run() {
 
 void initVM() {
     resetStack();
+    vm.objects = NULL;
 }
 
 void freeVM() {
+    freeObjects();
     return;
 }
 

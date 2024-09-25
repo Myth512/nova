@@ -4,6 +4,11 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include "object.h"
+
+#define ALLOCATE(type, count) \
+    (type*)reallocate(NULL, 0, sizeof(type) * (count))
+
 #define GROW_CAPACITY(capacity) \
     ((capacity) < 8 ? 8 : (capacity) * 2)
 
@@ -13,6 +18,10 @@
 #define FREE_VEC(type, pointer, oldSize) \
     reallocate(pointer, sizeof(type) * (oldSize), 0)
 
+#define FREE(type, pointer) reallocate(pointer, sizeof(type), 0)
+
 void* reallocate(void *pointer, size_t oldSize, size_t newSize);
+
+void freeObjects();
 
 #endif
