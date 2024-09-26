@@ -1,4 +1,7 @@
+#include <stdio.h>
+
 #include "error.h"
+#include "token.h"
 
 void printError(const char *format, ...) {
     return;

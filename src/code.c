@@ -1,4 +1,7 @@
+#include <stdlib.h>
+
 #include "code.h"
+#include "memory.h"
 
 void initCodeVec(CodeVec *vec) {
     vec->size = 0;

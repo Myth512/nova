@@ -1,3 +1,5 @@
+#include <stdio.h>
+
 #include "debug.h"
 
 static int simpleInstruction(const char *name, int offset) {

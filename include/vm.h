@@ -3,7 +3,7 @@
 
 #include "common.h"
 #include "code.h"
-#include "compiler.h"
+#include "table.h"
 
 #define STACK_SIZE 256
 
@@ -12,6 +12,7 @@ typedef struct {
     uint8_t *ip;
     Value stack[STACK_SIZE];
     Value *top;
+    Table strings;
     Obj *objects;
 } VM;
 

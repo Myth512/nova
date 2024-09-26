@@ -1,4 +1,5 @@
 #include "token.h"
+#include "memory.h"
 
 void TokenStackPush(TokenStack *stack, Token token) {
     if (stack->size + 1 >= stack->capacity) {

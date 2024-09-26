@@ -2,7 +2,6 @@
 #define MEMORY_H
 
 #include <stdlib.h>
-#include <stdio.h>
 
 #include "object.h"
 

@@ -1,3 +1,5 @@
+#include <stdlib.h>
+
 #include "common.h"
 #include "code.h"
 #include "debug.h"

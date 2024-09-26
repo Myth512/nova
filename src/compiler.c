@@ -1,4 +1,11 @@
+#include <stdlib.h>
+
 #include "compiler.h"
+#include "scanner.h"
+#include "debug.h"
+#include "common.h"
+#include "object.h"
+#include "error.h"
 
 typedef struct {
     const char *source;
@@ -226,7 +233,6 @@ static void grouping() {
 
 static void unary() {
     TokenType operatorType = parser.previous.type;
-
     ParseRule *rule = getRule(operatorType);
     parsePrecedence((Precedence)(rule->precedence + 1));
 

@@ -5,6 +5,7 @@
 #include "debug.h"
 #include "object.h"
 #include "memory.h"
+#include "compiler.h"
 
 VM vm;
 
@@ -268,10 +269,12 @@ static InterpretResult run() {
 void initVM() {
     resetStack();
     vm.objects = NULL;
+    initTable(&vm.strings);
 }
 
 void freeVM() {
     freeObjects();
+    freeTable(&vm.strings);
     return;
 }
 

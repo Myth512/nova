@@ -2,9 +2,7 @@
 #define CHUNK_H
 
 #include <stdint.h>
-#include <stdlib.h>
 
-#include "memory.h"
 #include "value.h"
 
 typedef enum {
