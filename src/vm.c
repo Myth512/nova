@@ -183,6 +183,7 @@ static bool isFalsey(Value value) {
 static InterpretResult run() {
     #define READ_BYTE() (*vm.ip++)
     #define READ_CONSTANT() (vm.code->constants.values[READ_BYTE()])
+    #define READ_STRING()   AS_STRING(READ_CONSTANT())
 
     while (true) {
 
@@ -206,6 +207,24 @@ static InterpretResult run() {
             case OP_NIL:
                 push(NIL_VAL);
                 break;
+            case OP_POP:
+                pop();
+                break;
+            case OP_GET_GLOBAL: {
+                ObjString *name = READ_STRING();
+                Value value;
+                if (!tableGet(&vm.globals, name, &value)) {
+                    printf("Undefined variable '%s'", name->chars);
+                }
+                push(value);
+                break;
+            }
+            case OP_DEFINE_GLOBAL: {
+                ObjString *name = READ_STRING();
+                tableSet(&vm.globals, name, peek(0));
+                pop();
+                break;
+            }
             case OP_FALSE:
                 push(BOOL_VAL(false));
                 break;
@@ -255,25 +274,29 @@ static InterpretResult run() {
                 }
                 push(NUMBER_VAL(-AS_NUMBER(pop())));
                 break;
-            case OP_RETURN:
+            case OP_PRINT:
                 printValue(pop());
-                printf("\n");
+                putchar('\n');
+                break;
+            case OP_RETURN:
                 return INTERPRET_OK;
         }
     }
     #undef READ_BYTE
     #undef READ_CONSTANT
-    #undef BINARY_OP
+    #undef READ_STRING
 }
 
 void initVM() {
     resetStack();
     vm.objects = NULL;
+    initTable(&vm.globals);
     initTable(&vm.strings);
 }
 
 void freeVM() {
     freeObjects();
+    initTable(&vm.globals);
     freeTable(&vm.strings);
     return;
 }

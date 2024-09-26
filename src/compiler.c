@@ -50,6 +50,8 @@ static void unary();
 
 static void binary();
 
+static void variable();
+
 ParseRule rules[] = {
   [TOKEN_LEFT_PAREN]    = {grouping, NULL,   PREC_NONE},
   [TOKEN_RIGHT_PAREN]   = {NULL,     NULL,   PREC_NONE},
@@ -71,7 +73,7 @@ ParseRule rules[] = {
   [TOKEN_GREATER_EQUAL] = {NULL,     binary, PREC_EQUALITY},
   [TOKEN_LESS]          = {NULL,     binary, PREC_EQUALITY},
   [TOKEN_LESS_EQUAL]    = {NULL,     binary, PREC_EQUALITY},
-  [TOKEN_IDENTIFIER]    = {NULL,     NULL,   PREC_NONE},
+  [TOKEN_IDENTIFIER]    = {variable, NULL,   PREC_NONE},
   [TOKEN_STRING]        = {string,   NULL,   PREC_NONE},
   [TOKEN_NUMBER]        = {number,   NULL,   PREC_NONE},
   [TOKEN_AND]           = {NULL,     NULL,   PREC_NONE},
@@ -129,6 +131,42 @@ static void advance() {
     }
 }
 
+static void synchronize() {
+    parser.panicMode = false;
+
+    while (parser.current.type != TOKEN_EOF) {
+        if (parser.previous.type == TOKEN_EOS)
+            return;
+
+        switch (parser.current.type) {
+            case TOKEN_CLASS:
+            case TOKEN_DEF:
+            case TOKEN_VAR:
+            case TOKEN_FOR:
+            case TOKEN_IF:
+            case TOKEN_WHILE:
+            case TOKEN_PRINT:
+            case TOKEN_RETURN:
+                return;
+            default:
+                break;
+        }
+
+        advance();
+    }
+}
+
+static bool check(TokenType type) {
+    return parser.current.type == type;
+}
+
+static bool match(TokenType type) {
+    if (!check(type))
+        return false;
+    advance();
+    return true;
+}
+
 static void parsePrecedence(Precedence precedence) {
     advance();
 
@@ -183,6 +221,14 @@ static void expression() {
     parsePrecedence(PREC_ASSIGNMENT);
 }
 
+static void expressionStatement() {
+    expression();
+    if (consume(TOKEN_EOS)) {
+        reportError("Expect eos after expression");
+    }
+    emitByte(OP_POP);
+}
+
 static uint8_t createConstant(Value value) {
     int constant = pushConstant(currentCode(), value);
     if (constant > UINT8_MAX) {
@@ -195,6 +241,22 @@ static uint8_t createConstant(Value value) {
 static void emitConstant(Value value) {
     emitBytes(OP_CONSTANT, createConstant(value));
 }
+
+static uint8_t identifierConstant(Token *name) {
+    return createConstant(OBJ_VAL(copyString(name->start, name->length)));
+}
+
+static uint8_t parseVariable(const char *errorMessage) {
+    if (consume(TOKEN_IDENTIFIER)) {
+        reportError(errorMessage);
+    }
+    return identifierConstant(&parser.previous);
+}
+
+static void defineVariable(uint8_t global) {
+    emitBytes(OP_DEFINE_GLOBAL, global);
+}
+
 
 static void number() {
     double value = strtod(parser.previous.start, NULL);
@@ -215,6 +277,15 @@ static void literal() {
         default:
             return;
     }
+}
+
+static void namedVariable(Token name) {
+    uint8_t arg = identifierConstant(&name);
+    emitBytes(OP_GET_GLOBAL, arg);
+}
+
+static void variable() {
+    namedVariable(parser.previous);
 }
 
 static void string() {
@@ -292,6 +363,47 @@ static void binary() {
     }
 }
 
+static void printStatement() {
+    expression();
+    if (consume(TOKEN_EOS)) {
+        printf("Expected ';' after value");
+    }
+    emitByte(OP_PRINT);
+}
+
+static void statement() {
+    if (match(TOKEN_PRINT)) {
+        printStatement();
+    } else {
+        expressionStatement();
+    }
+}
+
+static void varDeclaration() {
+    uint8_t global = parseVariable("Expect variable name.");
+
+    if (match(TOKEN_EQUAL))
+        expression();
+    else
+        emitByte(OP_NIL);
+    
+    if (consume(TOKEN_EOS)) {
+        reportError("Expect eos after variable declaration");
+    }
+
+    defineVariable(global);
+}
+
+static void declaration() {
+    if (match(TOKEN_VAR))
+        varDeclaration();
+    else
+        statement();
+
+    if (parser.panicMode)
+        synchronize();
+}
+
 int compile(const char *source, CodeVec *code) {
     initScanner(source);
     compilingCode = code;
@@ -301,10 +413,11 @@ int compile(const char *source, CodeVec *code) {
     parser.source = source;
 
     advance();
-    expression();
-    if (consume(TOKEN_EOS)) {
-        reportError("Expect end of expression");
+
+    while (!match(TOKEN_EOF)) {
+        declaration();
     }
+
     endCompiler();
     return parser.errorCount;
 }

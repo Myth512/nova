@@ -36,10 +36,16 @@ int printInstruction(CodeVec *vec, int offset) {
             return constantInstruction("CONSTANT", vec, offset);
         case OP_NIL:
             return simpleInstruction("NIL", offset);
+        case OP_POP:
+            return simpleInstruction("POP", offset);
         case OP_FALSE:
             return simpleInstruction("FALSE", offset);
         case OP_TRUE:
             return simpleInstruction("TRUE", offset);
+        case OP_GET_GLOBAL:
+            return constantInstruction("GET GLOBAL", vec, offset);
+        case OP_DEFINE_GLOBAL:
+            return constantInstruction("DEFINE GLOBAL", vec, offset);
         case OP_ADD:
             return simpleInstruction("ADD", offset);
         case OP_SUBTRUCT:
@@ -54,6 +60,8 @@ int printInstruction(CodeVec *vec, int offset) {
             return simpleInstruction("NOT", offset);
         case OP_NEGATE:
             return simpleInstruction("NEGATE", offset);
+        case OP_PRINT:
+            return simpleInstruction("PRINT", offset);
         case OP_RETURN:
             return simpleInstruction("RETURN", offset);
         default:

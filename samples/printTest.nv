@@ -1,0 +1,4 @@
+var greet = "Hello"
+var end = "World!"
+
+print greet + ", " + end
