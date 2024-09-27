@@ -214,15 +214,23 @@ static InterpretResult run() {
                 ObjString *name = READ_STRING();
                 Value value;
                 if (!tableGet(&vm.globals, name, &value)) {
-                    printf("Undefined variable '%s'", name->chars);
+                    printf("Undefined variable '%s'\n", name->chars);
                 }
                 push(value);
                 break;
             }
             case OP_DEFINE_GLOBAL: {
                 ObjString *name = READ_STRING();
-                tableSet(&vm.globals, name, peek(0));
-                pop();
+                tableSet(&vm.globals, name, pop());
+                break;
+            }
+            case OP_SET_GLOBAL: {
+                ObjString *name = READ_STRING();
+                if (tableSet(&vm.globals, name, peek(0))) {
+                    tableDelete(&vm.globals, name);
+                    printf("Undefined variable '%s'\n", name->chars);
+                    return INTERPRET_RUNTIME_ERROR;
+                }
                 break;
             }
             case OP_FALSE:

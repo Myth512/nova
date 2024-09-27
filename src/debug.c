@@ -23,6 +23,14 @@ void printCodeVec(CodeVec *vec, const char *title) {
     }
 }
 
+void printValueVec(ValueVec *vec) {
+    for (int i = 0; i < vec->size; i++) {
+        printValue(vec->values[i]);
+        printf(" ");
+    }
+    printf("\n");
+}
+
 int printInstruction(CodeVec *vec, int offset) {
     printf("%04d ", offset);
     if (offset > 0 && vec->lines[offset] == vec->lines[offset - 1])
@@ -46,6 +54,8 @@ int printInstruction(CodeVec *vec, int offset) {
             return constantInstruction("GET GLOBAL", vec, offset);
         case OP_DEFINE_GLOBAL:
             return constantInstruction("DEFINE GLOBAL", vec, offset);
+        case OP_SET_GLOBAL:
+            return constantInstruction("SET GLOBAL", vec, offset);
         case OP_ADD:
             return simpleInstruction("ADD", offset);
         case OP_SUBTRUCT:
