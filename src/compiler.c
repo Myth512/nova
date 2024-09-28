@@ -235,6 +235,13 @@ static void expressionStatement() {
 }
 
 static uint8_t createConstant(Value value) {
+    ValueVec *constants = &currentCode()->constants;
+    int size = constants->size;
+
+    for (int i = 0; i < 10 && i < size; i++)
+        if (compareValues(value, constants->values[size-i-1]))
+            return size - i - 1;
+
     int id = pushConstant(currentCode(), value);
     if (id > UINT8_MAX) {
         reportError("Too many constants in one code block");

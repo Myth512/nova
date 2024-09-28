@@ -18,10 +18,13 @@ static Obj* allocateObject(size_t size, ObjType type) {
 }
 
 static ObjString* allocateString(char *chars, int length, uint32_t hash) {
-    ObjString *string = ALLOCATE_OBJ(ObjString, OBJ_STRING);
+    ObjString *string = (ObjString*)allocateObject(sizeof(ObjString) + length + 1, OBJ_STRING); 
     string->length = length;
-    string->chars = chars;
     string->hash = hash;
+
+    memcpy(string->chars, chars, length);
+    string->chars[length] = '\0';
+
     tableSet(&vm.strings, string, NIL_VAL);
     return string;
 }
@@ -41,10 +44,7 @@ ObjString* copyString(const char *chars, int length) {
     if (interned != NULL)
         return interned;
 
-    char *heapChars = ALLOCATE(char, length + 1);
-    memcpy(heapChars, chars, length);
-    heapChars[length] = '\0';
-    return allocateString(heapChars, length, hash);
+    return allocateString(chars, length, hash);
 }
 
 ObjString* takeString(char *chars, int length) {
