@@ -1,19 +1,10 @@
-var a = 2 + 2 * 2
+{
+	var b = 10;
 
-for (var i = 0; i < 10; i += 1)
-	print(i)
-
-var c = 5353.
-
-var b = "hello
-
-class Pie {
-	def init(flavor) {
-		self.flavor = flavor
-	}
-
-	def taste() {
-	}
+	var b = 15;
 }
 
+while (True) {
+	var c = 15;
+}
 

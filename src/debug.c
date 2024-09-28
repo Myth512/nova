@@ -7,6 +7,12 @@ static int simpleInstruction(const char *name, int offset) {
     return offset + 1;
 }
 
+static int byteInstruction(const char *name, CodeVec *vec, int offset) {
+    uint8_t slot = vec->code[offset + 1];
+    printf("%-16s %4d\n", name, slot);
+    return offset + 2;
+}
+
 static int constantInstruction(const char *name, CodeVec *vec, int offset) {
     uint8_t constant = vec->code[offset + 1];
     printf("%-16s %4d '", name, constant);
@@ -56,6 +62,10 @@ int printInstruction(CodeVec *vec, int offset) {
             return constantInstruction("DEFINE GLOBAL", vec, offset);
         case OP_SET_GLOBAL:
             return constantInstruction("SET GLOBAL", vec, offset);
+        case OP_GET_LOCAL:
+            return byteInstruction("GET LOCAL", vec, offset);
+        case OP_SET_LOCAL:
+            return byteInstruction("SET LOCAL", vec, offset);
         case OP_ADD:
             return simpleInstruction("ADD", offset);
         case OP_SUBTRUCT:

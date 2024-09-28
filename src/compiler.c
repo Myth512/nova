@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <string.h>
 
 #include "compiler.h"
 #include "scanner.h"
@@ -14,6 +15,17 @@ typedef struct {
     int errorCount;
     bool panicMode;
 } Parser;
+
+typedef struct {
+    Token name;
+    int depth;
+} Local;
+
+typedef struct {
+    Local locals[UINT8_MAX + 1];
+    int localCount;
+    int scopeDepth;
+} Compiler;
 
 typedef enum {
     PREC_NONE,
@@ -37,7 +49,6 @@ typedef struct {
     Precedence precedence;
 } ParseRule;
 
-
 static void number(bool canAssign);
 
 static void literal(bool canAssign);
@@ -51,6 +62,8 @@ static void unary(bool canAssign);
 static void binary(bool canAssign);
 
 static void variable(bool canAssign);
+
+static void declaration();
 
 ParseRule rules[] = {
   [TOKEN_LEFT_PAREN]    = {grouping, NULL,   PREC_NONE},
@@ -101,10 +114,17 @@ static ParseRule* getRule(TokenType type) {
 }
 
 Parser parser;
+Compiler *current = NULL;
 CodeVec *compilingCode;
 
 static CodeVec* currentCode() {
     return compilingCode;
+}
+
+static void initCompiler(Compiler *compiler) {
+    compiler->localCount = 0;
+    compiler->scopeDepth = 0;
+    current = compiler;
 }
 
 static void reportError(const char *message) {
@@ -115,11 +135,15 @@ static void reportError(const char *message) {
     fprintf(stderr, "\033[31mParse Error\033[0m: %s\n", message);
 }
 
-static void advance() {
+static void advance(bool skipNewline) {
     parser.previous = parser.current;
 
     while (true) {
-        parser.current = scanToken(false);
+        parser.current = scanToken(skipNewline);
+
+        #ifdef DEBUG_PRINT_TOKENS
+            printToken(&parser.current);
+        #endif
 
         if (parser.current.type == TOKEN_EOF)
             break;
@@ -152,7 +176,7 @@ static void synchronize() {
                 break;
         }
 
-        advance();
+        advance(false);
     }
 }
 
@@ -160,15 +184,15 @@ static bool check(TokenType type) {
     return parser.current.type == type;
 }
 
-static bool match(TokenType type) {
+static bool match(TokenType type, bool skipNewline) {
     if (!check(type))
         return false;
-    advance();
+    advance(skipNewline);
     return true;
 }
 
 static void parsePrecedence(Precedence precedence) {
-    advance();
+    advance(false);
 
     Token leftOperand = parser.previous;
 
@@ -182,19 +206,19 @@ static void parsePrecedence(Precedence precedence) {
     prefixRule(canAssign);
 
     while (precedence <= getRule(parser.current.type)->precedence) {
-        advance();
+        advance(false);
         ParseFn infixRule = getRule(parser.previous.type)->infix;
         infixRule(canAssign);
     }
 
-    if (canAssign && match(TOKEN_EQUAL)) {
+    if (canAssign && match(TOKEN_EQUAL, false)) {
         printf("Invalid asignment target");
     }
 }
 
 static bool consume(TokenType type) {
     if (parser.current.type == type) {
-        advance();
+        advance(false);
         return false;
     }
 
@@ -258,17 +282,60 @@ static uint8_t identifierConstant(Token *name) {
     return createConstant(OBJ_VAL(copyString(name->start, name->length)));
 }
 
-static uint8_t parseVariable(const char *errorMessage) {
-    if (consume(TOKEN_IDENTIFIER)) {
-        reportError(errorMessage);
+static void addLocal(Token name) {
+    if (current->localCount == UINT8_MAX + 1) {
+        reportError("Too many variable in function");
+        return;
     }
+    Local *local = &current->locals[current->localCount++];
+    local->name = name;
+    local->depth = -1;
+}
+
+static bool identifierEqual(Token *a, Token *b) {
+    if (a->length != b->length)
+        return false;
+    
+    return memcmp(a->start, b->start, a->length) == 0;
+}
+
+static void declareVariable() {
+    if (current->scopeDepth == 0)
+        return;
+    
+    Token *name = &parser.previous;
+    for (int i = current->localCount - 1; i >= 0; i--) {
+        Local *local = &current->locals[i];
+        if (local->depth != -1 && local->depth < current->scopeDepth)
+            break;
+        
+        if (identifierEqual(name, &local->name))
+            reportError("Already a variable with this name in this scope");
+    }
+    addLocal(*name);
+}
+
+static uint8_t parseVariable(const char *errorMessage) {
+    if (consume(TOKEN_IDENTIFIER))
+        reportError(errorMessage);
+
+    declareVariable();
+    if (current->scopeDepth > 0)
+        return 0;
+
     return identifierConstant(&parser.previous);
 }
 
-static void defineVariable(uint8_t global) {
-    emitBytes(OP_DEFINE_GLOBAL, global);
+static void markInitialized() {
+    current->locals[current->localCount - 1].depth = current->scopeDepth;
 }
 
+static void defineVariable(uint8_t global) {
+    if (current->scopeDepth > 0)
+        markInitialized();
+    else
+        emitBytes(OP_DEFINE_GLOBAL, global);
+}
 
 static void number(bool canAssign) {
     double value = strtod(parser.previous.start, NULL);
@@ -291,15 +358,36 @@ static void literal(bool canAssign) {
     }
 }
 
-static void namedVariable(Token name, bool canAssign) {
-    uint8_t arg = identifierConstant(&name);
-    printValueVec(&currentCode()->constants);
+static int resolveLocal(Compiler *compiler, Token *name) {
+    for (int i = compiler->localCount - 1; i >= 0; i++) {
+        Local *local = &compiler->locals[i];
+        if (local->depth == -1)
+            reportError("Can't use local variable in it's own initializer");
 
-    if (canAssign && match(TOKEN_EQUAL)) {
-        expression();
-        emitBytes(OP_SET_GLOBAL, arg);
+        if (identifierEqual(name, &local->name))
+            return i;
+    }
+
+    return -1;
+}
+
+static void namedVariable(Token name, bool canAssign) {
+    uint8_t getOp, setOp;
+    int arg = resolveLocal(current, &name); 
+    if (arg != -1) {
+        getOp = OP_GET_LOCAL;
+        setOp = OP_SET_LOCAL;
     } else {
-        emitBytes(OP_GET_GLOBAL, arg);
+        arg = identifierConstant(&name);
+        getOp = OP_GET_GLOBAL;
+        setOp = OP_SET_GLOBAL;
+    }
+
+    if (canAssign && match(TOKEN_EQUAL, false)) {
+        expression();
+        emitBytes(setOp, (uint8_t)arg);
+    } else {
+        emitBytes(getOp, (uint8_t)arg);
     }
 }
 
@@ -377,6 +465,8 @@ static void binary(bool canAssign) {
         case TOKEN_MOD:
             emitByte(OP_MOD);
             break;
+        case TOKEN_EOS:
+            break;
         default:
             return;
     }
@@ -385,14 +475,41 @@ static void binary(bool canAssign) {
 static void printStatement() {
     expression();
     if (consume(TOKEN_EOS)) {
-        printf("Expected ';' after value");
+        printf("Expected ';' after value\n");
     }
     emitByte(OP_PRINT);
 }
 
+static void beginScope() {
+    current->scopeDepth++;
+}
+
+static void endScope() {
+    current->scopeDepth--;
+
+    while (current->localCount > 0 &&
+           current->locals[current->localCount - 1].depth > current->scopeDepth) {
+            emitByte(OP_POP);
+            current->localCount--;
+    }
+}
+
+static void block() {
+    while (!check(TOKEN_RIGHT_BRACE) && !check(TOKEN_EOF)) {
+        declaration();
+    }
+
+    if (consume(TOKEN_RIGHT_BRACE))
+        printf("Expect '}' after block\n");
+}
+
 static void statement() {
-    if (match(TOKEN_PRINT)) {
+    if (match(TOKEN_PRINT, false)) {
         printStatement();
+    } else if (match(TOKEN_LEFT_BRACE, false)) {
+        beginScope();
+        block();
+        endScope();
     } else {
         expressionStatement();
     }
@@ -401,7 +518,7 @@ static void statement() {
 static void varDeclaration() {
     uint8_t global = parseVariable("Expect variable name.");
 
-    if (match(TOKEN_EQUAL))
+    if (match(TOKEN_EQUAL, false))
         expression();
     else
         emitByte(OP_NIL);
@@ -414,7 +531,9 @@ static void varDeclaration() {
 }
 
 static void declaration() {
-    if (match(TOKEN_VAR))
+    if (match(TOKEN_EOS, false))
+        return;
+    else if (match(TOKEN_VAR, false))
         varDeclaration();
     else
         statement();
@@ -425,15 +544,17 @@ static void declaration() {
 
 int compile(const char *source, CodeVec *code) {
     initScanner(source);
+    Compiler compiler;
+    initCompiler(&compiler);
     compilingCode = code;
 
     parser.errorCount = 0;
     parser.panicMode = false;
     parser.source = source;
 
-    advance();
+    advance(false);
 
-    while (!match(TOKEN_EOF)) {
+    while (!match(TOKEN_EOF, false)) {
         declaration();
     }
 

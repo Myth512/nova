@@ -33,5 +33,4 @@ void pushInstruction(CodeVec *vec, uint8_t byte, int line) {
 
 int pushConstant(CodeVec *vec, Value value) {
     pushValue(&vec->constants, value);
-    return vec->constants.size - 1;
-}
+    return vec->constants.size - 1;}
