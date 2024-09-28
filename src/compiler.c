@@ -12,6 +12,7 @@ typedef struct {
     const char *source;
     Token current;
     Token previous;
+    Token exprStart;
     int errorCount;
     bool panicMode;
 } Parser;
@@ -127,12 +128,13 @@ static void initCompiler(Compiler *compiler) {
     current = compiler;
 }
 
-static void reportError(const char *message) {
+static bool reportError(const char *message) {
     if (parser.panicMode)
-        return;
+        return false;
     parser.panicMode = true;
     parser.errorCount++;
     fprintf(stderr, "\033[31mParse Error\033[0m: %s\n", message);
+    return true;
 }
 
 static void advance(bool skipNewline) {
@@ -210,19 +212,15 @@ static void parsePrecedence(Precedence precedence) {
         ParseFn infixRule = getRule(parser.previous.type)->infix;
         infixRule(canAssign);
     }
-
-    if (canAssign && match(TOKEN_EQUAL, false)) {
-        printf("Invalid asignment target");
-    }
 }
 
 static bool consume(TokenType type) {
     if (parser.current.type == type) {
         advance(false);
-        return false;
+        return true;
     }
 
-    return true;
+    return false;
 }
 
 static void emitByte(uint8_t byte) {
@@ -247,13 +245,23 @@ static void endCompiler() {
 }
 
 static void expression() {
+    parser.exprStart = parser.current;
     parsePrecedence(PREC_ASSIGNMENT);
 }
 
 static void expressionStatement() {
     expression();
-    if (consume(TOKEN_EOS)) {
-        reportError("Expect eos after expression");
+    if (!consume(TOKEN_EOS)) {
+        if (check(TOKEN_EQUAL)) {
+            if (reportError("Invalid assignment target")) {
+                int line = parser.exprStart.line;
+                int column = parser.exprStart.column;
+                int length = parser.previous.column + parser.previous.length - column;
+                printHighlightedPartInCode(parser.source, line, column, length);
+            }
+        } else {
+            reportError("Expect eos after expression");
+        }
     }
     emitByte(OP_POP);
 }
@@ -316,8 +324,14 @@ static void declareVariable() {
 }
 
 static uint8_t parseVariable(const char *errorMessage) {
-    if (consume(TOKEN_IDENTIFIER))
-        reportError(errorMessage);
+    if (!consume(TOKEN_IDENTIFIER)) {
+        if (check(TOKEN_NUMBER)) {
+            reportError("Variable name can't start with digit");
+            printHighlightedPartInCode(parser.source, parser.current.line, parser.current.column, 1);
+        } else {
+            reportError(errorMessage);
+        }
+    }
 
     declareVariable();
     if (current->scopeDepth > 0)
@@ -359,13 +373,16 @@ static void literal(bool canAssign) {
 }
 
 static int resolveLocal(Compiler *compiler, Token *name) {
-    for (int i = compiler->localCount - 1; i >= 0; i++) {
+    for (int i = compiler->localCount - 1; i >= 0; i--) {
         Local *local = &compiler->locals[i];
-        if (local->depth == -1)
-            reportError("Can't use local variable in it's own initializer");
-
-        if (identifierEqual(name, &local->name))
+        if (identifierEqual(name, &local->name)) {
+            if (local->depth == -1) {
+                if (reportError("Can't use local variable in it's own initializer")) {
+                    printTokenInCode(parser.source, &parser.previous);
+                }
+            }
             return i;
+        }
     }
 
     return -1;
@@ -383,9 +400,19 @@ static void namedVariable(Token name, bool canAssign) {
         setOp = OP_SET_GLOBAL;
     }
 
-    if (canAssign && match(TOKEN_EQUAL, false)) {
-        expression();
-        emitBytes(setOp, (uint8_t)arg);
+    if (check(TOKEN_EQUAL)) {
+        if (canAssign) {
+            advance(false);
+            expression();
+            emitBytes(setOp, (uint8_t)arg);
+        } else {
+            if (reportError("Invalid assignment target")) {
+                int line = parser.exprStart.line;
+                int column = parser.exprStart.column;
+                int length = parser.previous.column + parser.previous.length - column;
+                printHighlightedPartInCode(parser.source, line, column, length);
+            }
+        }
     } else {
         emitBytes(getOp, (uint8_t)arg);
     }
@@ -401,11 +428,20 @@ static void string(bool canAssign) {
 
 static void grouping(bool canAssign) {
     expression();
-    if (consume(TOKEN_RIGHT_PAREN)) {
-        reportError("Expect ')' here");
-        const char *codeLine = getCodeLine(parser.source, parser.current.line);
-        printCodeLine(codeLine, parser.current.line);
-        printArrow(codeLine, parser.current.column, 1);
+    if (!consume(TOKEN_RIGHT_PAREN)) {
+        if (check(TOKEN_RIGHT_BRACE)) {
+            if (reportError("Expect ')' insted of '}'")) {
+                printHighlightedPartInCode(parser.source, parser.current.line, parser.current.column, 1);
+            }
+        } else if (check(TOKEN_RIGHT_BRACKET)) {
+            if (reportError("Expect ')' insted of ']'")) {
+                printHighlightedPartInCode(parser.source, parser.current.line, parser.current.column, 1);
+            }
+        } else {
+            if (reportError("Expect ')'")) {
+                printHighlightedPartInCode(parser.source, parser.current.line, parser.current.column, 1);
+            }
+        }
     }
 }
 
@@ -474,7 +510,7 @@ static void binary(bool canAssign) {
 
 static void printStatement() {
     expression();
-    if (consume(TOKEN_EOS)) {
+    if (!consume(TOKEN_EOS)) {
         printf("Expected ';' after value\n");
     }
     emitByte(OP_PRINT);
@@ -499,7 +535,7 @@ static void block() {
         declaration();
     }
 
-    if (consume(TOKEN_RIGHT_BRACE))
+    if (!consume(TOKEN_RIGHT_BRACE))
         printf("Expect '}' after block\n");
 }
 
@@ -523,7 +559,7 @@ static void varDeclaration() {
     else
         emitByte(OP_NIL);
     
-    if (consume(TOKEN_EOS)) {
+    if (!consume(TOKEN_EOS)) {
         reportError("Expect eos after variable declaration");
     }
 

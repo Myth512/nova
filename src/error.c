@@ -15,7 +15,6 @@ const char* getCodeLine(const char *source, int line) {
     return lineStart;
 }
 
-
 void printHightlightedWordInCode(const char *codeLine, int line, int column, int length){
     printf("%4d | ", line);
     const char *c = codeLine;
@@ -30,7 +29,6 @@ void printHightlightedWordInCode(const char *codeLine, int line, int column, int
         putchar(*c);
     putchar('\n');
 }
-
 
 void printCodeLine(const char *codeLine, int line) {
     printf("%4d | ", line);
@@ -50,8 +48,11 @@ void printArrow(const char *codeLine, int start, int length) {
             putchar(' ');
     }
     printf("\033[31m");
+    offset = 0;
+    for (; offset < length / 2; offset++)
+        putchar('~');
     putchar('^');
-    for (int i = 0; i < length - 1; i++)
+    for (; offset < length - 1; offset++)
         putchar('~');
     printf("\033[0m\n");
 }
@@ -60,4 +61,10 @@ void printTokenInCode(const char *source, Token *token) {
     const char *codeLine = getCodeLine(source, token->line);
     printHightlightedWordInCode(codeLine, token->line, token->column, token->length);
     printArrow(codeLine, token->column, token->length);
+}
+
+void printHighlightedPartInCode(const char *source, int line, int column, int length) {
+    const char *codeLine = getCodeLine(source, line);
+    printHightlightedWordInCode(codeLine, line, column, length);
+    printArrow(codeLine, column, length);
 }

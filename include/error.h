@@ -15,4 +15,6 @@ void printHightlightedWordInCode(const char *codeLine, int line, int column, int
 
 void printTokenInCode(const char *source, Token *token);
 
+void printHighlightedPartInCode(const char *source, int line, int column, int length);
+
 #endif

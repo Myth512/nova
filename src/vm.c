@@ -327,9 +327,9 @@ InterpretResult interpret(const char *source) {
     int errorCount = compile(source, &code);
     if (errorCount != 0) {
         if (errorCount == 1) 
-            printf("Compilation ended with 1 error\n");
+            printf("Compilation \033[31mfailed\033[0m with 1 error\n");
         else
-            printf("Compilation ended with %d error\n", errorCount);
+            printf("Compilation \033[31mfailed\033[0m with %d errors\n", errorCount);
 
         freeCodeVec(&code);
         return INTERPRET_COMPILE_ERROR;
