@@ -9,7 +9,7 @@ CC=gcc
 OPT=-O0
 DEPFLAGS=-MP -MD
 
-CFLAGS=-Wall -Wextra -g -I $(INC_DIR) $(OPT) $(DEPFLAGS)
+CFLAGS= -std=c99 -Wall -Wextra -g -I $(INC_DIR) $(OPT) $(DEPFLAGS)
 
 SRCS = $(wildcard $(SRC_DIR)/*.c)
 OBJS = $(patsubst $(SRC_DIR)/%.c, $(OBJ_DIR)/%.o, $(SRCS))
