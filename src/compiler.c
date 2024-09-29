@@ -427,10 +427,28 @@ static void variable(bool canAssign, bool skipNewline) {
 }
 
 static void string(bool canAssign, bool skipNewline) {
-    emitConstant(OBJ_VAL(copyString(parser.previous.start + 1, parser.previous.length - 2)));
+    emitConstant(OBJ_VAL(copyString(parser.previous.start, parser.previous.length)));
 }
 
 static void fstring(bool canAssign, bool skipNewline) {
+    int i = 0;
+    while (parser.previous.type != TOKEN_STRING) {
+        string(canAssign, skipNewline);
+        // printCodeVec(currentCode(), "test");
+
+        expression(skipNewline);
+        // printCodeVec(currentCode(), "test");
+
+        emitByte(OP_TO_STRING);
+        emitByte(OP_ADD);
+        // printCodeVec(currentCode(), "test");
+
+        if (i++) 
+            emitByte(OP_ADD);
+        advance(false);
+    }
+    string(canAssign, skipNewline);
+    emitByte(OP_ADD);
     return;
 }
 

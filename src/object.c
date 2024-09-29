@@ -56,8 +56,8 @@ static int resolveEscapeSequence(const char *source, int sourceLength, char *des
         } else {
             sourceChar++;
             *destinationChar = convertToEscapeChar(*sourceChar);
-            destinationChar++;
             sourceChar++;
+            destinationChar++;
             destinationLength++;
         }
     }

@@ -44,6 +44,27 @@ void printValue(Value value) {
     }
 }
 
+Value ValueToString(Value value) {
+    switch (value.type) {
+        case VAL_BOOL:
+            ObjString *string;
+            if (AS_BOOL(value) == true)
+                string = copyString("true", 4);
+            else
+                string = copyString("false", 5);
+            return OBJ_VAL(string);
+        case VAL_NIL:
+            ObjString *string = copyString("nil", 3);;
+            return OBJ_VAL(string);
+        case VAL_NUMBER:
+            printf("%g", AS_NUMBER(value));
+            break;
+        case VAL_OBJ:
+            printObject(value);
+            break;
+    }
+
+}
 bool compareValues(Value a, Value b) {
     if (a.type != b.type)
         return false;

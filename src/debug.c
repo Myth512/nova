@@ -31,7 +31,9 @@ void printCodeVec(CodeVec *vec, const char *title) {
 
 void printValueVec(ValueVec *vec) {
     for (int i = 0; i < vec->size; i++) {
+        putchar('"');
         printValue(vec->values[i]);
+        putchar('"');
         printf(" ");
     }
     printf("\n");
@@ -80,8 +82,22 @@ int printInstruction(CodeVec *vec, int offset) {
             return simpleInstruction("NOT", offset);
         case OP_NEGATE:
             return simpleInstruction("NEGATE", offset);
+        case OP_EQUAL:
+            return simpleInstruction("EQUAL", offset);
+        case OP_NOT_EQUAL:
+            return simpleInstruction("NOT EQUAL", offset);
+        case OP_GREATER:
+            return simpleInstruction("GREATER", offset);
+        case OP_GREATER_EQUAL:
+            return simpleInstruction("GREATER EQUAL", offset);
+        case OP_LESS:
+            return simpleInstruction("LESS", offset);
+        case OP_LESS_EQUAL:
+            return simpleInstruction("LESS EQUAL", offset);
         case OP_PRINT:
             return simpleInstruction("PRINT", offset);
+        case OP_TO_STRING:
+            return simpleInstruction("TO STRING", offset);
         case OP_RETURN:
             return simpleInstruction("RETURN", offset);
         default:

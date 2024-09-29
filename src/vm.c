@@ -180,6 +180,10 @@ static bool isFalsey(Value value) {
     return IS_NIL(value) || (IS_BOOL(value) && !AS_BOOL(value)) || (IS_NUMBER(value) && AS_NUMBER(value) == 0);
 }
 
+static void toString() {
+    push(ValueToString(pop()));
+}
+
 static InterpretResult run() {
     #define READ_BYTE() (*vm.ip++)
     #define READ_CONSTANT() (vm.code->constants.values[READ_BYTE()])
@@ -295,6 +299,9 @@ static InterpretResult run() {
             case OP_PRINT:
                 printValue(pop());
                 putchar('\n');
+                break;
+            case OP_TO_STRING:
+                toString();
                 break;
             case OP_RETURN:
                 return INTERPRET_OK;

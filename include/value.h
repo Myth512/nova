@@ -50,6 +50,8 @@ void pushValue(ValueVec *values, Value value);
 
 void printValue(Value value);
 
+Value ValueToString(Value value);
+
 bool compareValues(Value a, Value b);
 
 #endif

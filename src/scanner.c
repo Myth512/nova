@@ -12,6 +12,7 @@ typedef struct {
     int column;
     int startLine;
     int startColumn;
+    bool inFormattedString;
     TokenType lastToken;
 } Scanner;
 
@@ -25,6 +26,11 @@ static char advance() {
     scanner.current++;
     scanner.column++;
     return scanner.current[-1];
+}
+
+static void skipChar() {
+    scanner.startColumn++;
+    scanner.start++;
 }
 
 static bool match(char expected) {
@@ -128,11 +134,14 @@ static Token createErrorToken(const char *message) {
 }
 
 static Token scanString() {
-    bool isFormated = false;
-
     while (peek() != '"' && peek() != '\n' && !reachEnd()) {
-        if (peek() != '\\' && peekNext() == '{')
-            isFormated = true;
+        if (peek() != '\\' && peekNext() == '{') {
+            scanner.inFormattedString = true;
+            advance();
+            Token token = createToken(TOKEN_FSTRING);
+            advance();
+            return token; 
+        }
         if (peek() == '\\' && peekNext() == '"')
             advance();
         advance();
@@ -142,8 +151,11 @@ static Token scanString() {
         return createErrorToken("Unterminated string, staring here");
     }
 
+    Token token = createToken(TOKEN_STRING);
     advance();
-    return createToken(isFormated ? TOKEN_FSTRING : TOKEN_STRING);
+    advance();
+    scanner.inFormattedString = false;
+    return token; 
 }
 
 static Token scanNumber() {
@@ -263,6 +275,10 @@ Token scanToken(bool skipNewline) {
         case '{':
             return createToken(TOKEN_LEFT_BRACE);
         case '}':
+            if (scanner.inFormattedString) {
+                skipChar();
+                return scanString(); 
+            }
             return createToken(TOKEN_RIGHT_BRACE);
         case '[':
             return createToken(TOKEN_LEFT_BRACKET);
@@ -299,6 +315,7 @@ Token scanToken(bool skipNewline) {
         case '\\':
             return scanToken(true);
         case '"':
+            skipChar();
             return scanString();
     }
     return createErrorToken("Unknown token");
