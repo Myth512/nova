@@ -42,7 +42,7 @@ typedef enum {
     PREC_PRIMARY
 } Precedence;
 
-typedef void (*ParseFn)(bool canAssign);
+typedef void (*ParseFn)(bool canAssign, bool skipNewline);
 
 typedef struct {
     ParseFn prefix;
@@ -50,19 +50,19 @@ typedef struct {
     Precedence precedence;
 } ParseRule;
 
-static void number(bool canAssign);
+static void number(bool canAssign, bool skipNewline);
 
-static void literal(bool canAssign);
+static void literal(bool canAssign, bool skipNewline);
 
-static void string(bool canAssign);
+static void string(bool canAssign, bool skipNewline);
 
-static void grouping(bool canAssign);
+static void grouping(bool canAssign, bool skipNewline);
 
-static void unary(bool canAssign);
+static void unary(bool canAssign, bool skipNewline);
 
-static void binary(bool canAssign);
+static void binary(bool canAssign, bool skipNewline);
 
-static void variable(bool canAssign);
+static void variable(bool canAssign, bool skipNewline);
 
 static void declaration();
 
@@ -193,24 +193,25 @@ static bool match(TokenType type, bool skipNewline) {
     return true;
 }
 
-static void parsePrecedence(Precedence precedence) {
-    advance(false);
+static void parsePrecedence(Precedence precedence, bool skipNewline) {
+    advance(skipNewline);
 
     Token leftOperand = parser.previous;
 
     ParseFn prefixRule = getRule(leftOperand.type)->prefix;
     if (prefixRule == NULL) {
         reportError("Expect expression");
+        printTokenInCode(parser.source, &leftOperand);
         return;
     }
 
     bool canAssign = precedence <= PREC_ASSIGNMENT;
-    prefixRule(canAssign);
+    prefixRule(canAssign, skipNewline);
 
     while (precedence <= getRule(parser.current.type)->precedence) {
-        advance(false);
+        advance(skipNewline);
         ParseFn infixRule = getRule(parser.previous.type)->infix;
-        infixRule(canAssign);
+        infixRule(canAssign, skipNewline);
     }
 }
 
@@ -244,13 +245,13 @@ static void endCompiler() {
     #endif
 }
 
-static void expression() {
+static void expression(bool skipNewline) {
     parser.exprStart = parser.current;
-    parsePrecedence(PREC_ASSIGNMENT);
+    parsePrecedence(PREC_ASSIGNMENT, skipNewline);
 }
 
 static void expressionStatement() {
-    expression();
+    expression(false);
     if (!consume(TOKEN_EOS)) {
         if (check(TOKEN_EQUAL)) {
             if (reportError("Invalid assignment target")) {
@@ -351,12 +352,12 @@ static void defineVariable(uint8_t global) {
         emitBytes(OP_DEFINE_GLOBAL, global);
 }
 
-static void number(bool canAssign) {
+static void number(bool canAssign, bool skipNewline) {
     double value = strtod(parser.previous.start, NULL);
     emitConstant(NUMBER_VAL(value));
 }
 
-static void literal(bool canAssign) {
+static void literal(bool canAssign, bool skipNewline) {
     switch (parser.previous.type) {
         case TOKEN_FALSE:
             emitByte(OP_FALSE);
@@ -403,7 +404,7 @@ static void namedVariable(Token name, bool canAssign) {
     if (check(TOKEN_EQUAL)) {
         if (canAssign) {
             advance(false);
-            expression();
+            expression(false);
             emitBytes(setOp, (uint8_t)arg);
         } else {
             if (reportError("Invalid assignment target")) {
@@ -418,37 +419,43 @@ static void namedVariable(Token name, bool canAssign) {
     }
 }
 
-static void variable(bool canAssign) {
+static void variable(bool canAssign, bool skipNewline) {
     namedVariable(parser.previous, canAssign);
 }
 
-static void string(bool canAssign) {
+static void string(bool canAssign, bool skipNewline) {
     emitConstant(OBJ_VAL(copyString(parser.previous.start + 1, parser.previous.length - 2)));
 }
 
-static void grouping(bool canAssign) {
-    expression();
+static void grouping(bool canAssign, bool skipNewline) {
+    Token groupingStart = parser.previous;
+
+    expression(true);
+
     if (!consume(TOKEN_RIGHT_PAREN)) {
-        if (check(TOKEN_RIGHT_BRACE)) {
-            if (reportError("Expect ')' insted of '}'")) {
-                printHighlightedPartInCode(parser.source, parser.current.line, parser.current.column, 1);
-            }
-        } else if (check(TOKEN_RIGHT_BRACKET)) {
-            if (reportError("Expect ')' insted of ']'")) {
-                printHighlightedPartInCode(parser.source, parser.current.line, parser.current.column, 1);
-            }
-        } else {
-            if (reportError("Expect ')'")) {
-                printHighlightedPartInCode(parser.source, parser.current.line, parser.current.column, 1);
-            }
+        switch (parser.current.type) {
+            case TOKEN_RIGHT_BRACE:
+                if (reportError("closing brace '}' does not match opening parenthesis '('"))
+                    print2HighlightedPartsInCode(parser.source, groupingStart.line, groupingStart.column, 1,
+                                                                parser.current.line, parser.current.column, 1);
+                break;
+            case TOKEN_RIGHT_BRACKET:
+                if (reportError("closing bracket ']' does not match opening parenthesis '('"))
+                    print2HighlightedPartsInCode(parser.source, groupingStart.line, groupingStart.column, 1,
+                                                                parser.current.line, parser.current.column, 1);
+                break;
+            default:
+                if (reportError("opening parenthesis does not closed"))
+                    printTokenInCode(parser.source, &groupingStart);
+                break;
         }
     }
 }
 
-static void unary(bool canAssign) {
+static void unary(bool canAssign, bool skipNewline) {
     TokenType operatorType = parser.previous.type;
     ParseRule *rule = getRule(operatorType);
-    parsePrecedence((Precedence)(rule->precedence + 1));
+    parsePrecedence((Precedence)(rule->precedence + 1), skipNewline);
 
     switch (operatorType) {
         case TOKEN_MINUS:
@@ -462,10 +469,10 @@ static void unary(bool canAssign) {
     }
 }
 
-static void binary(bool canAssign) {
+static void binary(bool canAssign, bool skipNewline) {
     TokenType operatorType = parser.previous.type;
     ParseRule *rule = getRule(operatorType);
-    parsePrecedence((Precedence)(rule->precedence + 1));
+    parsePrecedence((Precedence)(rule->precedence + 1), skipNewline);
 
     switch (operatorType) {
         case TOKEN_BANG_EQUAL:
@@ -509,10 +516,9 @@ static void binary(bool canAssign) {
 }
 
 static void printStatement() {
-    expression();
-    if (!consume(TOKEN_EOS)) {
-        printf("Expected ';' after value\n");
-    }
+    expression(false);
+    if (!consume(TOKEN_EOS))
+        reportError("Expect eos after value");
     emitByte(OP_PRINT);
 }
 
@@ -531,12 +537,30 @@ static void endScope() {
 }
 
 static void block() {
+    Token blockStart = parser.previous;
+
     while (!check(TOKEN_RIGHT_BRACE) && !check(TOKEN_EOF)) {
         declaration();
     }
 
-    if (!consume(TOKEN_RIGHT_BRACE))
-        printf("Expect '}' after block\n");
+    // printToken(&parser.previous);
+    // printToken(&parser.current);
+    if (!consume(TOKEN_RIGHT_BRACE)) {
+        switch (parser.previous.type) {
+            case TOKEN_RIGHT_PAREN:
+                if (reportError("Expect '}' instead of ')'")) 
+                    printHighlightedPartInCode(parser.source, parser.previous.line, parser.previous.column, 1);
+                break;
+            case TOKEN_RIGHT_BRACKET:
+                if (reportError("Expect '}' instead of ']'")) 
+                    printHighlightedPartInCode(parser.source, parser.previous.line, parser.previous.column, 1);
+                break;
+            default:
+                if (reportError("Unclosed '{' starting here")) 
+                    printHighlightedPartInCode(parser.source, blockStart.line, blockStart.column, 1);
+                break;
+        }
+    }
 }
 
 static void statement() {
@@ -555,12 +579,13 @@ static void varDeclaration() {
     uint8_t global = parseVariable("Expect variable name.");
 
     if (match(TOKEN_EQUAL, false))
-        expression();
+        expression(false);
     else
         emitByte(OP_NIL);
     
     if (!consume(TOKEN_EOS)) {
-        reportError("Expect eos after variable declaration");
+        if (reportError("Expect eos after variable declaration"))
+            printHighlightedPartInCode(parser.source, parser.previous.line, parser.previous.column + parser.previous.length, 1);
     }
 
     defineVariable(global);
@@ -590,9 +615,8 @@ int compile(const char *source, CodeVec *code) {
 
     advance(false);
 
-    while (!match(TOKEN_EOF, false)) {
+    while (!match(TOKEN_EOF, false))
         declaration();
-    }
 
     endCompiler();
     return parser.errorCount;

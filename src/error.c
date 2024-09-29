@@ -54,17 +54,61 @@ void printArrow(const char *codeLine, int start, int length) {
     putchar('^');
     for (; offset < length - 1; offset++)
         putchar('~');
-    printf("\033[0m\n");
+    printf("\033[0m");
 }
 
 void printTokenInCode(const char *source, Token *token) {
     const char *codeLine = getCodeLine(source, token->line);
     printHightlightedWordInCode(codeLine, token->line, token->column, token->length);
     printArrow(codeLine, token->column, token->length);
+    putchar('\n');
 }
 
 void printHighlightedPartInCode(const char *source, int line, int column, int length) {
     const char *codeLine = getCodeLine(source, line);
     printHightlightedWordInCode(codeLine, line, column, length);
     printArrow(codeLine, column, length);
+    putchar('\n');
+}
+
+void print2HighlightedPartsInCode(const char *source, int line1, int column1, int length1, int line2, int column2, int length2) {
+    if (line1 == line2) {
+        const char *codeLine = getCodeLine(source, line1);
+        if (column1 > column2) {
+            int tmp = column1;
+            column1 = column2;
+            column2 = tmp;
+        }
+
+        printf("%4d | ", line1);
+        const char *c = codeLine;
+        int curColumn = 1;
+        for (; *c != '\0' && curColumn < column1; c++, curColumn++)
+            putchar(*c);
+
+        printf("\033[31m");
+        for (int i = 0; *c != '\n' && *c != '\0' && i < length1; c++, i++, curColumn++)
+            putchar(*c);
+        printf("\033[0m");
+
+        for (; *c != '\0' && curColumn < column2; c++, curColumn++)
+            putchar(*c);
+
+        printf("\033[31m");
+        for (int i = 0; *c != '\n' && *c != '\0' && i < length2; c++, i++, curColumn++)
+            putchar(*c);
+        printf("\033[0m");
+
+        for (; *c != '\0' && *c != '\n'; c++)
+            putchar(*c);
+
+        putchar('\n');
+        printArrow(codeLine, column2, length2);        
+        putchar('\r');
+        printArrow(codeLine, column1, length1);        
+        putchar('\n');
+    } else {
+        printHighlightedPartInCode(source, line1, column1, length1);
+        printHighlightedPartInCode(source, line2, column2, length2);
+    }
 }
