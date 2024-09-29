@@ -56,6 +56,8 @@ static void literal(bool canAssign, bool skipNewline);
 
 static void string(bool canAssign, bool skipNewline);
 
+static void fstring(bool canAssign, bool skipNewline);
+
 static void grouping(bool canAssign, bool skipNewline);
 
 static void unary(bool canAssign, bool skipNewline);
@@ -89,6 +91,7 @@ ParseRule rules[] = {
   [TOKEN_LESS_EQUAL]    = {NULL,     binary, PREC_EQUALITY},
   [TOKEN_IDENTIFIER]    = {variable, NULL,   PREC_NONE},
   [TOKEN_STRING]        = {string,   NULL,   PREC_NONE},
+  [TOKEN_FSTRING]       = {fstring,  NULL,   PREC_NONE},
   [TOKEN_NUMBER]        = {number,   NULL,   PREC_NONE},
   [TOKEN_AND]           = {NULL,     NULL,   PREC_NONE},
   [TOKEN_CLASS]         = {NULL,     NULL,   PREC_NONE},
@@ -425,6 +428,10 @@ static void variable(bool canAssign, bool skipNewline) {
 
 static void string(bool canAssign, bool skipNewline) {
     emitConstant(OBJ_VAL(copyString(parser.previous.start + 1, parser.previous.length - 2)));
+}
+
+static void fstring(bool canAssign, bool skipNewline) {
+    return;
 }
 
 static void grouping(bool canAssign, bool skipNewline) {

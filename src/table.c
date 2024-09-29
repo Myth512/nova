@@ -19,7 +19,7 @@ void freeTable(Table *table) {
 }
 
 static Entry* findEntry(Entry *entries, int capacity, ObjString *key) {
-    uint32_t index = key->hash % capacity;
+    uint32_t index = 0; //fix later 
     Entry *tombstone = NULL;
 
     while (true) {
@@ -112,23 +112,23 @@ void tableAddAll(Table *source, Table *destination) {
     }
 }
 
-ObjString* tableFindString(Table *table, const char *chars, int length, uint32_t hash) {
-    if (table->size == 0)
-        return NULL;
+// ObjString* tableFindString(Table *table, const char *chars, int length, uint32_t hash) {
+//     if (table->size == 0)
+//         return NULL;
 
-    uint32_t index = hash % table->capacity;
+//     uint32_t index = hash % table->capacity;
 
-    while (true) {
-        Entry *entry = &table->entries[index];
-        if (entry->key == NULL) {
-            if (IS_NIL(entry->value))
-                return NULL;
-        } else if (entry->key->length== length &&
-                   entry->key->hash == hash &&
-                   memcmp(entry->key->chars, chars, length) == 0) {
-            return entry->key;
-        }
+//     while (true) {
+//         Entry *entry = &table->entries[index];
+//         if (entry->key == NULL) {
+//             if (IS_NIL(entry->value))
+//                 return NULL;
+//         } else if (entry->key->length== length &&
+//                    entry->key->hash == hash &&
+//                    memcmp(entry->key->chars, chars, length) == 0) {
+//             return entry->key;
+//         }
 
-        index = (index + 1) % table->capacity;
-    }
-}
+//         index = (index + 1) % table->capacity;
+//     }
+// }

@@ -148,6 +148,8 @@ static char* decodeTokenType(TokenType type) {
             return "IDENTIFIER";
         case TOKEN_STRING:
             return "STRING";
+        case TOKEN_FSTRING:
+            return "FSTRING";
         case TOKEN_NUMBER:
             return "NUMBER";
         case TOKEN_VAR:

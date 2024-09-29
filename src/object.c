@@ -17,15 +17,62 @@ static Obj* allocateObject(size_t size, ObjType type) {
     return object;
 }
 
-static ObjString* allocateString(char *chars, int length, uint32_t hash) {
-    ObjString *string = (ObjString*)allocateObject(sizeof(ObjString) + length + 1, OBJ_STRING); 
-    string->length = length;
-    string->hash = hash;
+static char convertToEscapeChar(char c) {
+    switch (c) {
+        case 'a':
+            return '\a';
+        case 'b':
+            return '\n';
+        case 'f':
+            return '\f';
+        case 'n':
+            return '\n';
+        case 'r':
+            return '\r';
+        case 't':
+            return '\t';
+        case 'v':
+            return '\v';
+        case '0':
+            return '\0';
+        case 'e':
+            return '\e';
+        default:
+            return c;
+    }
+}
 
-    memcpy(string->chars, chars, length);
-    string->chars[length] = '\0';
+static int resolveEscapeSequence(const char *source, int sourceLength, char *destination) {
+    const char *sourceChar = source;
+    const char *endChar = source + sourceLength;
+    char *destinationChar = destination;
+    int destinationLength = 0;
+    while (sourceChar < endChar) {
+        if (*sourceChar != '\\') {
+            *destinationChar = *sourceChar;
+            sourceChar++;
+            destinationChar++;
+            destinationLength++;
+        } else {
+            sourceChar++;
+            *destinationChar = convertToEscapeChar(*sourceChar);
+            destinationChar++;
+            sourceChar++;
+            destinationLength++;
+        }
+    }
+    *destinationChar = '\0';
+    return destinationLength;
+}
 
-    tableSet(&vm.strings, string, NIL_VAL);
+static ObjString* allocateString(char *chars, int length) {
+    int size = sizeof(ObjString) + length + 1;
+    ObjString *string = (ObjString*)allocateObject(size, OBJ_STRING); 
+
+    string->length = resolveEscapeSequence(chars, length, string->chars);
+    int newSize = size - (length - string->length);
+    reallocate(string, size, newSize);
+
     return string;
 }
 
@@ -39,24 +86,19 @@ static uint32_t hashString(const char *key, int length) {
 }
 
 ObjString* copyString(const char *chars, int length) {
-    uint32_t hash = hashString(chars, length);
-    ObjString *interned = tableFindString(&vm.strings, chars, length, hash);
-    if (interned != NULL)
-        return interned;
-
-    return allocateString(chars, length, hash);
+    return allocateString(chars, length);
 }
 
 ObjString* takeString(char *chars, int length) {
-    uint32_t hash = hashString(chars, length);
-    ObjString *interned = tableFindString(&vm.strings, chars, length, hash);
+    // uint32_t hash = hashString(chars, length);
+    // ObjString *interned = tableFindString(&vm.strings, chars, length, hash);
 
-    if (interned != NULL) {
-        FREE_VEC(char, chars, length + 1);
-        return interned;
-    }
+    // if (interned != NULL) {
+    //     FREE_VEC(char, chars, length + 1);
+    //     return interned;
+    // }
 
-    return allocateString(chars, length, hash);
+    return allocateString(chars, length);
 }
 
 void printObject(Value value) {

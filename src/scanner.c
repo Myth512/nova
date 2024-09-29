@@ -128,24 +128,22 @@ static Token createErrorToken(const char *message) {
 }
 
 static Token scanString() {
-    while (peek() != '"' && !reachEnd()) {
-        if (peek() == '\n') {
-            scanner.line++;
-            scanner.column = 0;
-        }
+    bool isFormated = false;
+
+    while (peek() != '"' && peek() != '\n' && !reachEnd()) {
+        if (peek() != '\\' && peekNext() == '{')
+            isFormated = true;
+        if (peek() == '\\' && peekNext() == '"')
+            advance();
         advance();
     }
 
-    if (reachEnd()) {
+    if (peek() == '\n' || reachEnd()) {
         return createErrorToken("Unterminated string, staring here");
-        // fprintf(stderr, "Scan Error: Unterminated string, starting here:\n");
-        // const char *codeLine = getCodeLine(scanner.source, scanner.startLine);
-        // printHightlightedWordInCode(codeLine, scanner.startLine, scanner.startColumn, 1);
-        // printArrow(codeLine, scanner.startColumn, 1);
     }
 
     advance();
-    return createToken(TOKEN_STRING);
+    return createToken(isFormated ? TOKEN_FSTRING : TOKEN_STRING);
 }
 
 static Token scanNumber() {
