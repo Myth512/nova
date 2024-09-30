@@ -44,27 +44,21 @@ void printValue(Value value) {
     }
 }
 
-Value ValueToString(Value value) {
+int writeValue(Value value, char *buffer) {
     switch (value.type) {
         case VAL_BOOL:
-            ObjString *string;
-            if (AS_BOOL(value) == true)
-                string = copyString("true", 4);
-            else
-                string = copyString("false", 5);
-            return OBJ_VAL(string);
+            if (AS_BOOL(value))
+                return snprintf(buffer, 5, "true");
+            return snprintf(buffer, 6, "false");
         case VAL_NIL:
-            ObjString *string = copyString("nil", 3);;
-            return OBJ_VAL(string);
+            return snprintf(buffer, 4, "nil");
         case VAL_NUMBER:
-            printf("%g", AS_NUMBER(value));
-            break;
+            return snprintf(buffer, 512, "%f", AS_NUMBER(value));
         case VAL_OBJ:
-            printObject(value);
-            break;
+            return writeObject(value, buffer);
     }
-
 }
+
 bool compareValues(Value a, Value b) {
     if (a.type != b.type)
         return false;

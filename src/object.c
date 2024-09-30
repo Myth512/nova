@@ -9,7 +9,7 @@
 #define ALLOCATE_OBJ(type, objectType) \
     (type*)allocateObject(sizeof(type), objectType)
 
-static Obj* allocateObject(size_t size, ObjType type) {
+Obj* allocateObject(size_t size, ObjType type) {
     Obj *object = (Obj*)reallocate(NULL, 0, size);
     object->type = type;
     object->next = vm.objects;
@@ -42,7 +42,7 @@ static char convertToEscapeChar(char c) {
     }
 }
 
-static int resolveEscapeSequence(const char *source, int sourceLength, char *destination) {
+int resolveEscapeSequence(const char *source, int sourceLength, char *destination) {
     const char *sourceChar = source;
     const char *endChar = source + sourceLength;
     char *destinationChar = destination;
@@ -106,5 +106,16 @@ void printObject(Value value) {
         case OBJ_STRING:
             printf("%s", AS_CSTRING(value));
             break;
+        case OBJ_RAW_STRING:
+            ObjRawString *string = AS_RAW_STRING(value);
+            for (int i = 0; i < string->length; i++)
+                putchar(string->chars[i]);
+    }
+}
+
+int writeObject(Value value, char *buffer) {
+    switch (OBJ_TYPE(value)) {
+        case OBJ_STRING:
+            return snprintf(buffer, 512, "%s", AS_CSTRING(value));
     }
 }

@@ -100,6 +100,12 @@ int printInstruction(CodeVec *vec, int offset) {
             return simpleInstruction("TO STRING", offset);
         case OP_RETURN:
             return simpleInstruction("RETURN", offset);
+        case OP_APPEND_TO_STRING:
+            return simpleInstruction("APPEND TO STRING", offset);
+        case OP_BUILD_FSTRING:
+            return simpleInstruction("BUILD FSTRING", offset);
+        case OP_BUILD_STOP:
+            return simpleInstruction("STOP BUILD", offset);
         default:
             printf("Unknown opcode %d\n", opcode);
             return offset + 1;

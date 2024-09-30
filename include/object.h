@@ -11,9 +11,11 @@
 
 #define AS_STRING(value)        ((ObjString*)AS_OBJ(value))
 #define AS_CSTRING(value)       (((ObjString*)AS_OBJ(value))->chars)
+#define AS_RAW_STRING(value)    (((ObjRawString*)AS_OBJ(value)))
 
 typedef enum {
     OBJ_STRING,
+    OBJ_RAW_STRING
 } ObjType;
 
 struct Obj {
@@ -28,11 +30,23 @@ struct ObjString {
     char chars[];
 };
 
+struct ObjRawString {
+    Obj obj;
+    int length;
+    char *chars;
+};
+
+Obj* allocateObject(size_t size, ObjType type);
+
 ObjString* copyString(const char *chars, int length);
 
 ObjString* takeString(char *chars, int length);
 
+int resolveEscapeSequence(const char *source, int sourceLength, char *destination);
+
 void printObject(Value value);
+
+int writeObject(Value value, char *buffer);
 
 static inline bool isObjType(Value value, ObjType type) {
     return IS_OBJ(value) && AS_OBJ(value)->type == type;

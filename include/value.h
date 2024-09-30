@@ -5,6 +5,7 @@
 
 typedef struct Obj Obj;
 typedef struct ObjString ObjString;
+typedef struct ObjRawString ObjRawString;
 
 typedef enum {
     VAL_BOOL,
@@ -50,7 +51,7 @@ void pushValue(ValueVec *values, Value value);
 
 void printValue(Value value);
 
-Value ValueToString(Value value);
+int writeValue(Value value, char *buffer);
 
 bool compareValues(Value a, Value b);
 

@@ -1,3 +1,4 @@
-print "1 == 1 is {1 == 1} and 2 == 5 is {2 == 5} hi"
+var age = 11
 
+print "my age is {age * 2 % 7}"
 

@@ -431,24 +431,19 @@ static void string(bool canAssign, bool skipNewline) {
 }
 
 static void fstring(bool canAssign, bool skipNewline) {
-    int i = 0;
+    emitByte(OP_BUILD_FSTRING);
     while (parser.previous.type != TOKEN_STRING) {
         string(canAssign, skipNewline);
+        emitByte(OP_APPEND_TO_STRING);
         // printCodeVec(currentCode(), "test");
-
         expression(skipNewline);
+        emitByte(OP_APPEND_TO_STRING);
         // printCodeVec(currentCode(), "test");
-
-        emitByte(OP_TO_STRING);
-        emitByte(OP_ADD);
-        // printCodeVec(currentCode(), "test");
-
-        if (i++) 
-            emitByte(OP_ADD);
         advance(false);
     }
     string(canAssign, skipNewline);
-    emitByte(OP_ADD);
+    emitByte(OP_APPEND_TO_STRING);
+    emitByte(OP_BUILD_STOP);
     return;
 }
 

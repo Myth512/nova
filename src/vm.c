@@ -7,6 +7,10 @@
 #include "memory.h"
 #include "compiler.h"
 
+#define READ_BYTE() (*vm.ip++)
+#define READ_CONSTANT() (vm.code->constants.values[READ_BYTE()])
+#define READ_STRING()   AS_STRING(READ_CONSTANT())
+
 VM vm;
 
 static void resetStack() {
@@ -180,15 +184,12 @@ static bool isFalsey(Value value) {
     return IS_NIL(value) || (IS_BOOL(value) && !AS_BOOL(value)) || (IS_NUMBER(value) && AS_NUMBER(value) == 0);
 }
 
-static void toString() {
-    push(ValueToString(pop()));
+static void buildFormattedString() {
+    if (vm.buildFormattedString)
+        writeValue(pop(), vm.buffer);
 }
 
 static InterpretResult run() {
-    #define READ_BYTE() (*vm.ip++)
-    #define READ_CONSTANT() (vm.code->constants.values[READ_BYTE()])
-    #define READ_STRING()   AS_STRING(READ_CONSTANT())
-
     while (true) {
 
         #ifdef DEBUG_TRACE_EXECUTION
@@ -300,16 +301,40 @@ static InterpretResult run() {
                 printValue(pop());
                 putchar('\n');
                 break;
-            case OP_TO_STRING:
-                toString();
+            case OP_BUILD_FSTRING:
+                vm.buildFormattedString = true;
+                vm.buffer = malloc(512);
+                vm.c = vm.buffer;
+                break;
+            case OP_APPEND_TO_STRING:
+                int offset = writeValue(pop(), vm.c);
+                vm.c += offset;
+                break;
+            case OP_BUILD_STOP:
+                vm.buildFormattedString = false;
+                printf("hello\n");
+                printf("%s\n", vm.buffer);
+
+                int length = (int)(vm.c - vm.buffer);
+                int size = sizeof(ObjString) + length + 1;
+                ObjString *string = (ObjString*)allocateObject(size, OBJ_STRING); 
+                string->length = length;
+                memcpy(string->chars, vm.buffer, length);
+                string->chars[length] = '\0';
+
+                Value value;
+                value.type = VAL_OBJ;
+                value.as.obj = (Obj*)string;
+
+                push(value); 
+
+                free(vm.buffer);
+                vm.c = NULL;
                 break;
             case OP_RETURN:
                 return INTERPRET_OK;
         }
     }
-    #undef READ_BYTE
-    #undef READ_CONSTANT
-    #undef READ_STRING
 }
 
 void initVM() {

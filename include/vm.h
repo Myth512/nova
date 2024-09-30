@@ -15,6 +15,9 @@ typedef struct {
     Table globals;
     Table strings;
     Obj *objects;
+    bool buildFormattedString;
+    char *buffer;
+    char *c;
 } VM;
 
 typedef enum {

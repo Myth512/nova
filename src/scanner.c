@@ -134,6 +134,13 @@ static Token createErrorToken(const char *message) {
 }
 
 static Token scanString() {
+    if (peek() == '{') {
+        scanner.inFormattedString = true;
+        Token token = createToken(TOKEN_FSTRING);
+        advance();
+        return token; 
+    }
+
     while (peek() != '"' && peek() != '\n' && !reachEnd()) {
         if (peek() != '\\' && peekNext() == '{') {
             scanner.inFormattedString = true;
