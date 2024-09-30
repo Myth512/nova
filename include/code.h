@@ -31,8 +31,6 @@ typedef enum {
     OP_NEGATE,
     OP_PRINT,
     OP_BUILD_FSTRING,
-    OP_APPEND_TO_STRING,
-    OP_BUILD_STOP,
     OP_TO_STRING,
     OP_RETURN,
 } OpCode;

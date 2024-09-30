@@ -1,10 +1,38 @@
 #include <stdio.h>
 
 #include "debug.h"
+#include "object.h"
+
+static char* decodeObjType(Value value) {
+    switch (OBJ_TYPE(value)) {
+        case OBJ_STRING:
+            return "STRING";
+        case OBJ_RAW_STRING:
+            return "RAW STRING";
+    }
+}
+
+static char* decodeValueType(Value value) {
+    switch (value.type) {
+        case VAL_BOOL:
+            return "BOOL";
+        case VAL_NIL:
+            return "NIL";
+        case VAL_NUMBER:
+            return "NUMBER";
+        case VAL_OBJ:
+            return decodeObjType(value);
+    }
+}
 
 static int simpleInstruction(const char *name, int offset) {
     printf("%s\n", name);
     return offset + 1;
+}
+
+static int argInstruction(const char *name, CodeVec *vec, int offset) {
+    printf("%s\t%d\n", name, vec->code[offset+1]);
+    return offset + 2;
 }
 
 static int byteInstruction(const char *name, CodeVec *vec, int offset) {
@@ -14,9 +42,10 @@ static int byteInstruction(const char *name, CodeVec *vec, int offset) {
 }
 
 static int constantInstruction(const char *name, CodeVec *vec, int offset) {
-    uint8_t constant = vec->code[offset + 1];
-    printf("%-16s %4d '", name, constant);
-    printValue(vec->constants.values[constant]);
+    uint8_t id = vec->code[offset + 1];
+    Value value = vec->constants.values[id];
+    printf("%-10s %s %4d '", name, decodeValueType(value), id);
+    printValue(value);
     printf("'\n");
     return offset + 2;
 }
@@ -100,12 +129,8 @@ int printInstruction(CodeVec *vec, int offset) {
             return simpleInstruction("TO STRING", offset);
         case OP_RETURN:
             return simpleInstruction("RETURN", offset);
-        case OP_APPEND_TO_STRING:
-            return simpleInstruction("APPEND TO STRING", offset);
         case OP_BUILD_FSTRING:
-            return simpleInstruction("BUILD FSTRING", offset);
-        case OP_BUILD_STOP:
-            return simpleInstruction("STOP BUILD", offset);
+            return argInstruction("BUILD FSTRING", vec, offset);
         default:
             printf("Unknown opcode %d\n", opcode);
             return offset + 1;

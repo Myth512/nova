@@ -1,4 +1,4 @@
-var age = 11
+print "1 + 1 = {1 + 2}\n2 + 2 * 2 = {2 + 2 * 2}\n69 * 420 = {69 * 420}\nhi "
 
-print "my age is {age * 2 % 7}"
+print "Hello World"
 

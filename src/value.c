@@ -53,7 +53,7 @@ int writeValue(Value value, char *buffer) {
         case VAL_NIL:
             return snprintf(buffer, 4, "nil");
         case VAL_NUMBER:
-            return snprintf(buffer, 512, "%f", AS_NUMBER(value));
+            return snprintf(buffer, 512, "%g", AS_NUMBER(value));
         case VAL_OBJ:
             return writeObject(value, buffer);
     }

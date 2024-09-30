@@ -101,6 +101,13 @@ ObjString* takeString(char *chars, int length) {
     return allocateString(chars, length);
 }
 
+ObjRawString* createRawString(char *chars, int length) {
+    ObjRawString *string = (ObjRawString*)allocateObject(sizeof(ObjRawString), OBJ_RAW_STRING);
+    string->chars = chars;
+    string->length = length;
+    return string;
+}
+
 void printObject(Value value) {
     switch (OBJ_TYPE(value)) {
         case OBJ_STRING:
@@ -117,5 +124,7 @@ int writeObject(Value value, char *buffer) {
     switch (OBJ_TYPE(value)) {
         case OBJ_STRING:
             return snprintf(buffer, 512, "%s", AS_CSTRING(value));
+        case OBJ_RAW_STRING:
+            return resolveEscapeSequence(AS_RAW_STRING(value)->chars, AS_RAW_STRING(value)->length, buffer);
     }
 }

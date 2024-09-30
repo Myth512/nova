@@ -185,8 +185,28 @@ static bool isFalsey(Value value) {
 }
 
 static void buildFormattedString() {
-    if (vm.buildFormattedString)
-        writeValue(pop(), vm.buffer);
+    const int bufferSize = 512;
+    int size = sizeof(ObjString) + bufferSize;
+    ObjString *string = (ObjString*)allocateObject(size, OBJ_STRING);
+    char *buffer = string->chars;
+    int partCount = READ_BYTE();
+    int stringSize = 0;
+
+    for (int i = 0; i < partCount; i++) {
+        Value part = peek(partCount - i - 1);
+        int offset = writeValue(part, buffer);
+        buffer += offset;
+        stringSize += offset;
+    }
+
+    int newSize = size - (bufferSize - stringSize);
+
+    reallocate(string, size, newSize);
+
+    for (int i = 0; i < partCount; i++)
+        pop();
+
+    push(OBJ_VAL(string));
 }
 
 static InterpretResult run() {
@@ -302,34 +322,7 @@ static InterpretResult run() {
                 putchar('\n');
                 break;
             case OP_BUILD_FSTRING:
-                vm.buildFormattedString = true;
-                vm.buffer = malloc(512);
-                vm.c = vm.buffer;
-                break;
-            case OP_APPEND_TO_STRING:
-                int offset = writeValue(pop(), vm.c);
-                vm.c += offset;
-                break;
-            case OP_BUILD_STOP:
-                vm.buildFormattedString = false;
-                printf("hello\n");
-                printf("%s\n", vm.buffer);
-
-                int length = (int)(vm.c - vm.buffer);
-                int size = sizeof(ObjString) + length + 1;
-                ObjString *string = (ObjString*)allocateObject(size, OBJ_STRING); 
-                string->length = length;
-                memcpy(string->chars, vm.buffer, length);
-                string->chars[length] = '\0';
-
-                Value value;
-                value.type = VAL_OBJ;
-                value.as.obj = (Obj*)string;
-
-                push(value); 
-
-                free(vm.buffer);
-                vm.c = NULL;
+                buildFormattedString();
                 break;
             case OP_RETURN:
                 return INTERPRET_OK;

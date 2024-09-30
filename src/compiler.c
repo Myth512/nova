@@ -274,9 +274,9 @@ static uint8_t createConstant(Value value) {
     ValueVec *constants = &currentCode()->constants;
     int size = constants->size;
 
-    for (int i = 0; i < 10 && i < size; i++)
-        if (compareValues(value, constants->values[size-i-1]))
-            return size - i - 1;
+    // for (int i = 0; i < 10 && i < size; i++)
+    //     if (compareValues(value, constants->values[size-i-1]))
+    //         return size - i - 1;
 
     int id = pushConstant(currentCode(), value);
     if (id > UINT8_MAX) {
@@ -430,20 +430,29 @@ static void string(bool canAssign, bool skipNewline) {
     emitConstant(OBJ_VAL(copyString(parser.previous.start, parser.previous.length)));
 }
 
+static void rawString() {
+    emitConstant(OBJ_VAL(createRawString(parser.previous.start, parser.previous.length)));
+}
+
 static void fstring(bool canAssign, bool skipNewline) {
-    emitByte(OP_BUILD_FSTRING);
+    int count = 0;
+
     while (parser.previous.type != TOKEN_STRING) {
-        string(canAssign, skipNewline);
-        emitByte(OP_APPEND_TO_STRING);
-        // printCodeVec(currentCode(), "test");
-        expression(skipNewline);
-        emitByte(OP_APPEND_TO_STRING);
-        // printCodeVec(currentCode(), "test");
+        if (parser.previous.length > 0) {
+            rawString();
+            count++;
+        }
+        expression(canAssign);
+        count++;
         advance(false);
     }
-    string(canAssign, skipNewline);
-    emitByte(OP_APPEND_TO_STRING);
-    emitByte(OP_BUILD_STOP);
+
+    if (parser.previous.length > 0) {
+        rawString();
+        count++;
+    }
+    emitBytes(OP_BUILD_FSTRING, (uint8_t)count);
+
     return;
 }
 
