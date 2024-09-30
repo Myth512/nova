@@ -68,21 +68,13 @@ int resolveEscapeSequence(const char *source, int sourceLength, char *destinatio
 static ObjString* allocateString(char *chars, int length) {
     int size = sizeof(ObjString) + length + 1;
     ObjString *string = (ObjString*)allocateObject(size, OBJ_STRING); 
+    string->isInterned = false;
 
     string->length = resolveEscapeSequence(chars, length, string->chars);
     int newSize = size - (length - string->length);
     reallocate(string, size, newSize);
 
     return string;
-}
-
-static uint32_t hashString(const char *key, int length) {
-    uint32_t hash = 2166136261u;
-    for (int i = 0; i < length; i++) {
-        hash ^= (uint8_t)key[i];
-        hash *= 16777619;
-    }
-    return hash;
 }
 
 ObjString* copyString(const char *chars, int length) {
@@ -106,6 +98,14 @@ ObjRawString* createRawString(char *chars, int length) {
     string->chars = chars;
     string->length = length;
     return string;
+}
+
+bool compareStrings(ObjString *a, ObjString *b) {
+    if (a->isInterned && b->isInterned)
+        return a == b;
+    if (a->length != b->length) 
+        return false;
+    return memcmp(a->chars, b->chars, a->length) == 0;
 }
 
 void printObject(Value value) {

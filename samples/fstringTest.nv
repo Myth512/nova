@@ -1,4 +1,6 @@
-print "1 + 1 = {1 + 2}\n2 + 2 * 2 = {2 + 2 * 2}\n69 * 420 = {69 * 420}\nhi "
+var global = 10
+{
+	var local = 15
+	print "global = {global}, local = {local}"
 
-print "Hello World"
-
+}

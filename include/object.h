@@ -42,6 +42,8 @@ ObjString* copyString(const char *chars, int length);
 
 ObjString* takeString(char *chars, int length);
 
+bool compareStrings(ObjString *a, ObjString *b);
+
 int resolveEscapeSequence(const char *source, int sourceLength, char *destination);
 
 void printObject(Value value);
@@ -53,5 +55,6 @@ static inline bool isObjType(Value value, ObjType type) {
 }
 
 ObjRawString* createRawString(char *chars, int length);
+
 
 #endif
