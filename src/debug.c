@@ -50,6 +50,13 @@ static int constantInstruction(const char *name, CodeVec *vec, int offset) {
     return offset + 2;
 }
 
+static int jumpInstruction(const char *name, int sign, CodeVec *vec, int offset) {
+    uint16_t jump = (uint16_t)(vec->code[offset + 1] << 8);
+    jump |= vec->code[offset + 2];
+    printf("%-16s %4d -> %d\n", name, offset, offset + 3 + sign * jump);
+    return offset + 3;
+}
+
 void printCodeVec(CodeVec *vec, const char *title) {
     printf("--- %s ---\n", title);
 
@@ -131,6 +138,14 @@ int printInstruction(CodeVec *vec, int offset) {
             return simpleInstruction("RETURN", offset);
         case OP_BUILD_FSTRING:
             return argInstruction("BUILD FSTRING", vec, offset);
+        case OP_JUMP:
+            return jumpInstruction("JUMP", 1, vec, offset);
+        case OP_JUMP_IF_FALSE:
+            return jumpInstruction("JUMP IF FALSE", 1, vec, offset);
+        case OP_JUMP_IF_FALSE_AND_POP:
+            return jumpInstruction("JUMP IF FALSE AND POP", 1, vec, offset);
+        case OP_LOOP:
+            return jumpInstruction("LOOP", -1, vec, offset);
         default:
             printf("Unknown opcode %d\n", opcode);
             return offset + 1;

@@ -68,6 +68,12 @@ static void variable(bool canAssign, bool skipNewline);
 
 static void declaration();
 
+static void and_(bool canAssign, bool skipNewline);
+
+static void or_(bool canAssign, bool skipNewline);
+
+static void statement(bool skipNewline);
+
 ParseRule rules[] = {
   [TOKEN_LEFT_PAREN]    = {grouping, NULL,   PREC_NONE},
   [TOKEN_RIGHT_PAREN]   = {NULL,     NULL,   PREC_NONE},
@@ -93,7 +99,7 @@ ParseRule rules[] = {
   [TOKEN_STRING]        = {string,   NULL,   PREC_NONE},
   [TOKEN_FSTRING]       = {fstring,  NULL,   PREC_NONE},
   [TOKEN_NUMBER]        = {number,   NULL,   PREC_NONE},
-  [TOKEN_AND]           = {NULL,     NULL,   PREC_NONE},
+  [TOKEN_AND]           = {NULL,     and_,   PREC_AND},
   [TOKEN_CLASS]         = {NULL,     NULL,   PREC_NONE},
   [TOKEN_ELSE]          = {NULL,     NULL,   PREC_NONE},
   [TOKEN_FALSE]         = {literal,  NULL,   PREC_NONE},
@@ -101,7 +107,7 @@ ParseRule rules[] = {
   [TOKEN_DEF]           = {NULL,     NULL,   PREC_NONE},
   [TOKEN_IF]            = {NULL,     NULL,   PREC_NONE},
   [TOKEN_NIL]           = {literal,  NULL,   PREC_NONE},
-  [TOKEN_OR]            = {NULL,     NULL,   PREC_NONE},
+  [TOKEN_OR]            = {NULL,     or_,    PREC_NONE},
   [TOKEN_PRINT]         = {NULL,     NULL,   PREC_NONE},
   [TOKEN_RETURN]        = {NULL,     NULL,   PREC_NONE},
   [TOKEN_SUPER]         = {NULL,     NULL,   PREC_NONE},
@@ -236,6 +242,21 @@ static void emitBytes(uint8_t byte1, uint8_t byte2) {
     emitByte(byte2);
 }
 
+static int emitJump(uint8_t instruction) {
+    emitByte(instruction);
+    emitBytes(0xff, 0xff);
+    return currentCode()->size - 2;
+}
+
+static void emitLoop(int loopStart) {
+    emitByte(OP_LOOP);
+
+    int offset = currentCode()->size - loopStart + 2;
+
+    emitByte((offset >> 8) & 0xff);
+    emitByte(offset & 0xff);
+}
+
 static void emitReturn() {
     emitByte(OP_RETURN);
 }
@@ -288,6 +309,17 @@ static uint8_t createConstant(Value value) {
 
 static void emitConstant(Value value) {
     emitBytes(OP_CONSTANT, createConstant(value));
+}
+
+static void patchJump(int offset) {
+    int jump = currentCode()->size - offset - 2;
+
+    if (jump > UINT16_MAX) {
+        reportError("Too much code to jump over");
+    }
+
+    currentCode()->code[offset] = (jump >> 8) & 0xff;
+    currentCode()->code[offset + 1] = jump & 0xff;
 }
 
 static uint8_t identifierConstant(Token *name) {
@@ -353,6 +385,26 @@ static void defineVariable(uint8_t global) {
         markInitialized();
     else
         emitBytes(OP_DEFINE_GLOBAL, global);
+}
+
+static void and_(bool canAssign, bool skipNewline) {
+    int endJump = emitJump(OP_JUMP_IF_FALSE);
+
+    emitByte(OP_POP);
+    parsePrecedence(PREC_AND, skipNewline);
+
+    patchJump(endJump);
+}
+
+static void or_(bool canAssign, bool skipNewline) {
+    int elseJump = emitJump(OP_JUMP_IF_FALSE);
+    int endJump = emitJump(OP_JUMP);
+
+    patchJump(elseJump);
+    emitByte(OP_POP);
+
+    parsePrecedence(PREC_OR, skipNewline);
+    patchJump(endJump);
 }
 
 static void number(bool canAssign, bool skipNewline) {
@@ -601,10 +653,44 @@ static void block() {
     }
 }
 
-static void statement() {
-    if (match(TOKEN_PRINT, false)) {
+static void ifStatement() {
+    expression(true); // evaluate condition
+
+    int jumpToElseBranch = emitJump(OP_JUMP_IF_FALSE_AND_POP); // in the beggining create jump to else branch
+
+    statement(true); // compile if branch
+
+    if (match(TOKEN_ELSE, true)) {
+        int jumpToEnd = emitJump(OP_JUMP); // right after if body produce jump to end
+        patchJump(jumpToElseBranch); // patch jumpToElseBranch to point to current location
+        statement(true); // compile else branch
+        patchJump(jumpToEnd); // patch jumpToEnd to point to current location
+    } else {
+        patchJump(jumpToElseBranch); // if not else block just use jumpToElseBranch as end point 
+    }
+}
+
+static void whileStatement() {
+    int loopStart = currentCode()->size;
+    expression(true);
+
+    int exitJump = emitJump(OP_JUMP_IF_FALSE);
+    emitByte(OP_POP);
+    statement(true);
+    emitLoop(loopStart);
+
+    patchJump(exitJump);
+    emitByte(OP_POP);
+}
+
+static void statement(bool skipNewline) {
+    if (match(TOKEN_PRINT, skipNewline)) {
         printStatement();
-    } else if (match(TOKEN_LEFT_BRACE, false)) {
+    } else if (match(TOKEN_IF, skipNewline)) {
+        ifStatement();
+    } else if (match(TOKEN_WHILE, skipNewline)) {
+        whileStatement();
+    } else if (match(TOKEN_LEFT_BRACE, skipNewline)) {
         beginScope();
         block();
         endScope();
@@ -635,7 +721,7 @@ static void declaration() {
     else if (match(TOKEN_VAR, false))
         varDeclaration();
     else
-        statement();
+        statement(false);
 
     if (parser.panicMode)
         synchronize();

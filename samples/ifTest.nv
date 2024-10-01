@@ -1,0 +1,22 @@
+var a = 50
+var b = 10
+
+if a > b
+	print "a is larger than b"
+
+/*
+condition
+jump if false to 'else label' and pop
+"if branch"
+jump to 'end label'
+'else label':
+"else branch"
+'end label'
+*/
+
+/*
+condition
+jump if false to 'else label' and pop
+"if branch"
+'else label'
+*/

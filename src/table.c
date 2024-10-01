@@ -2,8 +2,6 @@
 #include <string.h>
 #include <stdint.h>
 
-#include <stdio.h>
-
 #include "table.h"
 #include "memory.h"
 
@@ -22,7 +20,6 @@ void freeTable(Table *table) {
 
 static Entry* findEntry(Entry *entries, int capacity, ObjString *key) {
     uint32_t index = getHash(key) % capacity; 
-    printf("%d\n", index);
     Entry *tombstone = NULL;
 
     while (true) {

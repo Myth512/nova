@@ -7,8 +7,9 @@
 #include "memory.h"
 #include "compiler.h"
 
-#define READ_BYTE() (*vm.ip++)
+#define READ_BYTE()     (*vm.ip++)
 #define READ_CONSTANT() (vm.code->constants.values[READ_BYTE()])
+#define READ_SHORT()    (vm.ip += 2, (uint16_t)((vm.ip[-2] << 8) | vm.ip[-1]))
 #define READ_STRING()   AS_STRING(READ_CONSTANT())
 
 VM vm;
@@ -165,7 +166,7 @@ static inline void less() {
     double b = AS_NUMBER(pop());
     double a = AS_NUMBER(pop());
 
-    push(BOOL_VAL(a > b));
+    push(BOOL_VAL(a < b));
 }
 
 static inline void lessEqual() {
@@ -328,6 +329,29 @@ static InterpretResult run() {
             case OP_BUILD_FSTRING:
                 buildFormattedString();
                 break;
+            case OP_JUMP: {
+                uint16_t offset = READ_SHORT();
+                vm.ip += offset;
+                break;
+            }
+            case OP_JUMP_IF_FALSE: {
+                uint16_t offset = READ_SHORT();
+                if (isFalsey(peek(0))) 
+                    vm.ip += offset;
+                break;
+            }
+            case OP_JUMP_IF_FALSE_AND_POP: {
+                uint16_t offset = READ_SHORT();
+                if (isFalsey(peek(0))) 
+                    vm.ip += offset;
+                pop();
+                break;
+            }
+            case OP_LOOP: {
+                uint16_t offset = READ_SHORT();
+                vm.ip -= offset;
+                break;
+            }
             case OP_RETURN:
                 return INTERPRET_OK;
         }
