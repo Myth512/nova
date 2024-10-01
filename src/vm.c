@@ -141,7 +141,7 @@ static inline void greater() {
     double b = AS_NUMBER(pop());
     double a = AS_NUMBER(pop());
 
-    push(NUMBER_VAL(a > b));
+    push(BOOL_VAL(a > b));
 }
 
 static inline void greaterEqual() {
@@ -153,7 +153,7 @@ static inline void greaterEqual() {
     double b = AS_NUMBER(pop());
     double a = AS_NUMBER(pop());
 
-    push(NUMBER_VAL(a >= b));
+    push(BOOL_VAL(a >= b));
 }
 
 static inline void less() {
@@ -165,7 +165,7 @@ static inline void less() {
     double b = AS_NUMBER(pop());
     double a = AS_NUMBER(pop());
 
-    push(NUMBER_VAL(a > b));
+    push(BOOL_VAL(a > b));
 }
 
 static inline void lessEqual() {
@@ -177,7 +177,7 @@ static inline void lessEqual() {
     double b = AS_NUMBER(pop());
     double a = AS_NUMBER(pop());
 
-    push(NUMBER_VAL(a <= b));
+    push(BOOL_VAL(a <= b));
 }
 
 static bool isFalsey(Value value) {
@@ -187,7 +187,11 @@ static bool isFalsey(Value value) {
 static void buildFormattedString() {
     const int bufferSize = 512;
     int size = sizeof(ObjString) + bufferSize;
+
     ObjString *string = (ObjString*)allocateObject(size, OBJ_STRING);
+    string->isInterned = false;
+    string->isHashed = false;
+
     char *buffer = string->chars;
     int partCount = READ_BYTE();
     int stringSize = 0;

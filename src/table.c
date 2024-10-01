@@ -2,6 +2,8 @@
 #include <string.h>
 #include <stdint.h>
 
+#include <stdio.h>
+
 #include "table.h"
 #include "memory.h"
 
@@ -18,17 +20,9 @@ void freeTable(Table *table) {
     initTable(table);
 }
 
-static uint32_t hashString(const char *key, int length) {
-    uint32_t hash = 2166136261u;
-    for (int i = 0; i < length; i++) {
-        hash ^= (uint8_t)key[i];
-        hash *= 16777619;
-    }
-    return hash;
-}
-
 static Entry* findEntry(Entry *entries, int capacity, ObjString *key) {
-    uint32_t index = hashString(key->chars, key->length) % capacity;
+    uint32_t index = getHash(key) % capacity; 
+    printf("%d\n", index);
     Entry *tombstone = NULL;
 
     while (true) {
@@ -132,7 +126,7 @@ void tableAddAll(Table *source, Table *destination) {
 //         if (entry->key == NULL) {
 //             if (IS_NIL(entry->value))
 //                 return NULL;
-//         } else if (entry->key->length== length &&
+//         } else if (entry->key->length == length &&
 //                    entry->key->hash == hash &&
 //                    memcmp(entry->key->chars, chars, length) == 0) {
 //             return entry->key;

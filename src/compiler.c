@@ -442,6 +442,13 @@ static void fstring(bool canAssign, bool skipNewline) {
             rawString();
             count++;
         }
+        if (check(TOKEN_STRING) || check(TOKEN_FSTRING)) {
+            if (reportError("Expect expression inside braces")) 
+                print2HighlightedPartsInCode(parser.source,
+                                             parser.current.line, parser.current.column - 1, 1,
+                                             parser.current.line, parser.current.column - 2, 1);
+            return;
+        }
         expression(canAssign);
         count++;
         advance(false);
@@ -465,13 +472,15 @@ static void grouping(bool canAssign, bool skipNewline) {
         switch (parser.current.type) {
             case TOKEN_RIGHT_BRACE:
                 if (reportError("closing brace '}' does not match opening parenthesis '('"))
-                    print2HighlightedPartsInCode(parser.source, groupingStart.line, groupingStart.column, 1,
-                                                                parser.current.line, parser.current.column, 1);
+                    print2HighlightedPartsInCode(parser.source,
+                                                 groupingStart.line, groupingStart.column, 1,
+                                                 parser.current.line, parser.current.column, 1);
                 break;
             case TOKEN_RIGHT_BRACKET:
                 if (reportError("closing bracket ']' does not match opening parenthesis '('"))
-                    print2HighlightedPartsInCode(parser.source, groupingStart.line, groupingStart.column, 1,
-                                                                parser.current.line, parser.current.column, 1);
+                    print2HighlightedPartsInCode(parser.source,
+                                                 groupingStart.line, groupingStart.column, 1,
+                                                 parser.current.line, parser.current.column, 1);
                 break;
             default:
                 if (reportError("opening parenthesis does not closed"))

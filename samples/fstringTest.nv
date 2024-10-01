@@ -1,6 +1,3 @@
-var global = 10
-{
-	var local = 15
-	print "global = {global}, local = {local}"
+var greet;
 
-}
+print "{greet} World {1 > 4}"

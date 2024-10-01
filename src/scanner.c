@@ -160,7 +160,6 @@ static Token scanString() {
 
     Token token = createToken(TOKEN_STRING);
     advance();
-    advance();
     scanner.inFormattedString = false;
     return token; 
 }

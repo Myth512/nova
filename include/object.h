@@ -27,6 +27,8 @@ struct ObjString {
     Obj obj;
     bool isInterned;
     int length;
+    uint32_t hash;
+    bool isHashed;
     char chars[];
 };
 
@@ -43,6 +45,8 @@ ObjString* copyString(const char *chars, int length);
 ObjString* takeString(char *chars, int length);
 
 bool compareStrings(ObjString *a, ObjString *b);
+
+uint32_t getHash(ObjString *string);
 
 int resolveEscapeSequence(const char *source, int sourceLength, char *destination);
 
