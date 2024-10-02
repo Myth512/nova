@@ -57,6 +57,7 @@ int writeValue(Value value, char *buffer) {
         case VAL_OBJ:
             return writeObject(value, buffer);
     }
+    return -1; // unreachable
 }
 
 bool compareValues(Value a, Value b) {

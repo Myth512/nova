@@ -82,7 +82,7 @@ uint32_t getHash(ObjString *string) {
     return string->hash;
 }
 
-static ObjString* allocateString(char *chars, int length) {
+static ObjString* allocateString(const char *chars, int length) {
     int size = sizeof(ObjString) + length + 1;
     ObjString *string = (ObjString*)allocateObject(size, OBJ_STRING); 
     string->isInterned = false;
@@ -111,7 +111,7 @@ ObjString* takeString(char *chars, int length) {
     return allocateString(chars, length);
 }
 
-ObjRawString* createRawString(char *chars, int length) {
+ObjRawString* createRawString(const char *chars, int length) {
     ObjRawString *string = (ObjRawString*)allocateObject(sizeof(ObjRawString), OBJ_RAW_STRING);
     string->chars = chars;
     string->length = length;
@@ -145,4 +145,5 @@ int writeObject(Value value, char *buffer) {
         case OBJ_RAW_STRING:
             return resolveEscapeSequence(AS_RAW_STRING(value)->chars, AS_RAW_STRING(value)->length, buffer);
     }
+    return -1; // unreachable
 }

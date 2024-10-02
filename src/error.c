@@ -3,10 +3,6 @@
 #include "error.h"
 #include "token.h"
 
-void printError(const char *format, ...) {
-    return;
-}
-
 const char* getCodeLine(const char *source, int line) {
     int curLine = 1;
     const char *lineStart = source;

@@ -654,20 +654,34 @@ static void block() {
 }
 
 static void ifStatement() {
-    expression(true); // evaluate condition
+    expression(true);
 
-    int jumpToElseBranch = emitJump(OP_JUMP_IF_FALSE_AND_POP); // in the beggining create jump to else branch
+    int jumpToNextBranch = emitJump(OP_JUMP_IF_FALSE_AND_POP);
+    int jumpToEnd = -1;
 
-    statement(true); // compile if branch
+    statement(true);
+
+    if (check(TOKEN_ELIF)) {
+        jumpToEnd = emitJump(OP_JUMP);
+        while (match(TOKEN_ELIF, true)) {
+            patchJump(jumpToNextBranch);
+            expression(true);
+            jumpToNextBranch = emitJump(OP_JUMP_IF_FALSE_AND_POP);
+            statement(true);
+            emitLoop(jumpToEnd - 1);
+        }
+    }
+
+    patchJump(jumpToNextBranch);
 
     if (match(TOKEN_ELSE, true)) {
-        int jumpToEnd = emitJump(OP_JUMP); // right after if body produce jump to end
-        patchJump(jumpToElseBranch); // patch jumpToElseBranch to point to current location
-        statement(true); // compile else branch
-        patchJump(jumpToEnd); // patch jumpToEnd to point to current location
-    } else {
-        patchJump(jumpToElseBranch); // if not else block just use jumpToElseBranch as end point 
+        if (jumpToEnd == -1)
+            jumpToEnd = emitJump(OP_JUMP);
+        statement(true);
     }
+
+    if (jumpToEnd != -1)
+        patchJump(jumpToEnd);
 }
 
 static void whileStatement() {

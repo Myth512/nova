@@ -23,6 +23,9 @@ static void freeObject(Obj *object) {
             ObjString *string = (ObjString*)object;
             FREE(ObjString, object);
             break;
+        case OBJ_RAW_STRING:
+            free(object);
+            break;
         }
     }
 }

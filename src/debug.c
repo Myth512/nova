@@ -10,6 +10,7 @@ static char* decodeObjType(Value value) {
         case OBJ_RAW_STRING:
             return "RAW STRING";
     }
+    return ""; // uncreachable
 }
 
 static char* decodeValueType(Value value) {
@@ -23,6 +24,7 @@ static char* decodeValueType(Value value) {
         case VAL_OBJ:
             return decodeObjType(value);
     }
+    return ""; // uncreachable
 }
 
 static int simpleInstruction(const char *name, int offset) {
@@ -220,6 +222,8 @@ static char* decodeTokenType(TokenType type) {
             return "IF";
         case TOKEN_ELSE:
             return "ELSE";
+        case TOKEN_ELIF:
+            return "ELIF";
         case TOKEN_FOR:
             return "FOR";
         case TOKEN_WHILE:

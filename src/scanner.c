@@ -204,7 +204,13 @@ static Token scanIdentifier() {
         case 'd':
             return createToken(checkKeyword(1, 2, "ef", TOKEN_DEF));
         case 'e':
-            return createToken(checkKeyword(1, 3, "lse", TOKEN_ELSE));
+            if (scanner.current - scanner.start > 3) {
+                if (scanner.start[1] == 'l' && scanner.start[2] == 's' && scanner.start[3] == 'e')
+                    return createToken(TOKEN_ELSE);
+                if (scanner.start[1] == 'l' && scanner.start[2] == 'i' && scanner.start[3] == 'f')
+                    return createToken(TOKEN_ELIF);
+            }
+            return createToken(TOKEN_IDENTIFIER);
         case 'i':
             return createToken(checkKeyword(1, 1, "f", TOKEN_IF));
         case 'n':

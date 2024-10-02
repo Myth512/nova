@@ -35,7 +35,7 @@ struct ObjString {
 struct ObjRawString {
     Obj obj;
     int length;
-    char *chars;
+    const char *chars;
 };
 
 Obj* allocateObject(size_t size, ObjType type);
@@ -58,7 +58,7 @@ static inline bool isObjType(Value value, ObjType type) {
     return IS_OBJ(value) && AS_OBJ(value)->type == type;
 }
 
-ObjRawString* createRawString(char *chars, int length);
+ObjRawString* createRawString(const char *chars, int length);
 
 
 #endif

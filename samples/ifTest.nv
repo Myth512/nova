@@ -1,22 +1,17 @@
-var a = 50
-var b = 10
+var a = 0
 
-if a > b
-	print "a is larger than b"
+if a == 0
+	print "a is even"
+elif a == 1
+	print "a is odd"
+elif a == 2
+	print "a is even"
+elif a == 3
+	print "a is odd"
+elif a == 4
+	print "a is even"
+elif a == 5
+	print "a is odd"
+else
+	print "idk"
 
-/*
-condition
-jump if false to 'else label' and pop
-"if branch"
-jump to 'end label'
-'else label':
-"else branch"
-'end label'
-*/
-
-/*
-condition
-jump if false to 'else label' and pop
-"if branch"
-'else label'
-*/
