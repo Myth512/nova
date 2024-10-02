@@ -312,6 +312,8 @@ Token scanToken(bool skipNewline) {
             return createToken(match('=') ? TOKEN_STAR_EQUAL : TOKEN_STAR);
         case '%':
             return createToken(match('=') ? TOKEN_MOD_EQUAL : TOKEN_MOD);
+        case '^':
+            return createToken(match('=') ? TOKEN_POWER_EQUAL : TOKEN_POWER);
         case '!':
             return createToken(match('=') ? TOKEN_BANG_EQUAL : TOKEN_BANG);
         case '=':

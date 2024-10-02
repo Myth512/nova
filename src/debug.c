@@ -116,6 +116,8 @@ int printInstruction(CodeVec *vec, int offset) {
             return simpleInstruction("DIVIDE", offset);
         case OP_MOD:
             return simpleInstruction("MOD", offset);
+        case OP_POWER:
+            return simpleInstruction("POWER", offset);
         case OP_NOT:
             return simpleInstruction("NOT", offset);
         case OP_NEGATE:
@@ -182,6 +184,8 @@ static char* decodeTokenType(TokenType type) {
             return "STAR";
         case TOKEN_MOD:
             return "MOD";
+        case TOKEN_POWER:
+            return "POWER";
         case TOKEN_MINUS_EQUAL:
             return "MINUS EQUAL";
         case TOKEN_PLUS_EQUAL:
@@ -192,6 +196,8 @@ static char* decodeTokenType(TokenType type) {
             return "STAR EQUAL";
         case TOKEN_MOD_EQUAL:
             return "MOD EQUAL";
+        case TOKEN_POWER_EQUAL:
+            return "POWER EQUAL";
         case TOKEN_BANG:
             return "BANG";
         case TOKEN_BANG_EQUAL:

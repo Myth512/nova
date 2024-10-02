@@ -25,10 +25,10 @@ struct Obj {
 
 struct ObjString {
     Obj obj;
-    bool isInterned;
     int length;
     uint32_t hash;
     bool isHashed;
+    bool isInterned;
     char chars[];
 };
 

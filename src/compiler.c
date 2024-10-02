@@ -37,6 +37,7 @@ typedef enum {
     PREC_COMPARISON,
     PREC_TERM,
     PREC_FACTOR,
+    PREC_POWER,
     PREC_UNARY,
     PREC_CALL,
     PREC_PRIMARY
@@ -87,6 +88,7 @@ ParseRule rules[] = {
   [TOKEN_SLASH]         = {NULL,     binary, PREC_FACTOR},
   [TOKEN_STAR]          = {NULL,     binary, PREC_FACTOR},
   [TOKEN_MOD]           = {NULL,     binary, PREC_FACTOR},
+  [TOKEN_POWER]         = {NULL,     binary, PREC_POWER},
   [TOKEN_BANG]          = {unary,    NULL,   PREC_NONE},
   [TOKEN_BANG_EQUAL]    = {NULL,     binary, PREC_EQUALITY},
   [TOKEN_EQUAL]         = {NULL,     NULL,   PREC_NONE},
@@ -456,10 +458,40 @@ static void namedVariable(Token name, bool canAssign) {
         setOp = OP_SET_GLOBAL;
     }
 
-    if (check(TOKEN_EQUAL)) {
+    TokenType type = parser.current.type;
+
+    if (type == TOKEN_EQUAL
+     || type == TOKEN_PLUS_EQUAL || type == TOKEN_MINUS_EQUAL
+     || type == TOKEN_STAR_EQUAL || type == TOKEN_SLASH_EQUAL
+     || type == TOKEN_MOD_EQUAL  || type == TOKEN_POWER_EQUAL) {
         if (canAssign) {
             advance(false);
+
+            if (type != TOKEN_EQUAL)
+                    emitBytes(getOp, (uint8_t)arg);
+
             expression(false);
+
+            switch (type) {
+                case TOKEN_PLUS_EQUAL:
+                    emitByte(OP_ADD);
+                    break;
+                case TOKEN_MINUS_EQUAL:
+                    emitByte(OP_SUBTRUCT);
+                    break;
+                case TOKEN_STAR_EQUAL:
+                    emitByte(OP_MULTIPLY);
+                    break;
+                case TOKEN_SLASH_EQUAL:
+                    emitByte(OP_DIVIDE);
+                    break;
+                case TOKEN_MOD_EQUAL:
+                    emitByte(OP_MOD);
+                    break;
+                case TOKEN_POWER_EQUAL:
+                    emitByte(OP_POWER);
+                    break;
+            }
             emitBytes(setOp, (uint8_t)arg);
         } else {
             if (reportError("Invalid assignment target")) {
@@ -597,6 +629,9 @@ static void binary(bool canAssign, bool skipNewline) {
             break;
         case TOKEN_MOD:
             emitByte(OP_MOD);
+            break;
+        case TOKEN_POWER:
+            emitByte(OP_POWER);
             break;
         case TOKEN_EOS:
             break;

@@ -38,102 +38,94 @@ static inline void concatenate() {
 
     int length = a->length + b->length;
 
-    char *chars = ALLOCATE(char, length + 1);
+    int size = sizeof(ObjString) + length + 1;
 
-    memcpy(chars, a->chars, a->length);
-    memcpy(chars + a->length, b->chars, b->length);
-    chars[length] = '\0';
+    ObjString *result = (ObjString*)allocateObject(size, OBJ_STRING);
 
-    ObjString *result = takeString(chars, length);
+    memcpy(result->chars, a->chars, a->length);
+    memcpy(result->chars + a->length, b->chars, b->length);
+    result->chars[length] = '\0';
+
+    result->length = length;
+    result->isHashed = false;
+    result->isInterned = false;
+
     push(OBJ_VAL(result));
 }
 
-static inline void add() {
+static inline double add(double a, double b) {
+    return a + b; 
+}
+
+static inline double subtract(double a, double b) {
+    return a - b;
+}
+
+static inline double multiply(double a, double b) {
+    return a * b; 
+}
+
+static inline double divide(double a, double b) {
+    if (b == 0) {
+        printf("Division by zero\n");
+        exit(1);
+    }
+    return a / b;
+}
+
+static inline double modulo(double a, double b) {
+    if (b == 0) {
+        printf("Division by zero\n");
+        exit(1);
+    }
+    return fmod(a, b);
+}
+
+static void arithmetic(double (*function)(double, double)) {
+    if (!IS_NUMBER(peek(0)) || !IS_NUMBER(peek(1))) {
+        printf("Operands must be numbers\n");
+        return;
+    }
+
+    double b = AS_NUMBER(pop());
+    double a = AS_NUMBER(pop());
+
+    push(NUMBER_VAL(function(a, b)));
+}
+
+static inline void plus() {
     if (IS_STRING(peek(0)) && IS_STRING(peek(1))) {
         concatenate();
         return;
     }
-    if (!IS_NUMBER(peek(0)) || !IS_NUMBER(peek(1))) {
-        printf("Operands must be numbers\n");
-        return;
-    }
 
-    double b = AS_NUMBER(pop());
-    double a = AS_NUMBER(pop());
-
-    push(NUMBER_VAL(a + b));
+    arithmetic(add);
 }
 
-static inline void subtract() {
-    if (!IS_NUMBER(peek(0)) || !IS_NUMBER(peek(1))) {
-        printf("Operands must be numbers\n");
-        return;
-    }
-
-    double b = AS_NUMBER(pop());
-    double a = AS_NUMBER(pop());
-
-    push(NUMBER_VAL(a - b));
-}
-
-
-static inline void multiply() {
-    if (!IS_NUMBER(peek(0)) || !IS_NUMBER(peek(1))) {
-        printf("Operands must be numbers\n");
-        return;
-    }
-
-    double b = AS_NUMBER(pop());
-    double a = AS_NUMBER(pop());
-
-    push(NUMBER_VAL(a * b));
-}
-
-static inline void divide() {
-    if (!IS_NUMBER(peek(0)) || !IS_NUMBER(peek(1))) {
-        printf("Operands must be numbers\n");
-        return;
-    }
-
-    double b = AS_NUMBER(pop());
-    if (b == 0) {
-        printf("Division by zero");
-        return;
-    }
-    double a = AS_NUMBER(pop());
-
-    push(NUMBER_VAL(a / b));
-}
-
-static inline void mod() {
-    if (!IS_NUMBER(peek(0)) || !IS_NUMBER(peek(1))) {
-        printf("Operands must be numbers\n");
-        return;
-    }
-
-    double b = AS_NUMBER(pop());
-    if (b == 0) {
-        printf("Division by zero");
-        return;
-    }
-    double a = AS_NUMBER(pop());
-
-    push(NUMBER_VAL(fmod(a, b)));
-}
-
-static inline void equal() {
+static void equality(bool inverse) {
     Value b = pop();
     Value a = pop();
-    push(BOOL_VAL(compareValues(a, b)));
+
+    push(BOOL_VAL(compareValues(a, b) ^ inverse));
 }
 
-static inline void notEqual() {
-    Value b = pop();
-    Value a = pop();
-    push(BOOL_VAL(!compareValues(a, b)));
+static inline bool less(double a, double b) {
+    return a < b;
 }
 
-static inline void greater() {
+static inline bool lessEqual(double a, double b) {
+    return a <= b; 
+}
+
+static inline bool greater(double a, double b) {
+    return a > b;
+}
+
+static inline bool greaterEqual(double a, double b) {
+    return a >= b;
+}
+
+static void inequality(bool (*function)(double, double)) {
     if (!IS_NUMBER(peek(0)) || !IS_NUMBER(peek(1))) {
         printf("Operands must be numbers\n");
         return;
@@ -141,44 +133,8 @@ static inline void greater() {
 
     double b = AS_NUMBER(pop());
     double a = AS_NUMBER(pop());
-
-    push(BOOL_VAL(a > b));
-}
-
-static inline void greaterEqual() {
-    if (!IS_NUMBER(peek(0)) || !IS_NUMBER(peek(1))) {
-        printf("Operands must be numbers\n");
-        return;
-    }
-
-    double b = AS_NUMBER(pop());
-    double a = AS_NUMBER(pop());
-
-    push(BOOL_VAL(a >= b));
-}
-
-static inline void less() {
-    if (!IS_NUMBER(peek(0)) || !IS_NUMBER(peek(1))) {
-        printf("Operands must be numbers\n");
-        return;
-    }
-
-    double b = AS_NUMBER(pop());
-    double a = AS_NUMBER(pop());
-
-    push(BOOL_VAL(a < b));
-}
-
-static inline void lessEqual() {
-    if (!IS_NUMBER(peek(0)) || !IS_NUMBER(peek(1))) {
-        printf("Operands must be numbers\n");
-        return;
-    }
-
-    double b = AS_NUMBER(pop());
-    double a = AS_NUMBER(pop());
-
-    push(BOOL_VAL(a <= b));
+    
+    push(BOOL_VAL(function(a, b)));
 }
 
 static bool isFalsey(Value value) {
@@ -195,16 +151,18 @@ static void buildFormattedString() {
 
     char *buffer = string->chars;
     int partCount = READ_BYTE();
-    int stringSize = 0;
+    int stringLength = 0;
 
     for (int i = 0; i < partCount; i++) {
         Value part = peek(partCount - i - 1);
         int offset = writeValue(part, buffer);
         buffer += offset;
-        stringSize += offset;
+        stringLength += offset;
     }
 
-    int newSize = size - (bufferSize - stringSize);
+    string->length = stringLength;
+
+    int newSize = size - (bufferSize - stringLength);
 
     reallocate(string, size, newSize);
 
@@ -280,37 +238,40 @@ static InterpretResult run() {
                 push(BOOL_VAL(true));
                 break;
             case OP_EQUAL:
-                equal();
+                equality(false);
                 break;
             case OP_NOT_EQUAL:
-                notEqual();
+                equality(true);
                 break;
             case OP_GREATER:
-                greater();
+                inequality(greater);
                 break;
             case OP_GREATER_EQUAL:
-                greaterEqual();
+                inequality(greaterEqual);
                 break;
             case OP_LESS:
-                less();
+                inequality(less);
                 break;
             case OP_LESS_EQUAL:
-                lessEqual();
+                inequality(lessEqual);
                 break;
             case OP_ADD:
-                add();
+                plus();
                 break;
             case OP_SUBTRUCT:
-                subtract();
+                arithmetic(subtract);
                 break;
             case OP_MULTIPLY:
-                multiply();
+                arithmetic(multiply);
                 break;
             case OP_DIVIDE:
-                divide();
+                arithmetic(divide);
                 break;
             case OP_MOD:
-                mod();
+                arithmetic(modulo);
+                break;
+            case OP_POWER:
+                arithmetic(pow);
                 break;
             case OP_NOT:
                 push(BOOL_VAL(isFalsey(pop())));

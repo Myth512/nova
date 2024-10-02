@@ -1,10 +1,8 @@
-{
-	var b = 10;
+var a = "2 + 2 * 2 = {2 + 2 * 2} "
 
-	var b = 15;
-}
+var b = "Hello "
 
-while (True) {
-	var c = 15;
-}
+var c = b + a
 
+var d = "1 + 1 = {1 + 1}"
+print c + d
