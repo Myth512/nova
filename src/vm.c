@@ -102,6 +102,46 @@ static inline void plus() {
     arithmetic(add);
 }
 
+static inline void factorial() {
+    if (!IS_NUMBER(peek(0))) {
+        printf("Operand must be number\n");
+    }
+
+    double a = AS_NUMBER(pop());
+
+    push(NUMBER_VAL(tgamma(a + 1)));
+}
+
+static inline void absolute() {
+    if (!IS_NUMBER(peek(0))) {
+        printf("Operand must be number\n");
+    }
+
+    double a = AS_NUMBER(pop());
+
+    push(NUMBER_VAL(fabs(a)));
+}
+
+static inline void increment() {
+    if (!IS_NUMBER(peek(0))) {
+        printf("Operand must be number\n");
+    }
+
+    double a = AS_NUMBER(pop());
+
+    push(NUMBER_VAL(a + 1));
+}
+
+static inline void decrement() {
+    if (!IS_NUMBER(peek(0))) {
+        printf("Operand must be number\n");
+    }
+
+    double a = AS_NUMBER(pop());
+
+    push(NUMBER_VAL(a - 1));
+}
+
 static void equality(bool inverse) {
     Value b = pop();
     Value a = pop();
@@ -255,6 +295,12 @@ static InterpretResult run() {
             case OP_LESS_EQUAL:
                 inequality(lessEqual);
                 break;
+            case OP_INCREMENT:
+                increment();
+                break; 
+            case OP_DECREMENT:
+                decrement();
+                break;
             case OP_ADD:
                 plus();
                 break;
@@ -272,6 +318,12 @@ static InterpretResult run() {
                 break;
             case OP_POWER:
                 arithmetic(pow);
+                break;
+            case OP_FACTORIAL:
+                factorial();
+                break;
+            case OP_ABS:
+                absolute();
                 break;
             case OP_NOT:
                 push(BOOL_VAL(isFalsey(pop())));

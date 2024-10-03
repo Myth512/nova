@@ -106,6 +106,10 @@ int printInstruction(CodeVec *vec, int offset) {
             return byteInstruction("GET LOCAL", vec, offset);
         case OP_SET_LOCAL:
             return byteInstruction("SET LOCAL", vec, offset);
+        case OP_INCREMENT:
+            return simpleInstruction("INCREMENT", offset);
+        case OP_DECREMENT:
+            return simpleInstruction("DECREMENT", offset);
         case OP_ADD:
             return simpleInstruction("ADD", offset);
         case OP_SUBTRUCT:
@@ -198,6 +202,10 @@ static char* decodeTokenType(TokenType type) {
             return "MOD EQUAL";
         case TOKEN_POWER_EQUAL:
             return "POWER EQUAL";
+        case TOKEN_PLUS_PLUS:
+            return "PLUS PLUS";
+        case TOKEN_MINUS_MINUS:
+            return "MINUS MINUS";
         case TOKEN_BANG:
             return "BANG";
         case TOKEN_BANG_EQUAL:

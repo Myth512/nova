@@ -1,8 +1,6 @@
-var a = "2 + 2 * 2 = {2 + 2 * 2} "
+var i = 0
 
-var b = "Hello "
-
-var c = b + a
-
-var d = "1 + 1 = {1 + 1}"
-print c + d
+while i < 10 {
+	print "factorial of {i} = {i!}"
+	i += 0.1
+}

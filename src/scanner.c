@@ -303,9 +303,17 @@ Token scanToken(bool skipNewline) {
         case '.':
             return createToken(TOKEN_DOT);
         case '-':
-            return createToken(match('=') ? TOKEN_MINUS_EQUAL : TOKEN_MINUS);
+            if (match('='))
+                return createToken(TOKEN_MINUS_EQUAL);
+            if (match('-'))
+                return createToken(TOKEN_MINUS_MINUS);
+            return createToken(TOKEN_MINUS);
         case '+':
-            return createToken(match('=') ? TOKEN_PLUS_EQUAL : TOKEN_PLUS);
+            if (match('='))
+                return createToken(TOKEN_PLUS_EQUAL);
+            if (match('+'))
+                return createToken(TOKEN_PLUS_PLUS);
+            return createToken(TOKEN_PLUS);
         case '/':
             return createToken(match('=') ? TOKEN_SLASH_EQUAL : TOKEN_SLASH);
         case '*':
@@ -314,6 +322,8 @@ Token scanToken(bool skipNewline) {
             return createToken(match('=') ? TOKEN_MOD_EQUAL : TOKEN_MOD);
         case '^':
             return createToken(match('=') ? TOKEN_POWER_EQUAL : TOKEN_POWER);
+        case '|':
+            return createToken(TOKEN_PIPE);
         case '!':
             return createToken(match('=') ? TOKEN_BANG_EQUAL : TOKEN_BANG);
         case '=':

@@ -48,6 +48,7 @@ typedef void (*ParseFn)(bool canAssign, bool skipNewline);
 typedef struct {
     ParseFn prefix;
     ParseFn infix;
+    ParseFn postfix;
     Precedence precedence;
 } ParseRule;
 
@@ -61,9 +62,13 @@ static void fstring(bool canAssign, bool skipNewline);
 
 static void grouping(bool canAssign, bool skipNewline);
 
+static void nullary(bool canAssign, bool skipNewline);
+
 static void unary(bool canAssign, bool skipNewline);
 
 static void binary(bool canAssign, bool skipNewline);
+
+static void absolute(bool canAssign, bool skipNewline);
 
 static void variable(bool canAssign, bool skipNewline);
 
@@ -76,50 +81,53 @@ static void or_(bool canAssign, bool skipNewline);
 static void statement(bool skipNewline);
 
 ParseRule rules[] = {
-  [TOKEN_LEFT_PAREN]    = {grouping, NULL,   PREC_NONE},
-  [TOKEN_RIGHT_PAREN]   = {NULL,     NULL,   PREC_NONE},
-  [TOKEN_LEFT_BRACE]    = {NULL,     NULL,   PREC_NONE}, 
-  [TOKEN_RIGHT_BRACE]   = {NULL,     NULL,   PREC_NONE},
-  [TOKEN_COMMA]         = {NULL,     NULL,   PREC_NONE},
-  [TOKEN_DOT]           = {NULL,     NULL,   PREC_NONE},
-  [TOKEN_MINUS]         = {unary,    binary, PREC_TERM},
-  [TOKEN_PLUS]          = {NULL,     binary, PREC_TERM},
-  [TOKEN_EOS]           = {NULL,     NULL,   PREC_NONE},
-  [TOKEN_SLASH]         = {NULL,     binary, PREC_FACTOR},
-  [TOKEN_STAR]          = {NULL,     binary, PREC_FACTOR},
-  [TOKEN_MOD]           = {NULL,     binary, PREC_FACTOR},
-  [TOKEN_POWER]         = {NULL,     binary, PREC_POWER},
-  [TOKEN_BANG]          = {unary,    NULL,   PREC_NONE},
-  [TOKEN_BANG_EQUAL]    = {NULL,     binary, PREC_EQUALITY},
-  [TOKEN_EQUAL]         = {NULL,     NULL,   PREC_NONE},
-  [TOKEN_DOUBLE_EQUAL]  = {NULL,     binary, PREC_EQUALITY},
-  [TOKEN_GREATER]       = {NULL,     binary, PREC_EQUALITY},
-  [TOKEN_GREATER_EQUAL] = {NULL,     binary, PREC_EQUALITY},
-  [TOKEN_LESS]          = {NULL,     binary, PREC_EQUALITY},
-  [TOKEN_LESS_EQUAL]    = {NULL,     binary, PREC_EQUALITY},
-  [TOKEN_IDENTIFIER]    = {variable, NULL,   PREC_NONE},
-  [TOKEN_STRING]        = {string,   NULL,   PREC_NONE},
-  [TOKEN_FSTRING]       = {fstring,  NULL,   PREC_NONE},
-  [TOKEN_NUMBER]        = {number,   NULL,   PREC_NONE},
-  [TOKEN_AND]           = {NULL,     and_,   PREC_AND},
-  [TOKEN_CLASS]         = {NULL,     NULL,   PREC_NONE},
-  [TOKEN_ELSE]          = {NULL,     NULL,   PREC_NONE},
-  [TOKEN_FALSE]         = {literal,  NULL,   PREC_NONE},
-  [TOKEN_FOR]           = {NULL,     NULL,   PREC_NONE},
-  [TOKEN_DEF]           = {NULL,     NULL,   PREC_NONE},
-  [TOKEN_IF]            = {NULL,     NULL,   PREC_NONE},
-  [TOKEN_NIL]           = {literal,  NULL,   PREC_NONE},
-  [TOKEN_OR]            = {NULL,     or_,    PREC_NONE},
-  [TOKEN_PRINT]         = {NULL,     NULL,   PREC_NONE},
-  [TOKEN_RETURN]        = {NULL,     NULL,   PREC_NONE},
-  [TOKEN_SUPER]         = {NULL,     NULL,   PREC_NONE},
-  [TOKEN_SELF]          = {NULL,     NULL,   PREC_NONE},
-  [TOKEN_TRUE]          = {literal,  NULL,   PREC_NONE},
-  [TOKEN_VAR]           = {NULL,     NULL,   PREC_NONE},
-  [TOKEN_WHILE]         = {NULL,     NULL,   PREC_NONE},
-  [TOKEN_ERROR]         = {NULL,     NULL,   PREC_NONE},
-  [TOKEN_EOF]           = {NULL,     NULL,   PREC_NONE},
-};
+  [TOKEN_LEFT_PAREN]    = {grouping, NULL,   NULL,    PREC_NONE},
+  [TOKEN_RIGHT_PAREN]   = {NULL,     NULL,   NULL,    PREC_NONE},
+  [TOKEN_LEFT_BRACE]    = {NULL,     NULL,   NULL,    PREC_NONE}, 
+  [TOKEN_RIGHT_BRACE]   = {NULL,     NULL,   NULL,    PREC_NONE},
+  [TOKEN_COMMA]         = {NULL,     NULL,   NULL,    PREC_NONE},
+  [TOKEN_DOT]           = {NULL,     NULL,   NULL,    PREC_NONE},
+  [TOKEN_PLUS_PLUS]     = {unary,    NULL,   nullary, PREC_NONE},
+  [TOKEN_MINUS_MINUS]   = {unary,    NULL,   NULL,    PREC_NONE},
+  [TOKEN_MINUS]         = {unary,    binary, NULL,    PREC_TERM},
+  [TOKEN_PLUS]          = {NULL,     binary, NULL,    PREC_TERM},
+  [TOKEN_EOS]           = {NULL,     NULL,   NULL,    PREC_NONE},
+  [TOKEN_SLASH]         = {NULL,     binary, NULL,    PREC_FACTOR},
+  [TOKEN_STAR]          = {NULL,     binary, NULL,    PREC_FACTOR},
+  [TOKEN_MOD]           = {NULL,     binary, NULL,    PREC_FACTOR},
+  [TOKEN_POWER]         = {NULL,     binary, NULL,    PREC_POWER},
+  [TOKEN_BANG]          = {unary,    NULL,   nullary, PREC_NONE},
+  [TOKEN_BANG_EQUAL]    = {NULL,     binary, NULL,    PREC_EQUALITY},
+  [TOKEN_EQUAL]         = {NULL,     NULL,   NULL,    PREC_NONE},
+  [TOKEN_DOUBLE_EQUAL]  = {NULL,     binary, NULL,    PREC_EQUALITY},
+  [TOKEN_GREATER]       = {NULL,     binary, NULL,    PREC_EQUALITY},
+  [TOKEN_GREATER_EQUAL] = {NULL,     binary, NULL,    PREC_EQUALITY},
+  [TOKEN_LESS]          = {NULL,     binary, NULL,    PREC_EQUALITY},
+  [TOKEN_LESS_EQUAL]    = {NULL,     binary, NULL,    PREC_EQUALITY},
+  [TOKEN_IDENTIFIER]    = {variable, NULL,   NULL,    PREC_NONE},
+  [TOKEN_STRING]        = {string,   NULL,   NULL,    PREC_NONE},
+  [TOKEN_FSTRING]       = {fstring,  NULL,   NULL,    PREC_NONE},
+  [TOKEN_NUMBER]        = {number,   NULL,   NULL,    PREC_NONE},
+  [TOKEN_AND]           = {NULL,     and_,   NULL,    PREC_AND},
+  [TOKEN_CLASS]         = {NULL,     NULL,   NULL,    PREC_NONE},
+  [TOKEN_ELSE]          = {NULL,     NULL,   NULL,    PREC_NONE},
+  [TOKEN_FALSE]         = {literal,  NULL,   NULL,    PREC_NONE},
+  [TOKEN_FOR]           = {NULL,     NULL,   NULL,    PREC_NONE},
+  [TOKEN_DEF]           = {NULL,     NULL,   NULL,    PREC_NONE},
+  [TOKEN_IF]            = {NULL,     NULL,   NULL,    PREC_NONE},
+  [TOKEN_NIL]           = {literal,  NULL,   NULL,    PREC_NONE},
+  [TOKEN_OR]            = {NULL,     or_,    NULL,    PREC_NONE},
+  [TOKEN_PRINT]         = {NULL,     NULL,   NULL,    PREC_NONE},
+  [TOKEN_RETURN]        = {NULL,     NULL,   NULL,    PREC_NONE},
+  [TOKEN_SUPER]         = {NULL,     NULL,   NULL,    PREC_NONE},
+  [TOKEN_SELF]          = {NULL,     NULL,   NULL,    PREC_NONE},
+  [TOKEN_TRUE]          = {literal,  NULL,   NULL,    PREC_NONE},
+  [TOKEN_VAR]           = {NULL,     NULL,   NULL,    PREC_NONE},
+  [TOKEN_WHILE]         = {NULL,     NULL,   NULL,    PREC_NONE},
+  [TOKEN_ERROR]         = {NULL,     NULL,   NULL,    PREC_NONE},
+  [TOKEN_PIPE]          = {absolute, NULL,   NULL,    PREC_NONE},
+  [TOKEN_EOF]           = {NULL,     NULL,   NULL,    PREC_NONE},
+  };
 
 static ParseRule* getRule(TokenType type) {
     return &rules[type];
@@ -218,6 +226,11 @@ static void parsePrecedence(Precedence precedence, bool skipNewline) {
 
     bool canAssign = precedence <= PREC_ASSIGNMENT;
     prefixRule(canAssign, skipNewline);
+
+    ParseFn postfixRule = getRule(parser.current.type)->postfix;
+    if (postfixRule != NULL) {
+        postfixRule(canAssign, skipNewline);
+    }
 
     while (precedence <= getRule(parser.current.type)->precedence) {
         advance(skipNewline);
@@ -460,6 +473,21 @@ static void namedVariable(Token name, bool canAssign) {
 
     TokenType type = parser.current.type;
 
+    if (type == TOKEN_PLUS_PLUS  || type == TOKEN_MINUS_MINUS) {
+        advance(false);
+        emitBytes(getOp, (uint8_t)arg);
+        if (type == TOKEN_PLUS_PLUS)
+            emitByte(OP_INCREMENT);
+        else if (type == TOKEN_MINUS_MINUS)
+            emitByte(OP_DECREMENT);
+        emitBytes(setOp, (uint8_t)arg);
+        if (type == TOKEN_PLUS_PLUS)
+            emitByte(OP_DECREMENT);
+        if (type == TOKEN_MINUS_MINUS)
+            emitByte(OP_INCREMENT);
+        return;
+    }
+
     if (type == TOKEN_EQUAL
      || type == TOKEN_PLUS_EQUAL || type == TOKEN_MINUS_EQUAL
      || type == TOKEN_STAR_EQUAL || type == TOKEN_SLASH_EQUAL
@@ -493,6 +521,7 @@ static void namedVariable(Token name, bool canAssign) {
                     break;
             }
             emitBytes(setOp, (uint8_t)arg);
+
         } else {
             if (reportError("Invalid assignment target")) {
                 int line = parser.exprStart.line;
@@ -574,9 +603,44 @@ static void grouping(bool canAssign, bool skipNewline) {
     }
 }
 
+static void absolute(bool canAssign, bool skipNewline) {
+    expression(true);
+
+    if (!consume(TOKEN_PIPE))
+        printf("unlucky\n");
+    
+    emitByte(OP_ABS);
+}
+
 static void unary(bool canAssign, bool skipNewline) {
     TokenType operatorType = parser.previous.type;
     ParseRule *rule = getRule(operatorType);
+
+    if (operatorType == TOKEN_PLUS_PLUS || operatorType == TOKEN_MINUS_MINUS) {
+        advance(skipNewline);
+        uint8_t getOp, setOp;
+        Token name = parser.previous;
+        int arg = resolveLocal(current, &name);
+
+        if (arg != -1) {
+            getOp = OP_GET_LOCAL;
+            setOp = OP_SET_LOCAL;
+        } else {
+            arg = identifierConstant(&name);
+            getOp = OP_GET_GLOBAL;
+            setOp = OP_SET_GLOBAL;
+        }
+        emitBytes(getOp, (uint8_t)arg);
+
+        if (operatorType == TOKEN_PLUS_PLUS) 
+            emitByte(OP_INCREMENT);
+        else
+            emitByte(OP_DECREMENT);
+
+        emitBytes(setOp, (uint8_t)arg);
+        return;
+    }
+
     parsePrecedence((Precedence)(rule->precedence + 1), skipNewline);
 
     switch (operatorType) {
@@ -634,6 +698,19 @@ static void binary(bool canAssign, bool skipNewline) {
             emitByte(OP_POWER);
             break;
         case TOKEN_EOS:
+            break;
+        default:
+            return;
+    }
+}
+
+static void nullary(bool canAssign, bool skipNewline) {
+    TokenType operatorType = parser.current.type;
+    advance(skipNewline);
+
+    switch (operatorType) {
+        case TOKEN_BANG:
+            emitByte(OP_FACTORIAL);
             break;
         default:
             return;
