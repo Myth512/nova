@@ -44,7 +44,7 @@ void printValue(Value value) {
     }
 }
 
-int writeValue(Value value, char *buffer) {
+int writeValue(Value value, char *buffer, const size_t maxSize) {
     switch (value.type) {
         case VAL_BOOL:
             if (AS_BOOL(value))
@@ -53,9 +53,9 @@ int writeValue(Value value, char *buffer) {
         case VAL_NIL:
             return snprintf(buffer, 4, "nil");
         case VAL_NUMBER:
-            return snprintf(buffer, 512, "%g", AS_NUMBER(value));
+            return snprintf(buffer, maxSize, "%g", AS_NUMBER(value));
         case VAL_OBJ:
-            return writeObject(value, buffer);
+            return writeObject(value, buffer, maxSize);
     }
     return -1; // unreachable
 }

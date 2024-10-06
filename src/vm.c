@@ -1,18 +1,22 @@
 #include <math.h>
 #include <string.h>
+#include <time.h>
 
 #include "vm.h"
 #include "debug.h"
 #include "object.h"
 #include "memory.h"
 #include "compiler.h"
+#include "native.h"
 
-#define READ_BYTE()     (*vm.ip++)
-#define READ_CONSTANT() (vm.code->constants.values[READ_BYTE()])
-#define READ_SHORT()    (vm.ip += 2, (uint16_t)((vm.ip[-2] << 8) | vm.ip[-1]))
+#define READ_BYTE()     (*frame->ip++)
+#define READ_CONSTANT() (frame->function->code.constants.values[READ_BYTE()]) 
+#define READ_SHORT()    (frame->ip += 2, \
+                        (uint16_t)(frame->ip[-2] << 8) | frame->ip[-1]) 
 #define READ_STRING()   AS_STRING(READ_CONSTANT())
 
 VM vm;
+CallFrame *frame;
 
 static void resetStack() {
     vm.top = vm.stack;
@@ -30,6 +34,59 @@ static Value pop() {
 
 static Value peek(int distance) {
     return vm.top[-1 - distance];
+}
+
+static bool call(ObjFunction *function, int argCount) {
+    if (argCount != function->arity) {
+        printf("Expected %d arguments but got %d\n", function->arity, argCount);
+        return false;
+    }
+    if (vm.frameSize == FRAMES_SIZE) {
+        printf("Stack overflow");
+        return false;
+    }
+    CallFrame *frame = &vm.frames[vm.frameSize++];
+    // printf("FN call frameSize = %d\n", vm.frameSize);
+    frame->function = function;
+    frame->ip = function->code.code;
+    frame->slots = vm.top - argCount - 1;
+    return true;
+}
+
+static void defineNative(const char *name, NativeFn function) {
+    push(OBJ_VAL(copyString(name, (int)strlen(name))));
+    ObjNative *native = createNative(function);
+    push(OBJ_VAL(native));
+    tableSet(&vm.globals, AS_STRING(vm.stack[0]), vm.stack[1]);
+    pop();
+    pop();
+}
+
+static void defineNatives() {
+    defineNative("clock", clockNative);
+    defineNative("print", printNative);
+    defineNative("sqrt", sqrtNative);
+    defineNative("min", minNative);
+    defineNative("max", maxNative);
+}
+
+static bool callValue(Value callee, int argCount) {
+    if (IS_OBJ(callee)) {
+        switch (OBJ_TYPE(callee)) {
+            case OBJ_FUNCTION:
+                return call(AS_FUNCTION(callee), argCount);
+            case OBJ_NATIVE:
+                NativeFn native = AS_NATIVE(callee);
+                Value result = native(argCount, vm.top - argCount);
+                vm.top -= argCount + 1;
+                push(result);
+                return true;
+            default:
+                break;
+        }
+    }
+    printf("Can only call function and classes");
+    return false;
 }
 
 static inline void concatenate() {
@@ -182,7 +239,8 @@ static bool isFalsey(Value value) {
 }
 
 static void buildFormattedString() {
-    const int bufferSize = 512;
+    const size_t bufferSize = 512;
+    size_t spaceLeft = bufferSize;
     int size = sizeof(ObjString) + bufferSize;
 
     ObjString *string = (ObjString*)allocateObject(size, OBJ_STRING);
@@ -191,18 +249,23 @@ static void buildFormattedString() {
 
     char *buffer = string->chars;
     int partCount = READ_BYTE();
-    int stringLength = 0;
+    int stringSize = 0;
 
     for (int i = 0; i < partCount; i++) {
         Value part = peek(partCount - i - 1);
-        int offset = writeValue(part, buffer);
-        buffer += offset;
-        stringLength += offset;
+        int bytesWritten = writeValue(part, buffer, spaceLeft);
+        buffer += bytesWritten;
+        stringSize += bytesWritten;
+        spaceLeft -= bytesWritten;
+        if (spaceLeft <= 0) {
+            printf("Formatted string is too big\n");
+            exit(1);
+        }
     }
 
-    string->length = stringLength;
+    string->length = stringSize;
 
-    int newSize = size - (bufferSize - stringLength);
+    int newSize = size - (bufferSize - stringSize);
 
     reallocate(string, size, newSize);
 
@@ -213,6 +276,7 @@ static void buildFormattedString() {
 }
 
 static InterpretResult run() {
+    frame = &vm.frames[vm.frameSize - 1];
     while (true) {
 
         #ifdef DEBUG_TRACE_EXECUTION
@@ -223,7 +287,7 @@ static InterpretResult run() {
                 printf(" ]");
             }
             printf("\n");
-            printInstruction(vm.code, (int)(vm.ip - vm.code->code));
+            printInstruction(&frame->function->code, (int)(frame->ip - frame->function->code.code));
         #endif
 
         uint8_t instruction;
@@ -263,12 +327,12 @@ static InterpretResult run() {
             }
             case OP_GET_LOCAL: {
                 uint8_t slot = READ_BYTE();
-                push(vm.stack[slot]);
+                push(frame->slots[slot]);
                 break;
             }
             case OP_SET_LOCAL: {
                 uint8_t slot = READ_BYTE();
-                vm.stack[slot] = peek(0);
+                frame->slots[slot] = peek(0);
                 break;
             }
             case OP_FALSE:
@@ -335,38 +399,52 @@ static InterpretResult run() {
                 }
                 push(NUMBER_VAL(-AS_NUMBER(pop())));
                 break;
-            case OP_PRINT:
-                printValue(pop());
-                putchar('\n');
-                break;
             case OP_BUILD_FSTRING:
                 buildFormattedString();
                 break;
             case OP_JUMP: {
                 uint16_t offset = READ_SHORT();
-                vm.ip += offset;
+                frame->ip += offset;
                 break;
             }
             case OP_JUMP_IF_FALSE: {
                 uint16_t offset = READ_SHORT();
                 if (isFalsey(peek(0))) 
-                    vm.ip += offset;
+                    frame->ip += offset;
                 break;
             }
             case OP_JUMP_IF_FALSE_AND_POP: {
                 uint16_t offset = READ_SHORT();
                 if (isFalsey(peek(0))) 
-                    vm.ip += offset;
+                    frame->ip += offset;
                 pop();
                 break;
             }
             case OP_LOOP: {
                 uint16_t offset = READ_SHORT();
-                vm.ip -= offset;
+                frame->ip -= offset;
                 break;
             }
-            case OP_RETURN:
-                return INTERPRET_OK;
+            case OP_CALL: {
+                int argCount = READ_BYTE();
+                if (!callValue(peek(argCount), argCount))
+                    return INTERPRET_RUNTIME_ERROR;
+                frame = &vm.frames[vm.frameSize - 1];
+                break;
+            }
+            case OP_RETURN: {
+                Value result = pop();
+                vm.frameSize--;
+                if (vm.frameSize == 0) {
+                    pop();
+                    return INTERPRET_OK;
+                }
+
+                vm.top = frame->slots;
+                push(result);
+                frame = &vm.frames[vm.frameSize - 1];
+                break;
+            }
         }
     }
 }
@@ -376,6 +454,8 @@ void initVM() {
     vm.objects = NULL;
     initTable(&vm.globals);
     initTable(&vm.strings);
+
+    defineNatives();
 }
 
 void freeVM() {
@@ -387,25 +467,17 @@ void freeVM() {
 
 
 InterpretResult interpret(const char *source) {
-    CodeVec code;
-    initCodeVec(&code);
-
-    int errorCount = compile(source, &code);
-    if (errorCount != 0) {
-        if (errorCount == 1) 
-            printf("Compilation \033[31mfailed\033[0m with 1 error\n");
-        else
-            printf("Compilation \033[31mfailed\033[0m with %d errors\n", errorCount);
-
-        freeCodeVec(&code);
+    ObjFunction *function = compile(source);
+    if (function == NULL)
         return INTERPRET_COMPILE_ERROR;
-    }
 
-    vm.code = &code;
-    vm.ip = vm.code->code;
+    // CallFrame *frame = &vm.frames[vm.frameSize++];
+    // frame->function = function;
+    // frame->ip = function->code.code;
+    // frame->slots = vm.stack;
 
-    InterpretResult result = run();
+    push(OBJ_VAL(function));
+    call(function, 0);
 
-    freeCodeVec(&code);
-    return result;
+    return run();
 }

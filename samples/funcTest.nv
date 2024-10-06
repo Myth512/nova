@@ -1,0 +1,11 @@
+var a = -10
+var b = 0
+var c = 10
+
+print("maximum is {max(a, b, c)}, minimum is {min(a, b, c)}")
+
+print("absolute value of {a} is {|a|}")
+
+print("factorial of 5.5 is {5.5!}")
+
+print("zero to the power of zero is {0^0}")

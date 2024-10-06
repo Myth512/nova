@@ -5,6 +5,10 @@
 
 static char* decodeObjType(Value value) {
     switch (OBJ_TYPE(value)) {
+        case OBJ_NATIVE:
+            return "NATIVE";
+        case OBJ_FUNCTION:
+            return "FUNCTION";
         case OBJ_STRING:
             return "STRING";
         case OBJ_RAW_STRING:
@@ -47,6 +51,15 @@ static int constantInstruction(const char *name, CodeVec *vec, int offset) {
     uint8_t id = vec->code[offset + 1];
     Value value = vec->constants.values[id];
     printf("%-10s %s %4d '", name, decodeValueType(value), id);
+    printValue(value);
+    printf("'\n");
+    return offset + 2;
+}
+
+static int varInstruction(const char *name, CodeVec *vec, int offset) {
+    uint8_t id = vec->code[offset + 1];
+    Value value = vec->constants.values[id];
+    printf("%-10s %4d '", name, id);
     printValue(value);
     printf("'\n");
     return offset + 2;
@@ -97,11 +110,11 @@ int printInstruction(CodeVec *vec, int offset) {
         case OP_TRUE:
             return simpleInstruction("TRUE", offset);
         case OP_GET_GLOBAL:
-            return constantInstruction("GET GLOBAL", vec, offset);
+            return varInstruction("GET GLOBAL", vec, offset);
         case OP_DEFINE_GLOBAL:
-            return constantInstruction("DEFINE GLOBAL", vec, offset);
+            return varInstruction("DEFINE GLOBAL", vec, offset);
         case OP_SET_GLOBAL:
-            return constantInstruction("SET GLOBAL", vec, offset);
+            return varInstruction("SET GLOBAL", vec, offset);
         case OP_GET_LOCAL:
             return byteInstruction("GET LOCAL", vec, offset);
         case OP_SET_LOCAL:
@@ -138,8 +151,6 @@ int printInstruction(CodeVec *vec, int offset) {
             return simpleInstruction("LESS", offset);
         case OP_LESS_EQUAL:
             return simpleInstruction("LESS EQUAL", offset);
-        case OP_PRINT:
-            return simpleInstruction("PRINT", offset);
         case OP_TO_STRING:
             return simpleInstruction("TO STRING", offset);
         case OP_RETURN:
@@ -154,6 +165,8 @@ int printInstruction(CodeVec *vec, int offset) {
             return jumpInstruction("JUMP IF FALSE AND POP", 1, vec, offset);
         case OP_LOOP:
             return jumpInstruction("LOOP", -1, vec, offset);
+        case OP_CALL:
+            return byteInstruction("CALL", vec, offset);
         default:
             printf("Unknown opcode %d\n", opcode);
             return offset + 1;
@@ -262,8 +275,6 @@ static char* decodeTokenType(TokenType type) {
             return "SELF";
         case TOKEN_SUPER:
             return "SUPER";
-        case TOKEN_PRINT:
-            return "PRINT";
         case TOKEN_ERROR:
             return "ERROR";
         case TOKEN_EOS:

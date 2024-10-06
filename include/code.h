@@ -34,13 +34,13 @@ typedef enum {
     OP_ABS,
     OP_NOT,
     OP_NEGATE,
-    OP_PRINT,
     OP_BUILD_FSTRING,
     OP_TO_STRING,
     OP_JUMP,
     OP_JUMP_IF_FALSE,
     OP_JUMP_IF_FALSE_AND_POP,
     OP_LOOP,
+    OP_CALL,
     OP_RETURN,
 } OpCode;
 

@@ -2,7 +2,8 @@
 #define COMPILER_H
 
 #include "code.h"
+#include "object.h"
 
-int compile(const char *source, CodeVec *code);
+ObjFunction* compile(const char *source);
 
 #endif

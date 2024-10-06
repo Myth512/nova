@@ -6,9 +6,6 @@
 #include "value.h"
 #include "table.h"
 
-#define ALLOCATE_OBJ(type, objectType) \
-    (type*)allocateObject(sizeof(type), objectType)
-
 Obj* allocateObject(size_t size, ObjType type) {
     Obj *object = (Obj*)reallocate(NULL, 0, size);
     object->type = type;
@@ -126,8 +123,33 @@ bool compareStrings(ObjString *a, ObjString *b) {
     return memcmp(a->chars, b->chars, a->length) == 0;
 }
 
+ObjFunction* createFunction() {
+    ObjFunction *function = (ObjFunction*)allocateObject(sizeof(ObjFunction), OBJ_FUNCTION);
+    function->arity = 0;
+    function->name = NULL;
+    initCodeVec(&function->code);
+    return function;
+}
+
+ObjNative* createNative(NativeFn function) {
+    ObjNative *native = (ObjNative*)allocateObject(sizeof(ObjNative), OBJ_NATIVE);
+    native->function = function;
+    return native;
+}
+
 void printObject(Value value) {
     switch (OBJ_TYPE(value)) {
+        case OBJ_FUNCTION:
+            ObjFunction *function = AS_FUNCTION(value);
+            if (function->name == NULL) {
+                printf("<script>");
+                break;
+            }
+            printf("<fn %s>", function->name->chars);
+            break;
+        case OBJ_NATIVE:
+            printf("<native fn>");
+            break;
         case OBJ_STRING:
             printf("%s", AS_CSTRING(value));
             break;
@@ -138,10 +160,13 @@ void printObject(Value value) {
     }
 }
 
-int writeObject(Value value, char *buffer) {
+int writeObject(Value value, char *buffer, const size_t maxSize) {
     switch (OBJ_TYPE(value)) {
+        case OBJ_FUNCTION:
+            ObjFunction *function = AS_FUNCTION(value);
+            return snprintf(buffer, maxSize, "<fn %s>", function->name->chars);
         case OBJ_STRING:
-            return snprintf(buffer, 512, "%s", AS_CSTRING(value));
+            return snprintf(buffer, maxSize, "%s", AS_CSTRING(value));
         case OBJ_RAW_STRING:
             return resolveEscapeSequence(AS_RAW_STRING(value)->chars, AS_RAW_STRING(value)->length, buffer);
     }

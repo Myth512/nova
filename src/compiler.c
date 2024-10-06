@@ -22,7 +22,15 @@ typedef struct {
     int depth;
 } Local;
 
-typedef struct {
+typedef enum {
+    TYPE_FUNCTION,
+    TYPE_TOP_LEVEL
+} FunctionType;
+
+typedef struct Compiler {
+    struct Compiler *enclosing;
+    ObjFunction *function;
+    FunctionType type;
     Local locals[UINT8_MAX + 1];
     int localCount;
     int scopeDepth;
@@ -80,8 +88,10 @@ static void or_(bool canAssign, bool skipNewline);
 
 static void statement(bool skipNewline);
 
+static void call(bool canAssign, bool skipNewline);
+
 ParseRule rules[] = {
-  [TOKEN_LEFT_PAREN]    = {grouping, NULL,   NULL,    PREC_NONE},
+  [TOKEN_LEFT_PAREN]    = {grouping, call,   NULL,    PREC_CALL},
   [TOKEN_RIGHT_PAREN]   = {NULL,     NULL,   NULL,    PREC_NONE},
   [TOKEN_LEFT_BRACE]    = {NULL,     NULL,   NULL,    PREC_NONE}, 
   [TOKEN_RIGHT_BRACE]   = {NULL,     NULL,   NULL,    PREC_NONE},
@@ -117,7 +127,6 @@ ParseRule rules[] = {
   [TOKEN_IF]            = {NULL,     NULL,   NULL,    PREC_NONE},
   [TOKEN_NIL]           = {literal,  NULL,   NULL,    PREC_NONE},
   [TOKEN_OR]            = {NULL,     or_,    NULL,    PREC_NONE},
-  [TOKEN_PRINT]         = {NULL,     NULL,   NULL,    PREC_NONE},
   [TOKEN_RETURN]        = {NULL,     NULL,   NULL,    PREC_NONE},
   [TOKEN_SUPER]         = {NULL,     NULL,   NULL,    PREC_NONE},
   [TOKEN_SELF]          = {NULL,     NULL,   NULL,    PREC_NONE},
@@ -138,13 +147,25 @@ Compiler *current = NULL;
 CodeVec *compilingCode;
 
 static CodeVec* currentCode() {
-    return compilingCode;
+    return &current->function->code;
 }
 
-static void initCompiler(Compiler *compiler) {
+static void initCompiler(Compiler *compiler, FunctionType type) {
+    compiler->enclosing = current;
+    compiler->function = createFunction();
+    compiler->type = type;
     compiler->localCount = 0;
     compiler->scopeDepth = 0;
     current = compiler;
+    if (type != TYPE_TOP_LEVEL) {
+        current->function->name = copyString(parser.previous.start, parser.previous.length);
+    }
+
+    // reserve 0th slot for internal use
+    Local* local = &current->locals[current->localCount++];
+    local->depth = 0;
+    local->name.start = "";
+    local->name.length = 0;
 }
 
 static bool reportError(const char *message) {
@@ -190,7 +211,6 @@ static void synchronize() {
             case TOKEN_FOR:
             case TOKEN_IF:
             case TOKEN_WHILE:
-            case TOKEN_PRINT:
             case TOKEN_RETURN:
                 return;
             default:
@@ -273,15 +293,21 @@ static void emitLoop(int loopStart) {
 }
 
 static void emitReturn() {
+    emitByte(OP_NIL);
     emitByte(OP_RETURN);
 }
 
-static void endCompiler() {
+static ObjFunction* endCompiler() {
     emitReturn();
+    ObjFunction *function = current->function;
+
     #ifdef DEBUG_PRINT_CODE
         if (parser.errorCount == 0)
-            printCodeVec(currentCode(), "code");
+            printCodeVec(currentCode(), function->name != NULL ? function->name->chars : "<top level>");
     #endif
+
+    current = current->enclosing;
+    return function;
 }
 
 static void expression(bool skipNewline) {
@@ -392,6 +418,8 @@ static uint8_t parseVariable(const char *errorMessage) {
 }
 
 static void markInitialized() {
+    if (current->scopeDepth == 0)
+        return;
     current->locals[current->localCount - 1].depth = current->scopeDepth;
 }
 
@@ -717,11 +745,25 @@ static void nullary(bool canAssign, bool skipNewline) {
     }
 }
 
-static void printStatement() {
-    expression(false);
-    if (!consume(TOKEN_EOS))
-        reportError("Expect eos after value");
-    emitByte(OP_PRINT);
+static uint8_t argumentList() {
+    uint8_t argCount = 0;
+    if (!check(TOKEN_RIGHT_PAREN)) {
+        do {
+            expression(true);
+            if (argCount == 255)
+                reportError("Can't have more than 255 arguments");
+            argCount++;
+        } while (match(TOKEN_COMMA, true));
+    }
+    if (!consume(TOKEN_RIGHT_PAREN)) {
+        reportError("Expect ')' after arguments");
+    }
+    return argCount;
+}
+
+static void call(bool canAssign, bool skipNewline) {
+    uint8_t argCount = argumentList();
+    emitBytes(OP_CALL, argCount);
 }
 
 static void beginScope() {
@@ -763,6 +805,36 @@ static void block() {
                 break;
         }
     }
+}
+
+static void function(FunctionType type) {
+    Compiler compiler;
+    initCompiler(&compiler, type);
+    beginScope();
+
+    if (!consume(TOKEN_LEFT_PAREN)) {
+        reportError("Expect '(' after function name");
+    }
+    if (!check(TOKEN_RIGHT_PAREN)) {
+        do {
+            current->function->arity++;
+            if (current->function->arity > 255) {
+                reportError("Can't have more than 255 parameters");
+            }
+            uint8_t constant = parseVariable("Expect parameter name");
+            defineVariable(constant);
+        } while (match(TOKEN_COMMA, false));
+    }
+    if (!consume(TOKEN_RIGHT_PAREN)) {
+        reportError("Expect ')' after parameters");
+    }
+    if (!consume(TOKEN_LEFT_BRACE)) {
+        reportError("Expect '{' after function body}");
+    }
+    block();
+
+    ObjFunction *function = endCompiler();
+    emitBytes(OP_CONSTANT, createConstant(OBJ_VAL(function)));
 }
 
 static void ifStatement() {
@@ -809,10 +881,23 @@ static void whileStatement() {
     emitByte(OP_POP);
 }
 
+static void returnStatement() {
+    if (current->type == TYPE_TOP_LEVEL) {
+        reportError("Can't return from top-level code");
+    }
+    if (match(TOKEN_EOS, false)) {
+        emitReturn();
+    } else {
+        expression(false);
+        if (!consume(TOKEN_EOS)) {
+            reportError("Expect eos after value");
+        }
+        emitByte(OP_RETURN);
+    }
+}
+
 static void statement(bool skipNewline) {
-    if (match(TOKEN_PRINT, skipNewline)) {
-        printStatement();
-    } else if (match(TOKEN_IF, skipNewline)) {
+    if (match(TOKEN_IF, skipNewline)) {
         ifStatement();
     } else if (match(TOKEN_WHILE, skipNewline)) {
         whileStatement();
@@ -820,6 +905,8 @@ static void statement(bool skipNewline) {
         beginScope();
         block();
         endScope();
+    } else if (match(TOKEN_RETURN, skipNewline)) {
+        returnStatement();
     } else {
         expressionStatement();
     }
@@ -841,10 +928,20 @@ static void varDeclaration() {
     defineVariable(global);
 }
 
+static void funcDeclaration() {
+    uint8_t global = parseVariable("Expect function name");
+    markInitialized();
+    function(TYPE_FUNCTION);
+    defineVariable(global);
+}
+
 static void declaration() {
     if (match(TOKEN_EOS, false))
         return;
-    else if (match(TOKEN_VAR, false))
+    
+    if (match(TOKEN_DEF, false)) {
+        funcDeclaration();
+    } else if (match(TOKEN_VAR, false))
         varDeclaration();
     else
         statement(false);
@@ -853,11 +950,10 @@ static void declaration() {
         synchronize();
 }
 
-int compile(const char *source, CodeVec *code) {
+ObjFunction* compile(const char *source) {
     initScanner(source);
     Compiler compiler;
-    initCompiler(&compiler);
-    compilingCode = code;
+    initCompiler(&compiler, TYPE_TOP_LEVEL);
 
     parser.errorCount = 0;
     parser.panicMode = false;
@@ -868,6 +964,6 @@ int compile(const char *source, CodeVec *code) {
     while (!match(TOKEN_EOF, false))
         declaration();
 
-    endCompiler();
-    return parser.errorCount;
+    ObjFunction *function = endCompiler();
+    return parser.errorCount != 0 ? NULL : function;
 }

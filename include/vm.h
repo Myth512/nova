@@ -4,10 +4,20 @@
 #include "common.h"
 #include "code.h"
 #include "table.h"
+#include "object.h"
 
-#define STACK_SIZE 256
+#define FRAMES_SIZE 64
+#define STACK_SIZE (FRAMES_SIZE * UINT8_MAX)
 
 typedef struct {
+    ObjFunction *function;
+    uint8_t *ip;
+    Value *slots;
+} CallFrame;
+
+typedef struct {
+    CallFrame frames[FRAMES_SIZE];
+    int frameSize;
     CodeVec *code;
     uint8_t *ip;
     Value stack[STACK_SIZE];

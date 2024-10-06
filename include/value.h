@@ -51,7 +51,7 @@ void pushValue(ValueVec *values, Value value);
 
 void printValue(Value value);
 
-int writeValue(Value value, char *buffer);
+int writeValue(Value value, char *buffer, const size_t maxSize);
 
 bool compareValues(Value a, Value b);
 
