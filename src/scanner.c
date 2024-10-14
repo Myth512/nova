@@ -199,8 +199,16 @@ static Token scanIdentifier() {
     switch (scanner.start[0]) {
         case 'a':
             return createToken(checkKeyword(1, 2, "nd", TOKEN_AND));
+        case 'b':
+            return createToken(checkKeyword(1, 4, "reak", TOKEN_BREAK));
         case 'c':
-            return createToken(checkKeyword(1, 4, "lass", TOKEN_CLASS));
+            if (scanner.current - scanner.start > 1) {
+                if (scanner.start[1] == 'l')
+                    return createToken(checkKeyword(2, 3, "ass", TOKEN_CLASS));
+                else if (scanner.start[1] == 'o')
+                    return createToken(checkKeyword(2, 6, "ntinue", TOKEN_CONTINUE));
+                return createToken(TOKEN_IDENTIFIER);
+            }
         case 'd':
             return createToken(checkKeyword(1, 2, "ef", TOKEN_DEF));
         case 'e':
@@ -219,10 +227,6 @@ static Token scanIdentifier() {
             return createToken(checkKeyword(1, 1, "r", TOKEN_OR));
         case 'r':
             return createToken(checkKeyword(1, 5, "eturn", TOKEN_RETURN));
-        case 'v':
-            return createToken(checkKeyword(1, 2, "ar", TOKEN_VAR));
-        case 'w':
-            return createToken(checkKeyword(1, 4, "hile", TOKEN_WHILE));
         case 't':
             return createToken(checkKeyword(1, 3, "rue", TOKEN_TRUE));
         case 's':
@@ -260,7 +264,7 @@ void initScanner(const char *source) {
 }
 
 Token scanToken(bool skipNewline) {
-    skipWhitespace(skipNewline || scanner.lastToken == TOKEN_EOS);
+    skipWhitespace(skipNewline || scanner.lastToken == TOKEN_LINE_BREAK || scanner.lastToken == TOKEN_SEMICOLON);
 
     scanner.start = scanner.current;
     scanner.startLine = scanner.line;
@@ -295,33 +299,31 @@ Token scanToken(bool skipNewline) {
         case ']':
             return createToken(TOKEN_RIGHT_BRACKET);
         case ';':
-            return createToken(TOKEN_EOS);
+            return createToken(TOKEN_SEMICOLON);
         case ',':
             return createToken(TOKEN_COMMA);
         case '.':
             return createToken(TOKEN_DOT);
-        case '-':
-            if (match('='))
-                return createToken(TOKEN_MINUS_EQUAL);
-            if (match('-'))
-                return createToken(TOKEN_MINUS_MINUS);
-            return createToken(TOKEN_MINUS);
         case '+':
             if (match('='))
                 return createToken(TOKEN_PLUS_EQUAL);
             if (match('+'))
                 return createToken(TOKEN_PLUS_PLUS);
             return createToken(TOKEN_PLUS);
-        case '/':
-            return createToken(match('=') ? TOKEN_SLASH_EQUAL : TOKEN_SLASH);
+        case '-':
+            if (match('='))
+                return createToken(TOKEN_MINUS_EQUAL);
+            if (match('-'))
+                return createToken(TOKEN_MINUS_MINUS);
+            return createToken(TOKEN_MINUS);
         case '*':
             return createToken(match('=') ? TOKEN_STAR_EQUAL : TOKEN_STAR);
-        case '%':
-            return createToken(match('=') ? TOKEN_MOD_EQUAL : TOKEN_MOD);
         case '^':
-            return createToken(match('=') ? TOKEN_POWER_EQUAL : TOKEN_POWER);
-        case '|':
-            return createToken(TOKEN_PIPE);
+            return createToken(match('=') ? TOKEN_CARET_EQUAL : TOKEN_CARET);
+        case '/':
+            return createToken(match('=') ? TOKEN_SLASH_EQUAL : TOKEN_SLASH);
+        case '%':
+            return createToken(match('=') ? TOKEN_PERCENT_EQUAL : TOKEN_PERCENT);
         case '!':
             return createToken(match('=') ? TOKEN_BANG_EQUAL : TOKEN_BANG);
         case '=':
@@ -330,14 +332,18 @@ Token scanToken(bool skipNewline) {
             return createToken(match('=') ? TOKEN_LESS_EQUAL : TOKEN_LESS);
         case '>':
             return createToken(match('=') ? TOKEN_GREATER_EQUAL : TOKEN_GREATER);
+        case ':':
+            if (match('='))
+                return createToken(TOKEN_COLON_EQUAL);
+            return createErrorToken("Unknow token");
         case '\n':
             scanner.line++;
             scanner.column = 1;
-            return createToken(TOKEN_EOS);
+            return createToken(TOKEN_LINE_BREAK);
         case '\\':
             return scanToken(true);
         case '"':
-            skipChar();
+            skipChar(); // skip opening quote mark
             return scanString();
     }
     return createErrorToken("Unknown token");

@@ -46,7 +46,6 @@ static bool call(ObjFunction *function, int argCount) {
         return false;
     }
     CallFrame *frame = &vm.frames[vm.frameSize++];
-    // printf("FN call frameSize = %d\n", vm.frameSize);
     frame->function = function;
     frame->ip = function->code.code;
     frame->slots = vm.top - argCount - 1;
@@ -55,7 +54,7 @@ static bool call(ObjFunction *function, int argCount) {
 
 static void defineNative(const char *name, NativeFn function) {
     push(OBJ_VAL(copyString(name, (int)strlen(name))));
-    ObjNative *native = createNative(function);
+    ObjNative *native = createNative(function, name);
     push(OBJ_VAL(native));
     tableSet(&vm.globals, AS_STRING(vm.stack[0]), vm.stack[1]);
     pop();
@@ -70,15 +69,15 @@ static void defineNatives() {
     defineNative("max", maxNative);
 }
 
-static bool callValue(Value callee, int argCount) {
+static bool callValue(Value callee, int argc) {
     if (IS_OBJ(callee)) {
         switch (OBJ_TYPE(callee)) {
             case OBJ_FUNCTION:
-                return call(AS_FUNCTION(callee), argCount);
+                return call(AS_FUNCTION(callee), argc);
             case OBJ_NATIVE:
-                NativeFn native = AS_NATIVE(callee);
-                Value result = native(argCount, vm.top - argCount);
-                vm.top -= argCount + 1;
+                NativeFn native = AS_NATIVE(callee)->function;
+                Value result = native(argc, vm.top - argc);
+                vm.top -= argc + 1;
                 push(result);
                 return true;
             default:
@@ -318,7 +317,7 @@ static InterpretResult run() {
             }
             case OP_SET_GLOBAL: {
                 ObjString *name = READ_STRING();
-                if (tableSet(&vm.globals, name, peek(0))) {
+                if (tableSet(&vm.globals, name, pop())) {
                     tableDelete(&vm.globals, name);
                     printf("Undefined variable '%s'\n", name->chars);
                     return INTERPRET_RUNTIME_ERROR;
@@ -332,7 +331,7 @@ static InterpretResult run() {
             }
             case OP_SET_LOCAL: {
                 uint8_t slot = READ_BYTE();
-                frame->slots[slot] = peek(0);
+                frame->slots[slot] = pop();
                 break;
             }
             case OP_FALSE:
@@ -415,14 +414,19 @@ static InterpretResult run() {
             }
             case OP_JUMP_IF_FALSE_AND_POP: {
                 uint16_t offset = READ_SHORT();
-                if (isFalsey(peek(0))) 
+                if (isFalsey(pop())) 
                     frame->ip += offset;
-                pop();
                 break;
             }
             case OP_LOOP: {
                 uint16_t offset = READ_SHORT();
                 frame->ip -= offset;
+                break;
+            }
+            case OP_LOOP_IF_TRUE_AND_POP: {
+                uint16_t offset = READ_SHORT();
+                if (!isFalsey(pop()))
+                    frame->ip -= offset;
                 break;
             }
             case OP_CALL: {
@@ -470,11 +474,6 @@ InterpretResult interpret(const char *source) {
     ObjFunction *function = compile(source);
     if (function == NULL)
         return INTERPRET_COMPILE_ERROR;
-
-    // CallFrame *frame = &vm.frames[vm.frameSize++];
-    // frame->function = function;
-    // frame->ip = function->code.code;
-    // frame->slots = vm.stack;
 
     push(OBJ_VAL(function));
     call(function, 0);

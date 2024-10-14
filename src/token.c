@@ -1,18 +1,24 @@
 #include "token.h"
 #include "memory.h"
 
-void TokenStackPush(TokenStack *stack, Token token) {
-    if (stack->size + 1 >= stack->capacity) {
-        int oldCapacity = stack->capacity;
-        stack->capacity = GROW_CAPACITY(oldCapacity);
-        stack->tokens = GROW_VEC(Token, stack->tokens, oldCapacity, stack->capacity);
-    }
-
-    *stack->top = token;
-    stack->top++;
+void TokenQueueInit(TokenQueue *queue) {
+    queue->tokens = NULL; 
+    queue->size = 0;
+    queue->capacity = 0; 
 }
 
-Token TokenStackPop(TokenStack *stack) {
-    stack->top--;
-    return *stack->top;
+void TokenQueuePush(TokenQueue *queue, Token token) {
+    if (queue->size + 1 >= queue->capacity) {
+        int oldCapacity = queue->capacity;
+        queue->capacity = GROW_CAPACITY(oldCapacity);
+        queue->tokens = GROW_VEC(Token, queue->tokens, oldCapacity, queue->capacity);
+        queue->start = queue->start;
+    }
+    queue->tokens[queue->size++] = token;
+}
+
+Token TokenQueuePop(TokenQueue *queue) {
+    Token token = *queue->start;
+    queue->start++;
+    return token; 
 }

@@ -131,9 +131,10 @@ ObjFunction* createFunction() {
     return function;
 }
 
-ObjNative* createNative(NativeFn function) {
+ObjNative* createNative(NativeFn function, const char *name) {
     ObjNative *native = (ObjNative*)allocateObject(sizeof(ObjNative), OBJ_NATIVE);
     native->function = function;
+    native->name = name;
     return native;
 }
 
@@ -145,10 +146,10 @@ void printObject(Value value) {
                 printf("<script>");
                 break;
             }
-            printf("<fn %s>", function->name->chars);
+            printf("<function %s>", function->name->chars);
             break;
         case OBJ_NATIVE:
-            printf("<native fn>");
+            printf("<native function %s>", AS_NATIVE(value)->name);
             break;
         case OBJ_STRING:
             printf("%s", AS_CSTRING(value));
@@ -164,7 +165,9 @@ int writeObject(Value value, char *buffer, const size_t maxSize) {
     switch (OBJ_TYPE(value)) {
         case OBJ_FUNCTION:
             ObjFunction *function = AS_FUNCTION(value);
-            return snprintf(buffer, maxSize, "<fn %s>", function->name->chars);
+            return snprintf(buffer, maxSize, "<function %s>", function->name->chars);
+        case OBJ_NATIVE:
+            return snprintf(buffer, maxSize, "<native function %s>", AS_NATIVE(value)->name);
         case OBJ_STRING:
             return snprintf(buffer, maxSize, "%s", AS_CSTRING(value));
         case OBJ_RAW_STRING:

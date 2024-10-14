@@ -1,0 +1,22 @@
+// unconditional loop
+for {
+	doSomething()
+}
+
+// while loop
+for (x < 10) {
+	doSomething()
+}
+
+// c-style for loop
+for (x := 0; i < 10; i++) {
+	doSomething()
+}
+
+// do while loop
+for {
+	doSomething()
+} (x < 10)
+
+
+

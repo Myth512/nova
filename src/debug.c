@@ -199,10 +199,10 @@ static char* decodeTokenType(TokenType type) {
             return "SLASH";
         case TOKEN_STAR:
             return "STAR";
-        case TOKEN_MOD:
-            return "MOD";
-        case TOKEN_POWER:
-            return "POWER";
+        case TOKEN_PERCENT:
+            return "PERCENT";
+        case TOKEN_CARET:
+            return "CARET";
         case TOKEN_MINUS_EQUAL:
             return "MINUS EQUAL";
         case TOKEN_PLUS_EQUAL:
@@ -211,10 +211,10 @@ static char* decodeTokenType(TokenType type) {
             return "SLASH EQUAL";
         case TOKEN_STAR_EQUAL:
             return "STAR EQUAL";
-        case TOKEN_MOD_EQUAL:
-            return "MOD EQUAL";
-        case TOKEN_POWER_EQUAL:
-            return "POWER EQUAL";
+        case TOKEN_PERCENT_EQUAL:
+            return "PERCENT EQUAL";
+        case TOKEN_CARET_EQUAL:
+            return "CARET EQUAL";
         case TOKEN_PLUS_PLUS:
             return "PLUS PLUS";
         case TOKEN_MINUS_MINUS:
@@ -243,8 +243,6 @@ static char* decodeTokenType(TokenType type) {
             return "FSTRING";
         case TOKEN_NUMBER:
             return "NUMBER";
-        case TOKEN_VAR:
-            return "VAR";
         case TOKEN_IF:
             return "IF";
         case TOKEN_ELSE:
@@ -253,8 +251,10 @@ static char* decodeTokenType(TokenType type) {
             return "ELIF";
         case TOKEN_FOR:
             return "FOR";
-        case TOKEN_WHILE:
-            return "WHILE";
+        case TOKEN_BREAK:
+            return "BREAK";
+        case TOKEN_CONTINUE:
+            return "CONTINUE";
         case TOKEN_AND:
             return "AND";
         case TOKEN_OR:
@@ -277,8 +277,10 @@ static char* decodeTokenType(TokenType type) {
             return "SUPER";
         case TOKEN_ERROR:
             return "ERROR";
-        case TOKEN_EOS:
-            return "EOS";
+        case TOKEN_LINE_BREAK:
+            return "LINE BREAK";
+        case TOKEN_SEMICOLON:
+            return "SEMICOLON";
         case TOKEN_EOF:
             return "EOF";
         default:

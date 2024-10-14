@@ -1,29 +1,11 @@
-var age = 11
-var iq = 420
+var start = clock()
 
-var msg = "my age is {age * 3} and my iq is {iq % 69}"
+for x := 0; x < 10000; x++ {
+	for y := 0; y < 10000; y++ {
+		z := x + y
+	}
+}
 
-TOKEN_FSTRING "my age is "
-TOKEN_IDENTIFIER "age"
-TOKEN_STAR
-TOKEN_NUMBER 3.0
-TOKEN_FSTRING " and my iq is "
-TOKEN_IDENTIFIER "iq"
-TOKEN_MOD
-TOKEN_NUMBER 69.0
-TOKEN_FSTRING_END
+var end = clock()
 
-CONSTANT "my age is "
-GET GLOBAL "age"
-CONSTANT 3.0
-MULTIPLY
-TO STRING
-ADD
-CONSTANT " and my iq is "
-ADD
-GET GLOBAL "iq"
-CONSTANT 69.0
-MOD
-TO STRING
-ADD
-DEFINE GLOBAL "msg"
+print("elapsed: {end - start}")
