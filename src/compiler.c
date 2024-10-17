@@ -636,7 +636,7 @@ static void singleVariable() {
         case TOKEN_CARET_EQUAL:
         case TOKEN_PERCENT_EQUAL:
             advance(false);
-            advance(true);
+            advance(false);
             setVariable(name, operator);
             break;
         default:
@@ -680,9 +680,6 @@ static void multipleVariables() {
             return;
         }
     }
-
-    if (!consume(TOKEN_LINE_BREAK, false) && !consume(TOKEN_SEMICOLON, false))
-        reportError("Expect eos", &parser.current);
 }
 
 static void variable() {
@@ -701,7 +698,7 @@ static void variable() {
 
 static void and() {
     advance(true);
-    int endJump = emitJump(OP_JUMP_IF_FALSE);
+    int endJump = emitJump(OP_JUMP_FALSE);
 
     emitByte(OP_POP);
     parseExpression(PREC_AND);
@@ -711,13 +708,11 @@ static void and() {
 
 static void or(){
     advance(true);
-    int elseJump = emitJump(OP_JUMP_IF_FALSE);
-    int endJump = emitJump(OP_JUMP);
+    int endJump = emitJump(OP_JUMP_TRUE);
 
-    patchJump(elseJump);
     emitByte(OP_POP);
-
     parseExpression(PREC_OR);
+
     patchJump(endJump);
 }
 
@@ -725,7 +720,7 @@ static void ifStatement(int breakPointer, int continuePointer) {
     advance(false);
     expression();
 
-    int jumpToNextBranch = emitJump(OP_JUMP_IF_FALSE_AND_POP);
+    int jumpToNextBranch = emitJump(OP_JUMP_FALSE_POP);
     int jumpToEnd = -1;
 
     if (parser.current.type == TOKEN_LINE_BREAK) {
@@ -742,15 +737,18 @@ static void ifStatement(int breakPointer, int continuePointer) {
         while (match(TOKEN_ELIF, false)) {
             patchJump(jumpToNextBranch);
             expression();
-            jumpToNextBranch = emitJump(OP_JUMP_IF_FALSE_AND_POP);
+            jumpToNextBranch = emitJump(OP_JUMP_FALSE_POP);
             statement(-1, -1);
             emitLoop(OP_LOOP, jumpToEnd - 1);
         }
     }
 
+    if (jumpToEnd == -1)
+        jumpToEnd = emitJump(OP_JUMP);
     patchJump(jumpToNextBranch);
 
     if (parser.current.type == TOKEN_ELSE) {
+
         advance(false);
         if (parser.current.type == TOKEN_LINE_BREAK) {
             advance(false);
@@ -762,7 +760,8 @@ static void ifStatement(int breakPointer, int continuePointer) {
         }
     }
 
-    patchJump(jumpToEnd);
+    if (jumpToEnd != -1)
+        patchJump(jumpToEnd);
 }
 
 static void breakStatement(int breakPointer) {
@@ -771,7 +770,7 @@ static void breakStatement(int breakPointer) {
 
     advance(false);
     
-    emitLoop(OP_LOOP, breakPointer);
+    emitLoop(OP_LOOP, breakPointer - 1);
 
     if (!consume(TOKEN_LINE_BREAK, false) && !consume(TOKEN_SEMICOLON, false))
         reportError("Expect eos after 'break'", &parser.current);
@@ -815,7 +814,7 @@ static void forLoop() {
         hasCondition = true;
         conditionPointer = currentCode()->size;
         expression();
-        jumpToEndIfFalse = emitJump(OP_JUMP_IF_FALSE_AND_POP);
+        jumpToEndIfFalse = emitJump(OP_JUMP_FALSE_POP);
         if (!check(TOKEN_SEMICOLON)) {
             reportError("Expect ';' after condition", &parser.current);
         }
@@ -850,7 +849,7 @@ static void forLoop() {
     else
         jumpToStart = bodyPointer;
 
-    declaration(jumpToEnd - 1, jumpToStart);
+    declaration(jumpToEnd, jumpToStart);
 
     emitLoop(OP_LOOP, jumpToStart);
 
@@ -870,7 +869,7 @@ static void whileLoop() {
     conditionPointer = currentCode()->size;
 
     expression();
-    jumpToEndIfFalse = emitJump(OP_JUMP_IF_FALSE_AND_POP);
+    jumpToEndIfFalse = emitJump(OP_JUMP_FALSE_POP);
 
     declaration(jumpToEnd, conditionPointer);
 
@@ -891,7 +890,7 @@ static void unconditionalLoop() {
 
     if (consume(TOKEN_LEFT_PAREN, true)) {
         expression();
-        emitLoop(OP_LOOP_IF_TRUE_AND_POP, startPointer);
+        emitLoop(OP_LOOP_TRUE_POP, startPointer);
 
         if (!consume(TOKEN_RIGHT_PAREN, true))
             reportError("Expect ')' after condition", &parser.current);

@@ -1,0 +1,9 @@
+def dangerousFunction() {
+	print("Im very dangerous")
+}
+
+if true or dangerousFunction() {
+	print("17: True")
+} else {
+	print("17: False")
+}

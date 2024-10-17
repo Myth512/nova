@@ -406,13 +406,25 @@ static InterpretResult run() {
                 frame->ip += offset;
                 break;
             }
-            case OP_JUMP_IF_FALSE: {
+            case OP_JUMP_TRUE: {
+                uint16_t offset = READ_SHORT();
+                if (!isFalsey(peek(0))) 
+                    frame->ip += offset;
+                break;
+            }
+            case OP_JUMP_TRUE_POP: {
+                uint16_t offset = READ_SHORT();
+                if (isFalsey(pop())) 
+                    frame->ip += offset;
+                break;
+            }
+            case OP_JUMP_FALSE: {
                 uint16_t offset = READ_SHORT();
                 if (isFalsey(peek(0))) 
                     frame->ip += offset;
                 break;
             }
-            case OP_JUMP_IF_FALSE_AND_POP: {
+            case OP_JUMP_FALSE_POP: {
                 uint16_t offset = READ_SHORT();
                 if (isFalsey(pop())) 
                     frame->ip += offset;
@@ -423,7 +435,7 @@ static InterpretResult run() {
                 frame->ip -= offset;
                 break;
             }
-            case OP_LOOP_IF_TRUE_AND_POP: {
+            case OP_LOOP_TRUE_POP: {
                 uint16_t offset = READ_SHORT();
                 if (!isFalsey(pop()))
                     frame->ip -= offset;
@@ -477,6 +489,10 @@ InterpretResult interpret(const char *source) {
 
     push(OBJ_VAL(function));
     call(function, 0);
+
+    #ifdef DEBUG_DO_NOT_EXECUTE
+        return INTERPRET_OK;
+    #endif
 
     return run();
 }

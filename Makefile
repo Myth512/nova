@@ -41,3 +41,6 @@ all:
 .PHONY: clean
 clean:
 	rm -rf $(OBJ_DIR) $(BIN_DIR)
+
+test:
+	python3 tests/run_tests.py

@@ -1,0 +1,45 @@
+def printPlusOne(n) {
+	print(n + 1)
+}
+
+print(printPlusOne(1))
+
+def double(n) {
+	return n * 2
+}
+
+print(double(5))
+
+def pow(n, e) {
+	return n ^ e
+}
+
+print(pow(2, 3))
+
+def factorial(n) {
+	if n == 0 {
+		return 1
+	}
+	return n * factorial(n - 1)
+}
+
+print(factorial(5))
+
+def fib(n) {
+	if n < 2 {
+		return n
+	}
+	return fib(n - 2) + fib(n - 1)
+}
+
+print(fib(20))
+
+var := "im global"
+
+def func() {
+	print(var)
+	var := "im local"
+	print(var)
+}
+
+func()

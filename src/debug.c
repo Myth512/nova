@@ -159,12 +159,18 @@ int printInstruction(CodeVec *vec, int offset) {
             return argInstruction("BUILD FSTRING", vec, offset);
         case OP_JUMP:
             return jumpInstruction("JUMP", 1, vec, offset);
-        case OP_JUMP_IF_FALSE:
-            return jumpInstruction("JUMP IF FALSE", 1, vec, offset);
-        case OP_JUMP_IF_FALSE_AND_POP:
-            return jumpInstruction("JUMP IF FALSE AND POP", 1, vec, offset);
+        case OP_JUMP_TRUE:
+            return jumpInstruction("JUMP TRUE", 1, vec, offset);
+        case OP_JUMP_TRUE_POP:
+            return jumpInstruction("JUMP TRUE POP", 1, vec, offset);
+        case OP_JUMP_FALSE:
+            return jumpInstruction("JUMP FALSE", 1, vec, offset);
+        case OP_JUMP_FALSE_POP:
+            return jumpInstruction("JUMP FALSE POP", 1, vec, offset);
         case OP_LOOP:
             return jumpInstruction("LOOP", -1, vec, offset);
+        case OP_LOOP_TRUE_POP:
+            return jumpInstruction("LOOP TRUE POP", -1, vec, offset);
         case OP_CALL:
             return byteInstruction("CALL", vec, offset);
         default:
