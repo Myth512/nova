@@ -222,7 +222,12 @@ static Token scanIdentifier() {
         case 'i':
             return createToken(checkKeyword(1, 1, "f", TOKEN_IF));
         case 'n':
-            return createToken(checkKeyword(1, 2, "il", TOKEN_NIL));
+            if (scanner.current - scanner.start > 1)
+                if (scanner.start[1] == 'i')
+                    return createToken(checkKeyword(2, 1, "l", TOKEN_NIL));
+                else if (scanner.start[1] == 'o')
+                    return createToken(checkKeyword(2, 1, "t", TOKEN_NOT));
+                return createToken(TOKEN_IDENTIFIER);
         case 'o':
             return createToken(checkKeyword(1, 1, "r", TOKEN_OR));
         case 'r':
@@ -325,7 +330,9 @@ Token scanToken(bool skipNewline) {
         case '%':
             return createToken(match('=') ? TOKEN_PERCENT_EQUAL : TOKEN_PERCENT);
         case '!':
-            return createToken(match('=') ? TOKEN_BANG_EQUAL : TOKEN_BANG);
+            if (match('='))
+                return createToken(TOKEN_BANG_EQUAL);
+            return createErrorToken("Unknow token");
         case '=':
             return createToken(match('=') ? TOKEN_DOUBLE_EQUAL : TOKEN_EQUAL);
         case '<':

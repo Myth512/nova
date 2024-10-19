@@ -43,3 +43,12 @@ print(2 ^ get_value())
 
 // Case 14, expected: 15
 print((get_value() + 2) * 3)
+
+// Case 15, expected: 0
+print(5 + -5)
+
+// Case 16, expected: 0
+print(-5 + +5)
+
+// Case 17, expected: -3069
+print((1 + 2) - 3 * 4 ^ 5)

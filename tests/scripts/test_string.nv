@@ -1,7 +1,25 @@
+// Case 1, expected: Hello, World!
 print("Hello, World!")
 
-print("Hi " + "How are you?")
+// Case 2, expected: Hello, World!
+print("Hello" + ", " + "World!")
 
+// Case 3, expected: Startend
+print("Start" + "" + "end")
+
+// Case 4, expected: 2 + 2 * 2 = 6
 print("2 + 2 * 2 = {2 + 2 * 2}")
 
+// Case 5, expected: 13
+a := 13
+print("{a}")
 
+// Case 6, expected: 1399
+b := 99
+print("{a}{b}")
+
+// Case 7, expected: value of a is 13 post
+print("value of a is {a} post")
+
+// Case 8, expected: true
+print("boolean algebra {true or false} {true and false}")

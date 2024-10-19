@@ -225,8 +225,6 @@ static char* decodeTokenType(TokenType type) {
             return "PLUS PLUS";
         case TOKEN_MINUS_MINUS:
             return "MINUS MINUS";
-        case TOKEN_BANG:
-            return "BANG";
         case TOKEN_BANG_EQUAL:
             return "BANG EQUAL";
         case TOKEN_EQUAL:
@@ -261,6 +259,8 @@ static char* decodeTokenType(TokenType type) {
             return "BREAK";
         case TOKEN_CONTINUE:
             return "CONTINUE";
+        case TOKEN_NOT:
+            return "NOT";
         case TOKEN_AND:
             return "AND";
         case TOKEN_OR:

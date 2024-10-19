@@ -1,0 +1,50 @@
+// Case 1, expected: true
+print(true and true)
+
+// Case 2, expected: false
+print(true and false)
+
+// Case 3, expected: false
+print(false and true)
+
+// Case 4, expected: false
+print(false and false)
+
+// Case 5, expected: true
+print(true or true)
+
+// Case 6, expected: true
+print(true or false)
+
+// Case 7, expected: true
+print(false or true)
+
+// Case 8, expected: false
+print(false or false)
+
+// Case 9, expected: false
+print(not true)
+
+// Case 10, expected: true 
+print(not false)
+
+// Case 11, expected: true
+print(not not true)
+
+// Case 12, expected: false
+print(not not false)
+
+// Case 13, expected: false
+print(not 1)
+
+// Case 14, expected: true
+print(not 0)
+
+// Case 15, expected: true
+print(true or false and false)
+
+// Case 16, expected: true
+print(not (true and false) or false)
+
+// Case 17, expected: true
+print(not nil)

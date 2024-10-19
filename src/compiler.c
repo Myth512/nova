@@ -101,7 +101,7 @@ ParseRule rules[] = {
   [TOKEN_CARET]         = {NULL,     binary, NULL,    PREC_POWER},
   [TOKEN_SLASH]         = {NULL,     binary, NULL,    PREC_FACTOR},
   [TOKEN_PERCENT]       = {NULL,     binary, NULL,    PREC_FACTOR},
-  [TOKEN_BANG]          = {unary,    NULL,   NULL, PREC_NONE},
+  [TOKEN_NOT]          = {unary,    NULL,   NULL, PREC_NONE},
   [TOKEN_PLUS_PLUS]     = {NULL,     NULL,   NULL,    PREC_NONE},
   [TOKEN_MINUS_MINUS]   = {NULL,     NULL,   NULL,    PREC_NONE},
   [TOKEN_PLUS_EQUAL]    = {NULL,     NULL,   NULL,    PREC_NONE},
@@ -394,7 +394,7 @@ static void unary() {
         case TOKEN_MINUS:
             emitByte(OP_NEGATE);
             break;
-        case TOKEN_BANG:
+        case TOKEN_NOT:
             emitByte(OP_NOT);
             break;
         default:
@@ -613,7 +613,6 @@ void setVariable(Token name, Token operator) {
         default:
             break;
     }
-
     emitBytes(setOp, arg);
 }
 
