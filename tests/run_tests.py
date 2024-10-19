@@ -1,4 +1,5 @@
 import subprocess
+import os
 from itertools import zip_longest
 
 RED = '\033[31m'
@@ -6,64 +7,75 @@ GREEN = '\033[32m'
 YELLOW = '\033[33m'
 RESET = '\033[0m'
 
-tests = [
-    ('test_var.nv', ['nil', '1', '11', '90 3.14', '3.14 90', 'false', 'true', 'Hello, World!', 'global', 'scope1', 'scope2', 'scope1', 'global']),
-    ('test_control_flow.nv', ['1: True', '3: True', '4: False', '5: True', '6: Maybe', '7: False', '8: False', '9: False', '10: False', '11: True', '12: False', '13: True', '14: True', '15: True', '16: False', '17: True']),
-    ('test_loop.nv', ['0', '1', '2', '3', '4', '-5', '-3', '-1', '1', '2', '3', 'Hello, im string', '20', '40', '60', '80', '0 0', '0 1', '1 0', '1 1', '0 1', '0 2', '0 3', '1 2', '1 3', '2 3']),
-    ('test_func.nv', ['2', 'nil', '10', '8', '120', '6765', 'im global', 'im local'])
-]
+SCRIPTS_DIR = 'tests/scripts'
+GOLDEN_DIR = 'tests/golden'
+RESULTS_DIR = 'tests/results'
+INTERPRETER = 'nova'
 
-def run_test(script_path: str, expected_output: list[str]) -> int:
-    result = subprocess.run(['nova', f"tests/{script_path}"],
-                            stdout=subprocess.PIPE,
-                            stderr=subprocess.PIPE,
-                            text=True)
-    
-    if result.returncode == -11:
-        print(f"{RED}[✗]{RESET} {script_path} failed due to segmentation fault")
-        return 0
-    
-    output = result.stdout.strip().split('\n')
-    
-    passed = True
-    lines = []
+def run_test(name: str) -> None:
+    script_path = os.path.join(SCRIPTS_DIR, name)
+    stdout_path = os.path.join(RESULTS_DIR, f'{name[:-3]}.out')
+    stderr_path = os.path.join(RESULTS_DIR, f'{name[:-3]}.err')
 
-    for i, (expected_line, output_line) in enumerate(zip_longest(expected_output, output, fillvalue='?')):
-        if expected_line != output_line or output_line == '?':
-            lines.append(i)
-            passed = False
-    
-    if passed:
-        print(f"{GREEN}[✓]{RESET} {script_path} passed")
-        return 1
-    else:
-        print(f"{RED}[✗]{RESET} {script_path} failed")
-        print(f"Expect:")
-        for i, expected_line in enumerate(expected_output):
-            if i in lines:
-                print(f"{YELLOW}{expected_line}{RESET}")
-            else:
-                print(f"{expected_line}")
-        print(f"Got:")
-        for i, output_line in enumerate(output):
-            if i in lines:
-                print(f"{RED}{output_line}{RESET}")
-            else:
-                print(f"{output_line}")
-        print(f"Stderr: '{result.stderr.strip()}'")
-        return 0
+    with open(stdout_path, 'w') as stdout_file, open(stderr_path, 'w') as stderr_file:
+        subprocess.run([INTERPRETER, script_path], stdout=stdout_file, stderr=stderr_file)
+
+def compare(name: str) -> bool:
+    golden_stdout_path = os.path.join(GOLDEN_DIR, f'{name[:-3]}.out')
+    golden_stderr_path = os.path.join(GOLDEN_DIR, f'{name[:-3]}.err')
+    result_stdout_path = os.path.join(RESULTS_DIR, f'{name[:-3]}.out')
+    result_stderr_path = os.path.join(RESULTS_DIR, f'{name[:-3]}.err')
+
+    with open(golden_stdout_path) as f1, open(golden_stderr_path) as f2:
+        golden_stdout = f1.read()
+        golden_stderr = f2.read()
+
+    with open(result_stdout_path) as f1, open(result_stderr_path) as f2:
+        result_stdout = f1.read()
+        result_stderr = f2.read()
+
+    return golden_stdout == result_stdout and golden_stderr == result_stderr
+
+def print_diff(name: str) -> None:
+    golden_stdout_path = os.path.join(GOLDEN_DIR, f'{name[:-3]}.out')
+    golden_stderr_path = os.path.join(GOLDEN_DIR, f'{name[:-3]}.err')
+    result_stdout_path = os.path.join(RESULTS_DIR, f'{name[:-3]}.out')
+    result_stderr_path = os.path.join(RESULTS_DIR, f'{name[:-3]}.err')
+
+    with open(golden_stdout_path, 'r') as f1, open(result_stdout_path, 'r') as f2:
+        for i, (golden_line, result_line) in enumerate(zip_longest(f1, f2, fillvalue='(no out)\n')):
+            if golden_line != result_line:
+                print(f'Line {i}')
+                print(f'{YELLOW}Expected:{RESET} {golden_line}', end='')
+                print(f'{RED}Got:{RESET}      {result_line}', end='')
+
+    with open(golden_stderr_path, 'r') as f1, open(result_stderr_path, 'r') as f2:
+        for i, (golden_line, result_line) in enumerate(zip_longest(f1, f2, fillvalue='(no err)\n')):
+            if golden_line != result_line:
+                print(f'Line {i}')
+                print(f'{YELLOW}Expected:{RESET} {golden_line}', end='')
+                print(f'{RED}Got:{RESET}      {result_line}', end='')
 
 def main():
-    test_count = len(tests)
+    scripts = [f for f in os.listdir(SCRIPTS_DIR)]
+    test_count = 0
     pass_count = 0
 
-    for path, expected in tests:
-        pass_count += run_test(path, expected)    
-    
+    for script in scripts:
+        test_count += 1
+        run_test(script)
+
+        if compare(script):
+            pass_count += 1
+            print(f'{GREEN}[✓]{RESET} {script} passed')
+        else:
+            print(f'{RED}[✗]{RESET} {script} failed')
+            print_diff(script)
+        
     if pass_count == test_count:
-        print(f"{GREEN}All tests passed{RESET}")
+        print(f'{GREEN}All tests passed{RESET}')
     else:
-        print(f"{RED}{pass_count} out of {test_count} test passed{RESET}")
+        print(f'{RED}{pass_count} out of {test_count} tests passed{RESET}')
     
 if __name__ == '__main__':
     main()

@@ -1,0 +1,20 @@
+// Case 1, expected: 5
+print(2 + 3)  
+
+// Case 2, expected: 2
+print(7 - 5)  
+
+// Case 3, expected: -3
+print(-3)  
+
+// Case 4, expected: 20
+print(4 * 5)
+
+// Case 5, expected: 5
+print(10 / 2)
+
+// Case 6, expected: 1
+print(10 % 3)
+
+// Case 7, expected: 8
+print(2 ^ 3)

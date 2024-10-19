@@ -1,0 +1,145 @@
+x := 1
+
+// Case 1, expected: true
+if x == 1 {
+	print(true)
+}
+
+// Case 1.5, expected: nothing
+if x != 1 {
+	print(true)
+}
+
+// Case 2, expected: true
+if x > 0 {
+	print(true)
+} else {
+	print(false)
+}
+
+// Case 3, expected: false
+if x < 0 {
+	print(true)
+} else {
+	print(false)
+}
+
+// Case 4, expected: true
+if x > 0 {
+	print(true)
+} elif x == 0 {
+	print("Maybe")
+} else {
+	print(false)
+}
+
+// Case 5, expected: Maybe
+x = 0
+if x > 0 {
+	print(true)
+} elif x == 0 {
+	print("Maybe")
+} else {
+	print(false)
+}
+
+// Case 6, expected: false
+x = -1
+
+if x > 0 {
+	print(true)
+} elif x == 0 {
+	print("Maybe")
+} else {
+	print(false)
+}
+
+// Case 7, expected: false
+a, b := false, false
+
+if a == true and b == true {
+	print(true)
+} else {
+	print(false)
+}
+
+// Case 8, expected: false
+a, b = false, true
+
+if a == true and b == true {
+	print(true)
+} else {
+	print(false)
+}
+
+// Case 9, expected: false
+a, b = true, false
+
+if a == true and b == true {
+	print(true)
+} else {
+	print(false)
+}
+	
+// Case 10, expected: true
+a, b = true, true 
+
+if a == true and b == true {
+	print(true)
+} else {
+	print(false)
+}
+
+// Case 11, expected: false
+a, b = false, false
+
+if a == true or b == true {
+	print(true)
+} else {
+	print(false)
+}
+
+// Case 12, expected: true
+a, b = false, true
+
+if a == true or b == true {
+	print(true)
+} else {
+	print(false)
+}
+
+// Case 13, expected: true
+a, b = true, false
+
+if a == true or b == true {
+	print(true)
+} else {
+	print(false)
+}
+
+// Case 14, expected: true
+a, b = true, true
+
+if a == true or b == true {
+	print(true)
+} else {
+	print(false)
+}
+
+def dangerousFunction() {
+	print("Im very dangerous")
+}
+
+// Case 15, expected: false
+if false and dangerousFunction() {
+	print(true)
+} else {
+	print(false)
+}
+
+// Case 16, expected: true
+if true or dangerousFunction() {
+	print(true)
+} else {
+	print(false)
+}

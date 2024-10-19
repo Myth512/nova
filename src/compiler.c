@@ -307,7 +307,7 @@ static void parseExpression(Precedence precedence) {
 
     prefixFunc();
 
-    while (precedence <= getRule(parser.current.type)->precedence) {
+    while (precedence < getRule(parser.current.type)->precedence) {
         void (*infixFunc)() = getRule(parser.current.type)->infix;
         infixFunc();
     }
@@ -385,7 +385,8 @@ static void unary() {
     TokenType operatorType = parser.current.type;
     advance(false);
 
-    parseExpression(getRule(operatorType)->precedence);
+    Precedence precedence = getRule(operatorType)->precedence + 1;
+    parseExpression(precedence);
 
     switch (operatorType) {
         case TOKEN_PLUS:

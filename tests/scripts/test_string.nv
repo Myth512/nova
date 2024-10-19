@@ -1,0 +1,7 @@
+print("Hello, World!")
+
+print("Hi " + "How are you?")
+
+print("2 + 2 * 2 = {2 + 2 * 2}")
+
+
