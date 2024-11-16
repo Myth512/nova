@@ -42,13 +42,12 @@ typedef struct {
     int size;
     int capacity;
     Token *tokens;
-    Token *start;
-} TokenQueue;
+} TokenVec;
 
-void TokenQueueInit(TokenQueue *queue);
+void TokenVecInit(TokenVec *vec);
 
-void TokenQueuePush(TokenQueue *stack, Token token);
+void TokenVecPush(TokenVec *vec, Token token);
 
-Token TokenQueuePop(TokenQueue *stack);
+void TokenVecFree(TokenVec *vec);
 
 #endif

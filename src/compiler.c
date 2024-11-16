@@ -702,15 +702,12 @@ static void singleVariable() {
     }
 }
 
-static void multipleVariables() {
-    TokenQueue variables;
-    TokenQueueInit(&variables);
-
+static void parseMultipleVariables(TokenVec *variables) {
     do {
         if (!check(TOKEN_IDENTIFIER))
             reportError("Expect variable name after comma", &parser.current);
         
-        TokenQueuePush(&variables, parser.current);
+        TokenVecPush(variables, parser.current);
         advance(false);
     } while (match(TOKEN_COMMA, true));
 
@@ -719,8 +716,8 @@ static void multipleVariables() {
     if (operator.type == TOKEN_LINE_BREAK || operator.type == TOKEN_SEMICOLON)
         return;
 
-    for (int i = 0; i < variables.size; i++) {
-        Token name = variables.tokens[i];
+    for (int i = 0; i < variables->size; i++) {
+        Token name = variables->tokens[i];
 
         if (operator.type == TOKEN_COLON_EQUAL) {
             variableDeclaration(name);
@@ -731,11 +728,18 @@ static void multipleVariables() {
             return;
         }
 
-        if (i != variables.size - 1 && !consume(TOKEN_COMMA, false)) {
+        if (i != variables->size - 1 && !consume(TOKEN_COMMA, false)) {
             reportError("Number of variables does not match number of values", &parser.current);
             return;
         }
     }
+}
+
+static void multipleVariables() {
+    TokenVec variables;
+    TokenVecInit(&variables);
+    parseMultipleVariables(&variables);
+    TokenVecFree(&variables);
 }
 
 static void variable() {
