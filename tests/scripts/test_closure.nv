@@ -1,0 +1,56 @@
+def outer() {
+	x := "outside"
+	def inner() {
+		print(x)
+	}
+	return inner
+}
+
+closure := outer()
+closure()
+
+globalSet := nil
+globalGet := nil
+
+def func() {
+	a := "initial"
+	def set() {
+		a = "updated"
+	}
+	def get() {
+		print(a)
+	}
+	
+	globalSet = set
+	globalGet = get
+}
+
+func()
+globalGet()
+globalSet()
+globalGet()
+
+def create_counter() {
+	c := 0
+	def count() {
+		print(c)
+		c++
+	}
+	return count
+}
+
+counter1 := create_counter()
+
+counter1()
+counter1()
+counter1()
+
+counter2 := create_counter()
+
+counter2()
+counter2()
+counter2()
+
+counter1()
+counter1()
+counter1()

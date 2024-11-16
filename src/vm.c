@@ -20,6 +20,8 @@ CallFrame *frame;
 
 static void resetStack() {
     vm.top = vm.stack;
+    vm.frameSize = 0;
+    vm.openUpvalues = NULL;
 }
 
 static void push(Value value) {
@@ -89,8 +91,34 @@ static bool callValue(Value callee, int argc) {
 }
 
 static ObjUpvalue *captureUpvalue(Value *local) {
+    ObjUpvalue *prev = NULL;
+    ObjUpvalue *cur = vm.openUpvalues;
+    while (cur != NULL && cur->location > local) {
+        prev = cur;
+        cur = cur->next;
+    }
+
+    if (cur != NULL && cur->location == local)
+        return cur;
+
     ObjUpvalue *createdUpvalue = createUpvalue(local);
+    createdUpvalue->next = cur;
+
+    if (prev == NULL) {
+        vm.openUpvalues = createdUpvalue;
+    } else {
+        prev->next =  createdUpvalue;
+    }
     return createdUpvalue;
+}
+
+static void closeUpvalues(Value *last) {
+    while (vm.openUpvalues != NULL && vm.openUpvalues->location >= last) {
+        ObjUpvalue *upvalue= vm.openUpvalues;
+        upvalue->closed = *upvalue->location;
+        upvalue->location = &upvalue->closed;
+        vm.openUpvalues = upvalue->next;
+    }
 }
 
 static inline void concatenate() {
@@ -452,8 +480,13 @@ static InterpretResult run() {
                 }
                 break;
             }
+            case OP_CLOSE_UPVALUE:
+                closeUpvalues(vm.top - 1);
+                pop();
+                break;
             case OP_RETURN: {
                 Value result = pop();
+                closeUpvalues(frame->slots);
                 vm.frameSize--;
                 if (vm.frameSize == 0) {
                     pop();

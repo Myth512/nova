@@ -120,9 +120,9 @@ int printInstruction(CodeVec *vec, int offset) {
         case OP_SET_LOCAL:
             return byteInstruction("SET LOCAL", vec, offset);
         case OP_GET_UPVALUE:
-            return byteInstruction("OP_GET_UPVALUE", vec, offset);
+            return byteInstruction("GET UPVALUE", vec, offset);
         case OP_SET_UPVALUE:
-            return byteInstruction("OP_SET_UPVALUE", vec, offset);
+            return byteInstruction("SET UPVALUE", vec, offset);
         case OP_INCREMENT:
             return simpleInstruction("INCREMENT", offset);
         case OP_DECREMENT:
@@ -192,6 +192,8 @@ int printInstruction(CodeVec *vec, int offset) {
             }
             return offset;
         }
+        case OP_CLOSE_UPVALUE:
+            return simpleInstruction("CLOSE UPVALUE", offset);
         default:
             printf("Unknown opcode %d\n", opcode);
             return offset + 1;
