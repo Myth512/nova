@@ -10,7 +10,7 @@
 #define STACK_SIZE (FRAMES_SIZE * UINT8_MAX)
 
 typedef struct {
-    ObjFunction *function;
+    ObjClosure *closure;
     uint8_t *ip;
     Value *slots;
 } CallFrame;

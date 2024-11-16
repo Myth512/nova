@@ -10,7 +10,7 @@
 #include "native.h"
 
 #define READ_BYTE()     (*frame->ip++)
-#define READ_CONSTANT() (frame->function->code.constants.values[READ_BYTE()]) 
+#define READ_CONSTANT() (frame->closure->function->code.constants.values[READ_BYTE()]) 
 #define READ_SHORT()    (frame->ip += 2, \
                         (uint16_t)(frame->ip[-2] << 8) | frame->ip[-1]) 
 #define READ_STRING()   AS_STRING(READ_CONSTANT())
@@ -36,9 +36,9 @@ static Value peek(int distance) {
     return vm.top[-1 - distance];
 }
 
-static bool call(ObjFunction *function, int argCount) {
-    if (argCount != function->arity) {
-        printf("Expected %d arguments but got %d\n", function->arity, argCount);
+static bool call(ObjClosure *closure, int argCount) {
+    if (argCount != closure->function->arity) {
+        printf("Expected %d arguments but got %d\n", closure->function->arity, argCount);
         return false;
     }
     if (vm.frameSize == FRAMES_SIZE) {
@@ -46,8 +46,8 @@ static bool call(ObjFunction *function, int argCount) {
         return false;
     }
     CallFrame *frame = &vm.frames[vm.frameSize++];
-    frame->function = function;
-    frame->ip = function->code.code;
+    frame->closure = closure;
+    frame->ip = closure->function->code.code;
     frame->slots = vm.top - argCount - 1;
     return true;
 }
@@ -72,8 +72,8 @@ static void defineNatives() {
 static bool callValue(Value callee, int argc) {
     if (IS_OBJ(callee)) {
         switch (OBJ_TYPE(callee)) {
-            case OBJ_FUNCTION:
-                return call(AS_FUNCTION(callee), argc);
+            case OBJ_CLOSURE:
+                return call(AS_CLOSURE(callee), argc);
             case OBJ_NATIVE:
                 NativeFn native = AS_NATIVE(callee)->function;
                 Value result = native(argc, vm.top - argc);
@@ -86,6 +86,11 @@ static bool callValue(Value callee, int argc) {
     }
     printf("Can only call function and classes");
     return false;
+}
+
+static ObjUpvalue *captureUpvalue(Value *local) {
+    ObjUpvalue *createdUpvalue = createUpvalue(local);
+    return createdUpvalue;
 }
 
 static inline void concatenate() {
@@ -156,26 +161,6 @@ static inline void plus() {
     }
 
     arithmetic(add);
-}
-
-static inline void factorial() {
-    if (!IS_NUMBER(peek(0))) {
-        printf("Operand must be number\n");
-    }
-
-    double a = AS_NUMBER(pop());
-
-    push(NUMBER_VAL(tgamma(a + 1)));
-}
-
-static inline void absolute() {
-    if (!IS_NUMBER(peek(0))) {
-        printf("Operand must be number\n");
-    }
-
-    double a = AS_NUMBER(pop());
-
-    push(NUMBER_VAL(fabs(a)));
 }
 
 static inline void increment() {
@@ -286,7 +271,7 @@ static InterpretResult run() {
                 printf(" ]");
             }
             printf("\n");
-            printInstruction(&frame->function->code, (int)(frame->ip - frame->function->code.code));
+            printInstruction(&frame->closure->function->code, (int)(frame->ip - frame->closure->function->code.code));
         #endif
 
         uint8_t instruction;
@@ -332,6 +317,16 @@ static InterpretResult run() {
             case OP_SET_LOCAL: {
                 uint8_t slot = READ_BYTE();
                 frame->slots[slot] = pop();
+                break;
+            }
+            case OP_GET_UPVALUE: {
+                uint8_t slot = READ_BYTE();
+                push(*frame->closure->upvalues[slot]->location);
+                break;
+            }
+            case OP_SET_UPVALUE: {
+                uint8_t slot = READ_BYTE();
+                *frame->closure->upvalues[slot]->location = pop();
                 break;
             }
             case OP_FALSE:
@@ -381,12 +376,6 @@ static InterpretResult run() {
                 break;
             case OP_POWER:
                 arithmetic(pow);
-                break;
-            case OP_FACTORIAL:
-                factorial();
-                break;
-            case OP_ABS:
-                absolute();
                 break;
             case OP_NOT:
                 push(BOOL_VAL(isFalsey(pop())));
@@ -448,6 +437,21 @@ static InterpretResult run() {
                 frame = &vm.frames[vm.frameSize - 1];
                 break;
             }
+            case OP_CLOSURE: {
+                ObjFunction *function = AS_FUNCTION(READ_CONSTANT());
+                ObjClosure *closure = createClosure(function);
+                push(OBJ_VAL(closure));
+                for (int i = 0; i < closure->upvalueCount; i++) {
+                    uint8_t isLocal = READ_BYTE();
+                    uint8_t index = READ_BYTE();
+                    if (isLocal) {
+                        closure->upvalues[i] = captureUpvalue(frame->slots + index);
+                    } else {
+                        closure->upvalues[i] = frame->closure->upvalues[index];
+                    }
+                }
+                break;
+            }
             case OP_RETURN: {
                 Value result = pop();
                 vm.frameSize--;
@@ -488,7 +492,10 @@ InterpretResult interpret(const char *source) {
         return INTERPRET_COMPILE_ERROR;
 
     push(OBJ_VAL(function));
-    call(function, 0);
+    ObjClosure *closure = createClosure(function);
+    pop();
+    push(OBJ_VAL(closure));
+    call(closure, 0);
 
     #ifdef DEBUG_DO_NOT_EXECUTE
         return INTERPRET_OK;

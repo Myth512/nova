@@ -8,10 +8,12 @@
 
 #define OBJ_TYPE(value)         (AS_OBJ(value)->type)
 
+#define IS_CLOSURE(value)       isObjType(value, OBJ_CLOSURE)
 #define IS_FUNCTION(value)      isObjType(value, OBJ_FUNCTION)
 #define IS_NATIVE(value)        isObjType(value, OBJ_NATIVE)
 #define IS_STRING(value)        isObjType(value, OBJ_STRING)
 
+#define AS_CLOSURE(value)       ((ObjClosure*)AS_OBJ(value))
 #define AS_FUNCTION(value)      ((ObjFunction*)AS_OBJ(value))
 #define AS_NATIVE(value)        ((ObjNative*)AS_OBJ(value))
 #define AS_STRING(value)        ((ObjString*)AS_OBJ(value))
@@ -19,10 +21,12 @@
 #define AS_RAW_STRING(value)    ((ObjRawString*)AS_OBJ(value))
 
 typedef enum {
+    OBJ_CLOSURE,
     OBJ_FUNCTION,
     OBJ_NATIVE,
     OBJ_STRING,
-    OBJ_RAW_STRING
+    OBJ_RAW_STRING,
+    OBJ_UPVALUE
 } ObjType;
 
 struct Obj {
@@ -45,12 +49,25 @@ struct ObjRawString {
     const char *chars;
 };
 
+typedef struct ObjUpvalue {
+    Obj obj;
+    Value *location;
+} ObjUpvalue;
+
 typedef struct {
     Obj obj;
     int arity;
+    int upvalueCount;
     CodeVec code;
     ObjString *name;
 } ObjFunction;
+
+typedef struct {
+    Obj obj;
+    ObjFunction *function;
+    ObjUpvalue **upvalues;
+    int upvalueCount;
+} ObjClosure;
 
 typedef Value (*NativeFn)(int argc, Value *argv);
 
@@ -68,7 +85,11 @@ Obj* allocateObject(size_t size, ObjType type);
 
 ObjRawString* createRawString(const char *chars, int length);
 
+ObjUpvalue *createUpvalue(Value *slot);
+
 ObjFunction* createFunction();
+
+ObjClosure* createClosure(ObjFunction *function);
 
 ObjNative* createNative(NativeFn function, const char *name);
 

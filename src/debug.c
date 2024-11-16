@@ -119,6 +119,10 @@ int printInstruction(CodeVec *vec, int offset) {
             return byteInstruction("GET LOCAL", vec, offset);
         case OP_SET_LOCAL:
             return byteInstruction("SET LOCAL", vec, offset);
+        case OP_GET_UPVALUE:
+            return byteInstruction("OP_GET_UPVALUE", vec, offset);
+        case OP_SET_UPVALUE:
+            return byteInstruction("OP_SET_UPVALUE", vec, offset);
         case OP_INCREMENT:
             return simpleInstruction("INCREMENT", offset);
         case OP_DECREMENT:
@@ -173,6 +177,21 @@ int printInstruction(CodeVec *vec, int offset) {
             return jumpInstruction("LOOP TRUE POP", -1, vec, offset);
         case OP_CALL:
             return byteInstruction("CALL", vec, offset);
+        case OP_CLOSURE: {
+            offset++;
+            uint8_t constant = vec->code[offset++];
+            printf("%-16s %4d ", "CLOSURE", constant);
+            printValue(vec->constants.values[constant]);
+            printf("\n");
+
+            ObjFunction *function = AS_FUNCTION(vec->constants.values[constant]);
+            for (int i = 0; i < function->upvalueCount; i++) {
+                int isLocal = vec->code[offset++];
+                int index = vec->code[offset++];
+                printf("%04d      |              %s %d\n", offset - 2, isLocal ? "local" : "upvalue", index);
+            }
+            return offset;
+        }
         default:
             printf("Unknown opcode %d\n", opcode);
             return offset + 1;

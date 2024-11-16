@@ -19,11 +19,18 @@ void* reallocate(void *pointer, size_t oldSize, size_t newSize) {
 
 static void freeObject(Obj *object) {
     switch (object->type) {
-        case OBJ_FUNCTION:
+        case OBJ_CLOSURE: {
+            ObjClosure *closure = (ObjClosure*)object;
+            FREE_VEC(ObjUpvalue*, closure->upvalues, closure->upvalueCount);
+            FREE(ObjClosure, closure);
+            break;
+        }
+        case OBJ_FUNCTION: {
             ObjFunction *function = (ObjFunction*)object;
             freeCodeVec(&function->code);
             FREE(ObjFunction, object);
             break;
+        }
         case OBJ_NATIVE:
             FREE(ObjNative, object);
             break;
@@ -31,8 +38,13 @@ static void freeObject(Obj *object) {
             ObjString *string = (ObjString*)object;
             FREE(ObjString, object);
             break;
-        case OBJ_RAW_STRING:
+        }
+        case OBJ_RAW_STRING: {
             FREE(ObjRawString, object);
+            break;
+        }
+        case OBJ_UPVALUE: {
+            FREE(ObjUpvalue, object);
             break;
         }
     }

@@ -22,6 +22,11 @@ typedef struct {
     int depth;
 } Local;
 
+typedef struct {
+    uint8_t index;
+    bool isLocal;
+} Upvalue;
+
 typedef enum {
     TYPE_FUNCTION,
     TYPE_TOP_LEVEL
@@ -33,6 +38,7 @@ typedef struct Compiler {
     FunctionType type;
     Local locals[UINT8_MAX + 1];
     int localCount;
+    Upvalue upvalues[UINT8_MAX + 1];
     int scopeDepth;
 } Compiler;
 
@@ -460,7 +466,6 @@ static uint8_t identifierConstant(Token *name) {
     return createConstant(OBJ_VAL(copyString(name->start, name->length)));
 }
 
-
 static void expressionStatement() {
     expression();
     
@@ -540,7 +545,7 @@ static void createVariable(Token name) {
         createGlobal(name);
 }
 
-static int findLocal(Compiler *compiler, Token *name) {
+static int resolveLocal(Compiler *compiler, Token *name) {
     for (int i = compiler->localCount - 1; i >= 0; i--) {
         Local *local = &compiler->locals[i];
         if (identifierEqual(name, &local->name))
@@ -549,17 +554,60 @@ static int findLocal(Compiler *compiler, Token *name) {
     return -1;
 }
 
+static int addUpvalue(Compiler *compiler, uint8_t index, bool isLocal) {
+    int upvalueCount  = compiler->function->upvalueCount;
+
+    for (int i = 0; i < upvalueCount; i++) {
+        Upvalue *upvalue = &compiler->upvalues[i];
+        if (upvalue->index == index && upvalue->isLocal == isLocal)
+            return i;
+    }
+
+    if (upvalueCount == UINT8_MAX + 1) {
+        reportError("Too many closure variables in function", NULL);
+        return 0;
+    }
+
+    compiler->upvalues[upvalueCount].isLocal = isLocal;
+    compiler->upvalues[upvalueCount].index = index;
+    return compiler->function->upvalueCount++;
+}
+
+static int resolveUpvalue(Compiler *compiler, Token *name) {
+    if (compiler->enclosing == NULL)
+        return -1;
+    
+    int offset = resolveLocal(compiler->enclosing, name);
+    if (offset != -1)
+        return addUpvalue(compiler, (uint8_t)offset, true);
+    
+    offset = resolveUpvalue(compiler->enclosing, name);
+    if (offset != -1)
+        return addUpvalue(compiler, (uint8_t)offset, false);
+
+    return -1;
+}
+
 static void resolveVariable(Token *name, uint8_t *getOp, uint8_t *setOp, uint8_t *arg) {
-    int offset = findLocal(current, name);
-    if (offset == -1) {
-        *getOp = OP_GET_GLOBAL;
-        *setOp = OP_SET_GLOBAL;
-        *arg = identifierConstant(name);
-    } else {
+    int offset = resolveLocal(current, name);
+    if (offset != -1) {
         *getOp = OP_GET_LOCAL;
         *setOp = OP_SET_LOCAL;
         *arg = offset;
+        return;
     }
+    
+    offset = resolveUpvalue(current, name);
+    if (offset != -1) {
+        *getOp = OP_GET_UPVALUE;
+        *setOp = OP_SET_UPVALUE;
+        *arg = offset;
+        return;
+    }
+
+    *getOp = OP_GET_GLOBAL;
+    *setOp = OP_SET_GLOBAL;
+    *arg = identifierConstant(name);
 }
 
 static void getVariable() {
@@ -956,7 +1004,12 @@ static void function(FunctionType type) {
     block(-1, -1);
 
     ObjFunction *function = endCompiler();
-    emitBytes(OP_CONSTANT, createConstant(OBJ_VAL(function)));
+    emitBytes(OP_CLOSURE, createConstant(OBJ_VAL(function)));
+
+    for (int i = 0; i < function->upvalueCount; i++) {
+        emitByte(compiler.upvalues[i].isLocal ? 1 : 0);
+        emitByte(compiler.upvalues[i].index);
+    }
 }
 
 static void declareFunction(Token name) {

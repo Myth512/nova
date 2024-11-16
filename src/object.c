@@ -123,12 +123,31 @@ bool compareStrings(ObjString *a, ObjString *b) {
     return memcmp(a->chars, b->chars, a->length) == 0;
 }
 
+ObjUpvalue *createUpvalue(Value *slot) {
+    ObjUpvalue *upvalue = (ObjUpvalue*)allocateObject(sizeof(ObjUpvalue), OBJ_UPVALUE);
+    upvalue->location = slot;
+    return upvalue;
+}
+
 ObjFunction* createFunction() {
     ObjFunction *function = (ObjFunction*)allocateObject(sizeof(ObjFunction), OBJ_FUNCTION);
     function->arity = 0;
+    function->upvalueCount = 0;
     function->name = NULL;
     initCodeVec(&function->code);
     return function;
+}
+
+ObjClosure* createClosure(ObjFunction *function) {
+    ObjUpvalue **upvalues = ALLOCATE(ObjUpvalue*, function->upvalueCount); 
+    for (int i = 0; i < function->upvalueCount; i++)
+        upvalues[i] = NULL;
+
+    ObjClosure *closure = (ObjClosure*)allocateObject(sizeof(ObjClosure), OBJ_CLOSURE);
+    closure->function = function;
+    closure->upvalues = upvalues;
+    closure->upvalueCount = function->upvalueCount;
+    return closure;
 }
 
 ObjNative* createNative(NativeFn function, const char *name) {
@@ -138,15 +157,21 @@ ObjNative* createNative(NativeFn function, const char *name) {
     return native;
 }
 
+void printFunction(ObjFunction *function) {
+    if (function->name == NULL) {
+        printf("<script>");
+        return;
+    }
+    printf("<function %s>", function->name->chars);
+}
+
 void printObject(Value value) {
     switch (OBJ_TYPE(value)) {
+        case OBJ_CLOSURE:
+            printFunction(AS_CLOSURE(value)->function);
+            break;
         case OBJ_FUNCTION:
-            ObjFunction *function = AS_FUNCTION(value);
-            if (function->name == NULL) {
-                printf("<script>");
-                break;
-            }
-            printf("<function %s>", function->name->chars);
+            printFunction(AS_FUNCTION(value));
             break;
         case OBJ_NATIVE:
             printf("<native function %s>", AS_NATIVE(value)->name);
@@ -154,10 +179,13 @@ void printObject(Value value) {
         case OBJ_STRING:
             printf("%s", AS_CSTRING(value));
             break;
-        case OBJ_RAW_STRING:
+        case OBJ_RAW_STRING: {
             ObjRawString *string = AS_RAW_STRING(value);
-            for (int i = 0; i < string->length; i++)
-                putchar(string->chars[i]);
+            printf("%.*s\n", string->length, string->chars);
+        }
+        case OBJ_UPVALUE:
+            printf("upvalue");
+            break;
     }
 }
 
