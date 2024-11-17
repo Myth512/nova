@@ -1,6 +1,7 @@
 #include <stdlib.h>
 
 #include "code.h"
+#include "vm.h"
 #include "memory.h"
 
 void initCodeVec(CodeVec *vec) {
@@ -40,5 +41,7 @@ void pushInstruction(CodeVec *vec, uint8_t byte, int line, int column, int lengt
 }
 
 int pushConstant(CodeVec *vec, Value value) {
+    push(value);
     pushValue(&vec->constants, value);
+    pop(value);
     return vec->constants.size - 1;}

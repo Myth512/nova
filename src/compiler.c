@@ -259,6 +259,11 @@ static uint8_t createConstant(Value value) {
     ValueVec *constants = &currentCode()->constants;
     int size = constants->size;
 
+    for (int i = 0; i < size; i++) {
+        if (compareValues(constants->values[i], value))
+            return i;
+    }
+
     int id = pushConstant(currentCode(), value);
     if (id > UINT8_MAX) {
         reportError("Too many constants in one code block", NULL);

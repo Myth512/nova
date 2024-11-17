@@ -31,7 +31,9 @@ void* reallocate(void *pointer, size_t oldSize, size_t newSize) {
 
 static void freeObject(Obj *object) {
     #ifdef DEBUG_LOG_GC
-        printf("%p free type %d\n", object, object->type);
+        printf("%p free type %d ", object, object->type);
+        printObject(OBJ_VAL(object));
+        printf("\n");
     #endif
     switch (object->type) {
         case OBJ_CLOSURE: {
@@ -65,26 +67,48 @@ static void freeObject(Obj *object) {
     }
 }
 
-void freeObjects() {
-    Obj *object = vm.objects;
-    while (object != NULL) {
-        Obj *next = object->next;
-        freeObject(object);
-        object = next;
+static void markVec(ValueVec *vec) {
+    for (int i = 0; i < vec->size; i++) {
+        markValue(vec->values[i]);
+    }
+}
+
+static void markReferences(Obj *obj) {
+    switch (obj->type) {
+        case OBJ_UPVALUE:
+            markValue(((ObjUpvalue*)obj)->closed);
+            break;
+        case OBJ_FUNCTION: {
+            ObjFunction *function = (ObjFunction*)obj;
+            markObject((Obj*)function->name);
+            markVec(&function->code.constants);
+            break;
+        }
+        case OBJ_CLOSURE: {
+            ObjClosure *closure = (ObjClosure*)obj;
+            markObject((Obj*)closure->function);
+            for (int i = 0; i < closure->upvalueCount; i++) {
+                markObject((Obj*)closure->upvalues[i]);
+            }
+            break;
+        }
     }
 }
 
 void markObject(Obj *obj) {
     if (obj == NULL)
         return;
+    if (obj->isMarked)
+        return;
 
     #ifdef DEBUG_LOG_GC
-        pritnf("%p mark ", obj);
+        printf("%p mark ", obj);
         printValue(OBJ_VAL(obj));
         printf("\n");
     #endif
 
     obj->isMarked = true;
+    markReferences(obj);
 }
 
 void markValue(Value value) {
@@ -92,7 +116,7 @@ void markValue(Value value) {
         markObject(AS_OBJ(value));
 }
 
-static void markRoots() {
+static void mark() {
     for (Value *slot = vm.stack; slot < vm.top; slot++) {
         markValue(*slot);
     }
@@ -110,12 +134,35 @@ static void markRoots() {
     markCompilerRoots();
 }
 
+static void sweep() {
+    Obj *prev = NULL, *cur = vm.objects;
+
+    while (cur != NULL) {
+        if (cur->isMarked) {
+            cur->isMarked = false;
+            prev = cur;
+            cur = cur->next;
+        } else {
+            Obj *unreached = cur;
+            cur = cur->next;
+            if (prev != NULL) {
+                prev->next = cur;
+            } else {
+                vm.objects = cur;
+            }
+            freeObject(unreached);
+        }
+    }
+}
+
 void collectGarbage() {
     #ifdef DEBUG_LOG_GC
         printf("gc begin\n");
     #endif
 
-    markRoots();
+    mark();
+
+    sweep();
 
     #ifdef DEBUG_LOG_GC
         printf("gc end\n");

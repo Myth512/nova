@@ -37,6 +37,10 @@ typedef enum {
 
 extern VM vm;
 
+void push(Value value);
+
+Value pop();
+
 void initVM();
 
 void freeVM();

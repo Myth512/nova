@@ -132,7 +132,7 @@ void tableAddAll(Table *source, Table *destination) {
 //         index = (index + 1) % table->capacity;
 //     }
 // }
-
+#include <stdio.h>
 void markTable(Table *table) {
     for (int i = 0; i < table->capacity; i++) {
         Entry *entry = &table->entries[i];

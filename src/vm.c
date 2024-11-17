@@ -35,12 +35,12 @@ static void resetStack() {
     vm.openUpvalues = NULL;
 }
 
-static void push(Value value) {
+void push(Value value) {
     *vm.top = value;
     vm.top++;
 }
 
-static Value pop() {
+Value pop() {
     vm.top--;
     return *vm.top;
 }
@@ -75,11 +75,11 @@ static void defineNative(const char *name, NativeFn function) {
 }
 
 static void defineNatives() {
-    defineNative("clock", clockNative);
+    // defineNative("clock", clockNative);
     defineNative("print", printNative);
-    defineNative("sqrt", sqrtNative);
-    defineNative("min", minNative);
-    defineNative("max", maxNative);
+    // defineNative("sqrt", sqrtNative);
+    // defineNative("min", minNative);
+    // defineNative("max", maxNative);
 }
 
 static bool callValue(Value callee, int argc) {
@@ -490,6 +490,7 @@ static InterpretResult run() {
                 pop();
                 break;
             case OP_RETURN: {
+                collectGarbage();
                 Value result = pop();
                 closeUpvalues(frame->slots);
                 vm.frameSize--;
@@ -517,7 +518,6 @@ void initVM() {
 }
 
 void freeVM() {
-    freeObjects();
     initTable(&vm.globals);
     freeTable(&vm.strings);
     return;
