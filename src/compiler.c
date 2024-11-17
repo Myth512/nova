@@ -2,6 +2,7 @@
 #include <string.h>
 
 #include "compiler.h"
+#include "memory.h"
 #include "token.h"
 #include "scanner.h"
 #include "debug.h"
@@ -1147,4 +1148,12 @@ ObjFunction* compile(const char *source) {
 
     ObjFunction *function = endCompiler();
     return parser.errorCount != 0 ? NULL : function;
+}
+
+void markCompilerRoots() {
+    Compiler *compiler = current;
+    while (compiler != NULL) {
+        markObject((Obj*)compiler->function);
+        compiler = compiler->enclosing;
+    }
 }

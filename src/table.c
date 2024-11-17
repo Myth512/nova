@@ -132,3 +132,11 @@ void tableAddAll(Table *source, Table *destination) {
 //         index = (index + 1) % table->capacity;
 //     }
 // }
+
+void markTable(Table *table) {
+    for (int i = 0; i < table->capacity; i++) {
+        Entry *entry = &table->entries[i];
+        markObject((Obj*)entry->key);
+        markValue(entry->value);
+    }
+}
