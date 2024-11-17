@@ -108,7 +108,7 @@ ParseRule rules[] = {
   [TOKEN_CARET]         = {NULL,     binary, NULL,    PREC_POWER},
   [TOKEN_SLASH]         = {NULL,     binary, NULL,    PREC_FACTOR},
   [TOKEN_PERCENT]       = {NULL,     binary, NULL,    PREC_FACTOR},
-  [TOKEN_NOT]          = {unary,    NULL,   NULL, PREC_NONE},
+  [TOKEN_NOT]           = {unary,    NULL,   NULL, PREC_NONE},
   [TOKEN_PLUS_PLUS]     = {NULL,     NULL,   NULL,    PREC_NONE},
   [TOKEN_MINUS_MINUS]   = {NULL,     NULL,   NULL,    PREC_NONE},
   [TOKEN_PLUS_EQUAL]    = {NULL,     NULL,   NULL,    PREC_NONE},
@@ -230,28 +230,28 @@ static bool consume(TokenType type, bool skipLineBreak) {
     return false;
 }
 
-static void emitByte(uint8_t byte) {
-    pushInstruction(currentCode(), byte, parser.current.line);
+static void emitByte(uint8_t byte, Token token) {
+    pushInstruction(currentCode(), byte, token.line, token.column, token.length);
 }
 
-static void emitBytes(uint8_t byte1, uint8_t byte2) {
-    emitByte(byte1);
-    emitByte(byte2);
+static void emitBytes(uint8_t byte1, uint8_t byte2, Token token) {
+    emitByte(byte1, token);
+    emitByte(byte2, token); 
 }
 
 static int emitJump(uint8_t instruction) {
-    emitByte(instruction);
-    emitBytes(0xff, 0xff);
+    emitByte(instruction, (Token){0});
+    emitBytes(0xff, 0xff, (Token){0});
     return currentCode()->size - 2;
 }
 
 static void emitLoop(uint8_t instruction, int loopStart) {
-    emitByte(instruction);
+    emitByte(instruction, (Token){0});
 
     int offset = currentCode()->size - loopStart + 2;
 
-    emitByte((offset >> 8) & 0xff);
-    emitByte(offset & 0xff);
+    emitByte((offset >> 8) & 0xff, (Token){0});
+    emitByte(offset & 0xff, (Token){0});
 }
 
 static uint8_t createConstant(Value value) {
@@ -267,7 +267,7 @@ static uint8_t createConstant(Value value) {
 }
 
 static void emitConstant(Value value) {
-    emitBytes(OP_CONSTANT, createConstant(value));
+    emitBytes(OP_CONSTANT, createConstant(value), (Token){0});
 }
 
 static void initCompiler(Compiler *compiler, FunctionType type) {
@@ -293,7 +293,7 @@ static ObjFunction* endCompiler() {
     ObjFunction *function = current->function;
     if (function->code.size == 0 ||
         function->code.code[function->code.size - 1] != OP_RETURN)
-            emitBytes(OP_NIL, OP_RETURN);
+            emitBytes(OP_NIL, OP_RETURN, (Token){0});
 
     #ifdef DEBUG_PRINT_CODE
         if (parser.errorCount == 0)
@@ -328,13 +328,13 @@ static void expression() {
 static void literal() {
     switch (parser.current.type) {
         case TOKEN_TRUE:
-            emitByte(OP_TRUE); 
+            emitByte(OP_TRUE, parser.current); 
             break;
         case TOKEN_FALSE:
-            emitByte(OP_FALSE);
+            emitByte(OP_FALSE, parser.current);
             break;
         case TOKEN_NIL:
-            emitByte(OP_NIL);
+            emitByte(OP_NIL, parser.current);
             break;
         default:
             return;
@@ -378,7 +378,7 @@ static void fstring() {
     } else {
         advance(false);
     }
-    emitBytes(OP_BUILD_FSTRING, (uint8_t)count);
+    emitBytes(OP_BUILD_FSTRING, (uint8_t)count, (Token){0});
 }
 
 static void grouping() {
@@ -390,20 +390,20 @@ static void grouping() {
 }
 
 static void unary() {
-    TokenType operatorType = parser.current.type;
+    Token operator = parser.current;
     advance(false);
 
-    Precedence precedence = getRule(operatorType)->precedence + 1;
+    Precedence precedence = getRule(operator.type)->precedence + 1;
     parseExpression(precedence);
 
-    switch (operatorType) {
+    switch (operator.type) {
         case TOKEN_PLUS:
             return;
         case TOKEN_MINUS:
-            emitByte(OP_NEGATE);
+            emitByte(OP_NEGATE, operator);
             break;
         case TOKEN_NOT:
-            emitByte(OP_NOT);
+            emitByte(OP_NOT, operator);
             break;
         default:
             return;
@@ -411,46 +411,46 @@ static void unary() {
 }
 
 static void binary() {
-    TokenType operatorType = parser.current.type;
+    Token operator = parser.current;
     advance(true);
-    parseExpression(getRule(operatorType)->precedence);
+    parseExpression(getRule(operator.type)->precedence);
 
-    switch (operatorType) {
+    switch (operator.type) {
         case TOKEN_BANG_EQUAL:
-            emitByte(OP_NOT_EQUAL);
+            emitByte(OP_NOT_EQUAL, operator);
             break;
         case TOKEN_DOUBLE_EQUAL:
-            emitByte(OP_EQUAL);
+            emitByte(OP_EQUAL, operator);
             break;
         case TOKEN_GREATER:
-            emitByte(OP_GREATER);
+            emitByte(OP_GREATER, operator);
             break;
         case TOKEN_GREATER_EQUAL:
-            emitByte(OP_GREATER_EQUAL);
+            emitByte(OP_GREATER_EQUAL, operator);
             break;
         case TOKEN_LESS:
-            emitByte(OP_LESS);
+            emitByte(OP_LESS, operator);
             break;
         case TOKEN_LESS_EQUAL:
-            emitByte(OP_LESS_EQUAL);
+            emitByte(OP_LESS_EQUAL, operator);
             break;
         case TOKEN_PLUS:
-            emitByte(OP_ADD);
+            emitByte(OP_ADD, operator);
             break;
         case TOKEN_MINUS:
-            emitByte(OP_SUBTRUCT);
+            emitByte(OP_SUBTRUCT, operator);
             break;
         case TOKEN_STAR:
-            emitByte(OP_MULTIPLY);
+            emitByte(OP_MULTIPLY, operator);
             break;
         case TOKEN_CARET:
-            emitByte(OP_POWER);
+            emitByte(OP_POWER, operator);
             break;
         case TOKEN_SLASH:
-            emitByte(OP_DIVIDE);
+            emitByte(OP_DIVIDE, operator);
             break;
         case TOKEN_PERCENT:
-            emitByte(OP_MOD);
+            emitByte(OP_MOD, operator);
             break;
         default:
             return;
@@ -476,7 +476,7 @@ static void expressionStatement() {
     else
         reportError("Expect eos after statement", &parser.current);
 
-    emitByte(OP_POP);
+    emitByte(OP_POP, (Token){0});
 }
 
 static void patchJump(int offset) {
@@ -499,9 +499,9 @@ static void endScope() {
     while (current->localCount > 0 &&
            current->locals[current->localCount - 1].depth > current->scopeDepth) {
             if (current->locals[current->localCount - 1].isCaptured)
-                emitByte(OP_CLOSE_UPVALUE);
+                emitByte(OP_CLOSE_UPVALUE, (Token){0});
             else
-                emitByte(OP_POP);
+                emitByte(OP_POP, (Token){0});
             current->localCount--;
     }
 }
@@ -541,7 +541,7 @@ static void createLocal(Token name) {
 
 static void createGlobal(Token name) {
     uint8_t arg = identifierConstant(&name);
-    emitBytes(OP_DEFINE_GLOBAL, arg);
+    emitBytes(OP_DEFINE_GLOBAL, arg, name);
 }
 
 static void createVariable(Token name) {
@@ -622,7 +622,7 @@ static void getVariable() {
     Token *name = &parser.current;
     uint8_t getOp, setOp, arg;
     resolveVariable(name, &getOp, &setOp, &arg);
-    emitBytes(getOp, arg);
+    emitBytes(getOp, arg, *name);
     advance(false);
 }
 
@@ -636,40 +636,40 @@ void setVariable(Token name, Token operator) {
     resolveVariable(&name, &getOp, &setOp, &arg);
 
     if (operator.type != TOKEN_EQUAL)
-        emitBytes(getOp, arg);
+        emitBytes(getOp, arg, name);
     
     if (operator.type != TOKEN_PLUS_PLUS && operator.type != TOKEN_MINUS_MINUS)
         expression();
 
     switch (operator.type) {
         case TOKEN_PLUS_PLUS:
-            emitByte(OP_INCREMENT);
+            emitByte(OP_INCREMENT, operator);
             break;
         case TOKEN_MINUS_MINUS:
-            emitByte(OP_DECREMENT);
+            emitByte(OP_DECREMENT, operator);
             break;
         case TOKEN_PLUS_EQUAL:
-            emitByte(OP_ADD);
+            emitByte(OP_ADD, operator);
             break;
         case TOKEN_MINUS_EQUAL:
-            emitByte(OP_SUBTRUCT);
+            emitByte(OP_SUBTRUCT, operator);
             break;
         case TOKEN_STAR_EQUAL:
-            emitByte(OP_MULTIPLY);
+            emitByte(OP_MULTIPLY, operator);
             break;
         case TOKEN_SLASH_EQUAL:
-            emitByte(OP_DIVIDE);
+            emitByte(OP_DIVIDE, operator);
             break;
         case TOKEN_CARET_EQUAL:
-            emitByte(OP_POWER);
+            emitByte(OP_POWER, operator);
             break;
         case TOKEN_PERCENT_EQUAL:
-            emitByte(OP_MOD);
+            emitByte(OP_MOD, operator);
             break;
         default:
             break;
     }
-    emitBytes(setOp, arg);
+    emitBytes(setOp, arg, name);
 }
 
 static void singleVariable() {
@@ -697,7 +697,7 @@ static void singleVariable() {
             break;
         default:
             expression();
-            emitByte(OP_POP);
+            emitByte(OP_POP, (Token){0});
             break;
     }
 }
@@ -760,7 +760,7 @@ static void and() {
     advance(true);
     int endJump = emitJump(OP_JUMP_FALSE);
 
-    emitByte(OP_POP);
+    emitByte(OP_POP, (Token){0});
     parseExpression(PREC_AND);
 
     patchJump(endJump);
@@ -770,7 +770,7 @@ static void or(){
     advance(true);
     int endJump = emitJump(OP_JUMP_TRUE);
 
-    emitByte(OP_POP);
+    emitByte(OP_POP, (Token){0});
     parseExpression(PREC_OR);
 
     patchJump(endJump);
@@ -849,8 +849,8 @@ static void continueStatement(int continuePointer) {
 }
 
 static int breakJump() {
-    emitByte(OP_JUMP);
-    emitBytes(0, 3);
+    emitByte(OP_JUMP, (Token){0});
+    emitBytes(0, 3, (Token){0});
     return emitJump(OP_JUMP); 
 }
 
@@ -1016,11 +1016,11 @@ static void function(FunctionType type) {
     block(-1, -1);
 
     ObjFunction *function = endCompiler();
-    emitBytes(OP_CLOSURE, createConstant(OBJ_VAL(function)));
+    emitBytes(OP_CLOSURE, createConstant(OBJ_VAL(function)), (Token){0});
 
     for (int i = 0; i < function->upvalueCount; i++) {
-        emitByte(compiler.upvalues[i].isLocal ? 1 : 0);
-        emitByte(compiler.upvalues[i].index);
+        emitByte(compiler.upvalues[i].isLocal ? 1 : 0, (Token){0});
+        emitByte(compiler.upvalues[i].index, (Token){0});
     }
 }
 
@@ -1060,9 +1060,10 @@ static uint8_t parseArguments() {
 }
 
 static void call() {
+    Token name = parser.current;
     advance(true);
     uint8_t argc = parseArguments();
-    emitBytes(OP_CALL, argc);
+    emitBytes(OP_CALL, argc, name);
 }
 
 static void returnStatement() {
@@ -1071,13 +1072,13 @@ static void returnStatement() {
         reportError("Can't return from top-level code", &parser.current);
     
     if (match(TOKEN_LINE_BREAK, false) || match(TOKEN_SEMICOLON, false)) {
-        emitBytes(OP_NIL, OP_RETURN);
+        emitBytes(OP_NIL, OP_RETURN, (Token){0});
     } else {
         expression(false);
         if (!consume(TOKEN_LINE_BREAK, false) && !consume(TOKEN_SEMICOLON, false)) {
             reportError("Expect eos after value", &parser.current);
         }
-        emitByte(OP_RETURN);
+        emitByte(OP_RETURN, parser.current);
     }
 }
 

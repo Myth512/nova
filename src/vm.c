@@ -8,6 +8,7 @@
 #include "memory.h"
 #include "compiler.h"
 #include "native.h"
+#include "error.h"
 
 #define READ_BYTE()     (*frame->ip++)
 #define READ_CONSTANT() (frame->closure->function->code.constants.values[READ_BYTE()]) 
@@ -17,6 +18,16 @@
 
 VM vm;
 CallFrame *frame;
+
+static void reportError(const char *message) {
+    fprintf(stderr, "\033[31mRuntime Error\033[0m: %s\n", message);
+    int index = frame->ip - frame->closure->function->code.code - 1;
+    int line = frame->closure->function->code.lines[index];
+    int column = frame->closure->function->code.columns[index];
+    int length = frame->closure->function->code.lengths[index];
+    printHighlightedPartInCode(vm.source, line, column, length); 
+    exit(1);
+}
 
 static void resetStack() {
     vm.top = vm.stack;
@@ -86,7 +97,7 @@ static bool callValue(Value callee, int argc) {
                 break;
         }
     }
-    printf("Can only call function and classes");
+    reportError("Can only call functions and classes");
     return false;
 }
 
@@ -156,24 +167,21 @@ static inline double multiply(double a, double b) {
 
 static inline double divide(double a, double b) {
     if (b == 0) {
-        printf("Division by zero\n");
-        exit(1);
+        reportError("Division by zero");
     }
     return a / b;
 }
 
 static inline double modulo(double a, double b) {
     if (b == 0) {
-        printf("Division by zero\n");
-        exit(1);
+        reportError("Division by zero");
     }
     return fmod(a, b);
 }
 
 static void arithmetic(double (*function)(double, double)) {
     if (!IS_NUMBER(peek(0)) || !IS_NUMBER(peek(1))) {
-        printf("Operands must be numbers\n");
-        return;
+        reportError("Operands must be numbers");
     }
 
     double b = AS_NUMBER(pop());
@@ -193,7 +201,7 @@ static inline void plus() {
 
 static inline void increment() {
     if (!IS_NUMBER(peek(0))) {
-        printf("Operand must be number\n");
+        reportError("Operand must be number");
     }
 
     double a = AS_NUMBER(pop());
@@ -203,7 +211,7 @@ static inline void increment() {
 
 static inline void decrement() {
     if (!IS_NUMBER(peek(0))) {
-        printf("Operand must be number\n");
+        reportError("Operand must be number");
     }
 
     double a = AS_NUMBER(pop());
@@ -236,8 +244,7 @@ static inline bool greaterEqual(double a, double b) {
 
 static void inequality(bool (*function)(double, double)) {
     if (!IS_NUMBER(peek(0)) || !IS_NUMBER(peek(1))) {
-        printf("Operands must be numbers\n");
-        return;
+        reportError("Operands must be numbers");
     }
 
     double b = AS_NUMBER(pop());
@@ -318,7 +325,7 @@ static InterpretResult run() {
                 ObjString *name = READ_STRING();
                 Value value;
                 if (!tableGet(&vm.globals, name, &value)) {
-                    printf("Undefined variable '%s'\n", name->chars);
+                    reportError("Undefined variable");
                 }
                 push(value);
                 break;
@@ -332,8 +339,7 @@ static InterpretResult run() {
                 ObjString *name = READ_STRING();
                 if (tableSet(&vm.globals, name, pop())) {
                     tableDelete(&vm.globals, name);
-                    printf("Undefined variable '%s'\n", name->chars);
-                    return INTERPRET_RUNTIME_ERROR;
+                    reportError("Undefined variable");
                 }
                 break;
             }
@@ -410,8 +416,7 @@ static InterpretResult run() {
                 break;
             case OP_NEGATE:
                 if (!IS_NUMBER(peek(0))) {
-                    printf("i'll fix it later\n");
-                    return INTERPRET_RUNTIME_ERROR;
+                    reportError("Operand must be number");
                 }
                 push(NUMBER_VAL(-AS_NUMBER(pop())));
                 break;
@@ -518,7 +523,6 @@ void freeVM() {
     return;
 }
 
-
 InterpretResult interpret(const char *source) {
     ObjFunction *function = compile(source);
     if (function == NULL)
@@ -534,5 +538,6 @@ InterpretResult interpret(const char *source) {
         return INTERPRET_OK;
     #endif
 
+    vm.source = source;
     return run();
 }

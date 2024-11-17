@@ -93,9 +93,9 @@ void printValueVec(ValueVec *vec) {
 int printInstruction(CodeVec *vec, int offset) {
     printf("%04d ", offset);
     if (offset > 0 && vec->lines[offset] == vec->lines[offset - 1])
-        printf("     | ");
+        printf("     %4d | ", vec->columns[offset]);
     else
-        printf("%4d | ", vec->lines[offset]);
+        printf("%4d %4d | ", vec->lines[offset], vec->columns[offset]);
 
     uint8_t opcode = vec->code[offset];
     switch (opcode) {

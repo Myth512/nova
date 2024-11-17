@@ -16,6 +16,7 @@ typedef struct {
 } CallFrame;
 
 typedef struct {
+    const char *source;
     CallFrame frames[FRAMES_SIZE];
     int frameSize;
     CodeVec *code;

@@ -56,6 +56,8 @@ typedef struct {
     int capacity;
     uint8_t *code;
     int *lines;
+    int *columns;
+    int *lengths;
     ValueVec constants;
 } CodeVec;
 
@@ -63,7 +65,7 @@ void initCodeVec(CodeVec *code);
 
 void freeCodeVec(CodeVec *codeVec);
 
-void pushInstruction(CodeVec *codeVec, uint8_t byte, int line);
+void pushInstruction(CodeVec *codeVec, uint8_t byte, int row, int column, int len);
 
 int pushConstant(CodeVec *vec, Value value);
 
