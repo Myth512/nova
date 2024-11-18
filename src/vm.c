@@ -506,18 +506,16 @@ static InterpretResult run() {
                 break;
             }
         }
-        #ifdef DEBUG_TRACE_EXECUTION
-            printf("instruction end\n");
-        #endif
     }
 }
 
 void initVM() {
     resetStack();
     vm.objects = NULL;
+    vm.bytesAllocated = 0;
+    vm.nextGC = 1024 * 1024;
     initTable(&vm.globals);
     initTable(&vm.strings);
-
     defineNatives();
 }
 
