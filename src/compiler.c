@@ -76,6 +76,8 @@ static void string();
 
 static void fstring();
 
+static void array();
+
 static void grouping();
 
 static void unary();
@@ -99,7 +101,7 @@ ParseRule rules[] = {
   [TOKEN_RIGHT_PAREN]   = {NULL,     NULL,   NULL,    PREC_NONE},
   [TOKEN_LEFT_BRACE]    = {NULL,     NULL,   NULL,    PREC_NONE}, 
   [TOKEN_RIGHT_BRACE]   = {NULL,     NULL,   NULL,    PREC_NONE},
-  [TOKEN_LEFT_BRACKET]  = {NULL,     NULL,   NULL,    PREC_NONE},
+  [TOKEN_LEFT_BRACKET]  = {array,     NULL,   NULL,    PREC_NONE},
   [TOKEN_RIGHT_BRACKET] = {NULL,     NULL,   NULL,    PREC_NONE},
   [TOKEN_COMMA]         = {NULL,     NULL,   NULL,    PREC_NONE},
   [TOKEN_DOT]           = {NULL,     NULL,   NULL,    PREC_NONE},
@@ -259,11 +261,6 @@ static uint8_t createConstant(Value value) {
     ValueVec *constants = &currentCode()->constants;
     int size = constants->size;
 
-    // for (int i = 0; i < size; i++) {
-    //     if (compareValues(constants->values[i], value))
-    //         return i;
-    // }
-
     int id = pushConstant(currentCode(), value);
     if (id > UINT8_MAX) {
         reportError("Too many constants in one code block", NULL);
@@ -362,6 +359,20 @@ static void string() {
 static void rawString() {
     emitConstant(OBJ_VAL(createRawString(parser.current.start, parser.current.length)));
     advance(false);
+}
+
+static void array() {
+    size_t size = 0;
+    advance(true);
+    if (!match(TOKEN_RIGHT_BRACKET, true)) {
+        do {
+            expression();
+            size++;
+        } while (consume(TOKEN_COMMA, true));
+        if (!consume(TOKEN_RIGHT_BRACKET, true))
+            reportError("Expect ']'", &parser.current);
+    }
+    emitBytes(OP_BUILD_ARRAY, (uint8_t)size, (Token){0});
 }
 
 static void fstring() {

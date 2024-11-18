@@ -19,6 +19,7 @@
 #define AS_STRING(value)        ((ObjString*)AS_OBJ(value))
 #define AS_CSTRING(value)       (((ObjString*)AS_OBJ(value))->chars)
 #define AS_RAW_STRING(value)    ((ObjRawString*)AS_OBJ(value))
+#define AS_ARRAY(value)         ((ObjArray*)AS_OBJ(value))
 
 typedef enum {
     OBJ_CLOSURE,
@@ -26,7 +27,8 @@ typedef enum {
     OBJ_NATIVE,
     OBJ_STRING,
     OBJ_RAW_STRING,
-    OBJ_UPVALUE
+    OBJ_UPVALUE,
+    OBJ_ARRAY
 } ObjType;
 
 struct Obj {
@@ -79,6 +81,11 @@ typedef struct {
     char *name; 
     NativeFn function;
 } ObjNative;
+
+typedef struct {
+    Obj obj;
+    ValueVec values;
+} ObjArray;
 
 static inline bool isObjType(Value value, ObjType type) {
     return IS_OBJ(value) && AS_OBJ(value)->type == type;

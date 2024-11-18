@@ -198,6 +198,16 @@ void printObject(Value value) {
         case OBJ_UPVALUE:
             printValue(*(((ObjUpvalue*)AS_OBJ(value))->location));
             break;
+        case OBJ_ARRAY:
+            printf("[");
+            size_t size = AS_ARRAY(value)->values.size;
+            for (int i = 0; i < size; i++) {
+                printValue(AS_ARRAY(value)->values.values[i]);
+                if (i + 1 != size) {
+                    printf(", ");
+                }
+            }
+            printf("]");
     }
 }
 

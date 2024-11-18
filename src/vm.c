@@ -295,6 +295,26 @@ static void buildFormattedString() {
     push(OBJ_VAL(string));
 }
 
+static void buildArray() {
+    ObjArray *array = (ObjArray*)allocateObject(sizeof(ObjArray), OBJ_ARRAY);
+    size_t size = READ_BYTE();
+    array->values.size = size; 
+    array->values.capacity = size; 
+    if (size != 0) {
+        growValueVec(&array->values);
+    }
+
+    for (int i = 0; i < size; i++) {
+        Value value = peek(size - i - 1);
+        array->values.values[i] = value;
+    }
+    
+    for (int i = 0; i < size; i++)
+        pop();
+    
+    push(OBJ_VAL(array));
+}
+
 static InterpretResult run() {
     frame = &vm.frames[vm.frameSize - 1];
     while (true) {
@@ -424,6 +444,9 @@ static InterpretResult run() {
                 break;
             case OP_BUILD_FSTRING:
                 buildFormattedString();
+                break;
+            case OP_BUILD_ARRAY:
+                buildArray();
                 break;
             case OP_JUMP: {
                 uint16_t offset = READ_SHORT();

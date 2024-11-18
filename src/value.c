@@ -17,11 +17,15 @@ void freeValueVec(ValueVec *vec) {
     initValueVec(vec);
 }
 
+void growValueVec(ValueVec *vec) {
+    int oldCapacity = vec->capacity;
+    vec->capacity = GROW_CAPACITY(oldCapacity);
+    vec->values = GROW_VEC(Value, vec->values, oldCapacity, vec->capacity);
+}
+
 void pushValue(ValueVec *vec, Value value) {
     if (vec->size + 1 >= vec->capacity) {
-        int oldCapacity = vec->capacity;
-        vec->capacity = GROW_CAPACITY(oldCapacity);
-        vec->values = GROW_VEC(Value, vec->values, oldCapacity, vec->capacity);
+        growValueVec(vec);
     }
 
     vec->values[vec->size++] = value;

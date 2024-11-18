@@ -47,6 +47,8 @@ void initValueVec(ValueVec *values);
 
 void freeValueVec(ValueVec *values);
 
+void growValueVec(ValueVec *vec);
+
 void pushValue(ValueVec *values, Value value);
 
 void printValue(Value value);
