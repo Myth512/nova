@@ -333,7 +333,8 @@ static InterpretResult run() {
             }
             case OP_DEFINE_GLOBAL: {
                 ObjString *name = READ_STRING();
-                tableSet(&vm.globals, name, pop());
+                tableSet(&vm.globals, name, peek(0));
+                pop();
                 break;
             }
             case OP_SET_GLOBAL: {
@@ -505,7 +506,9 @@ static InterpretResult run() {
                 break;
             }
         }
-        collectGarbage();
+        #ifdef DEBUG_TRACE_EXECUTION
+            printf("instruction end\n");
+        #endif
     }
 }
 

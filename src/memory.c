@@ -239,6 +239,7 @@ static void sweep() {
 }
 
 void collectGarbage() {
+    // printTable(&vm.globals);
     #ifdef DEBUG_LOG_GC
         printf("gc begin\n");
     #endif
