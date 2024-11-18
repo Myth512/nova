@@ -133,6 +133,19 @@ void tableAddAll(Table *source, Table *destination) {
 //     }
 // }
 #include <stdio.h>
+
+void printTable(Table *table) {
+    for (int i = 0; i < table->capacity; i++) {
+        Entry *entry = &table->entries[i];
+        if (entry->key != NULL) {
+            printObject(OBJ_VAL((Obj*)entry->key));
+            printf(" : ");
+            printValue(entry->value);
+            printf("\n");
+        }
+    }
+}
+
 void markTable(Table *table) {
     for (int i = 0; i < table->capacity; i++) {
         Entry *entry = &table->entries[i];

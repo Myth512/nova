@@ -13,4 +13,6 @@ Value minNative(int argc, Value *argv);
 
 Value maxNative(int argc, Value *argv);
 
+Value typeNative(int argc, Value *argv);
+
 #endif

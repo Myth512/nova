@@ -80,6 +80,7 @@ static void defineNatives() {
     // defineNative("sqrt", sqrtNative);
     // defineNative("min", minNative);
     // defineNative("max", maxNative);
+    defineNative("type", typeNative);
 }
 
 static bool callValue(Value callee, int argc) {
@@ -490,7 +491,6 @@ static InterpretResult run() {
                 pop();
                 break;
             case OP_RETURN: {
-                collectGarbage();
                 Value result = pop();
                 closeUpvalues(frame->slots);
                 vm.frameSize--;
@@ -505,6 +505,7 @@ static InterpretResult run() {
                 break;
             }
         }
+        collectGarbage();
     }
 }
 
@@ -518,6 +519,7 @@ void initVM() {
 }
 
 void freeVM() {
+    freeObjects();
     initTable(&vm.globals);
     freeTable(&vm.strings);
     return;

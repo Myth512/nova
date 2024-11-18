@@ -30,4 +30,6 @@ ObjString* tableFindString(Table *table, const char *chars, int length, uint32_t
 
 void markTable(Table *table);
 
+void printTable(Table *table);
+
 #endif

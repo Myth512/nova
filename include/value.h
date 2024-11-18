@@ -55,4 +55,6 @@ int writeValue(Value value, char *buffer, const size_t maxSize);
 
 bool compareValues(Value a, Value b);
 
+const char* decodeValueType(Value value);
+
 #endif

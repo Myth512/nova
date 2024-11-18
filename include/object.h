@@ -98,6 +98,8 @@ ObjNative* createNative(NativeFn function, const char *name);
 
 ObjString* copyString(const char *chars, int length);
 
+ObjString* allocateString(const char *chars, int length);
+
 ObjString* takeString(char *chars, int length);
 
 bool compareStrings(ObjString *a, ObjString *b);
@@ -109,5 +111,7 @@ int resolveEscapeSequence(const char *source, int sourceLength, char *destinatio
 void printObject(Value value);
 
 int writeObject(Value value, char *buffer, const size_t maxSize);
+
+const char* decodeObjType(Value value);
 
 #endif

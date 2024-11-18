@@ -5,6 +5,15 @@
 #include "compiler.h"
 #include "vm.h"
 
+int indent = 0;
+
+static void printIndent() {
+    for (int i = 0; i < indent; i++) {
+        printf("  ");
+    }
+    printf("└─ ");
+}
+
 #ifdef DEBUG_LOG_GC
     #include "debug.h"
 #endif
@@ -31,7 +40,7 @@ void* reallocate(void *pointer, size_t oldSize, size_t newSize) {
 
 static void freeObject(Obj *object) {
     #ifdef DEBUG_LOG_GC
-        printf("%p free type %d ", object, object->type);
+        printf("free %p, type %s, data ", object, decodeObjType(OBJ_VAL(object)));
         printObject(OBJ_VAL(object));
         printf("\n");
     #endif
@@ -67,6 +76,15 @@ static void freeObject(Obj *object) {
     }
 }
 
+void freeObjects() {
+    Obj *object = vm.objects;
+    while (object != NULL) {
+        Obj *next = object->next;
+        freeObject(object);
+        object = next;
+    }
+}
+
 static void markVec(ValueVec *vec) {
     for (int i = 0; i < vec->size; i++) {
         markValue(vec->values[i]);
@@ -80,16 +98,44 @@ static void markReferences(Obj *obj) {
             break;
         case OBJ_FUNCTION: {
             ObjFunction *function = (ObjFunction*)obj;
+            #ifdef DEBUG_LOG_GC
+                printIndent();
+                printf("name\n");
+                indent++;
+            #endif
             markObject((Obj*)function->name);
+            #ifdef DEBUG_LOG_GC
+                indent--;
+                printIndent();
+                printf("constants\n");
+                indent++;
+            #endif
             markVec(&function->code.constants);
+            #ifdef DEBUG_LOG_GC
+                indent--;
+            #endif
             break;
         }
         case OBJ_CLOSURE: {
             ObjClosure *closure = (ObjClosure*)obj;
+            #ifdef DEBUG_LOG_GC
+                printIndent();
+                printf("function\n");
+                indent++;
+            #endif
             markObject((Obj*)closure->function);
+            #ifdef DEBUG_LOG_GC
+                indent--;
+                printIndent();
+                printf("upvalues\n");
+                indent++;
+            #endif
             for (int i = 0; i < closure->upvalueCount; i++) {
                 markObject((Obj*)closure->upvalues[i]);
             }
+            #ifdef DEBUG_LOG_GC
+                indent--;
+            #endif
             break;
         }
     }
@@ -102,13 +148,21 @@ void markObject(Obj *obj) {
         return;
 
     #ifdef DEBUG_LOG_GC
-        printf("%p mark ", obj);
+        printIndent();
+        printf("mark %p, type %s, data ", obj, decodeObjType(OBJ_VAL(obj)));
         printValue(OBJ_VAL(obj));
         printf("\n");
     #endif
 
     obj->isMarked = true;
+
+    #ifdef DEBUG_LOG_GC
+        indent++;
+    #endif
     markReferences(obj);
+    #ifdef DEBUG_LOG_GC
+        indent--;
+    #endif
 }
 
 void markValue(Value value) {
@@ -117,21 +171,50 @@ void markValue(Value value) {
 }
 
 static void mark() {
+    #ifdef DEBUG_LOG_GC
+        printf("\033[31mmark stack\n");
+        indent++;
+    #endif
     for (Value *slot = vm.stack; slot < vm.top; slot++) {
         markValue(*slot);
     }
 
+    #ifdef DEBUG_LOG_GC
+        indent--;
+        printf("\033[32mmark frames\n");
+        indent++;
+    #endif
     for (int i = 0; i < vm.frameSize; i++) {
         markObject((Obj*)vm.frames[i].closure);
     }
 
+    #ifdef DEBUG_LOG_GC
+        indent--;
+        printf("\033[33mmark upvalues\n");
+        indent++;
+    #endif
     for (ObjUpvalue *upvalue = vm.openUpvalues; upvalue != NULL; upvalue = upvalue->next) {
         markObject((Obj*)upvalue);
     }
 
+    #ifdef DEBUG_LOG_GC
+        indent++;
+        printf("\033[34mmark globals\n");
+        indent--;
+    #endif
     markTable(&vm.globals);
 
+    #ifdef DEBUG_LOG_GC
+        indent--;
+        printf("\033[35mmark compiler\n");
+        indent++;
+    #endif
     markCompilerRoots();
+
+    #ifdef DEBUG_LOG_GC
+        indent--;
+        printf("\033[0m");
+    #endif
 }
 
 static void sweep() {

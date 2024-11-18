@@ -80,3 +80,17 @@ bool compareValues(Value a, Value b) {
             return false;
     }
 }
+
+const char* decodeValueType(Value value) {
+    switch (value.type) {
+        case VAL_BOOL:
+            return "BOOL";
+        case VAL_NIL:
+            return "NIL";
+        case VAL_NUMBER:
+            return "NUMBER";
+        case VAL_OBJ:
+            return decodeObjType(value);
+    }
+    return ""; // uncreachable
+}

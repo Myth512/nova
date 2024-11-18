@@ -1,8 +1,11 @@
 #include <stdio.h>
+#include <string.h>
 #include <math.h>
 #include <time.h>
 
 #include "native.h"
+#include "value.h"
+#include "object.h"
 
 Value clockNative(int argc, Value *argv) {
     return NUMBER_VAL((double)clock() / CLOCKS_PER_SEC);
@@ -44,4 +47,11 @@ Value maxNative(int argc, Value *argv) {
             result = cur;
     } 
     return NUMBER_VAL(result);
+}
+
+Value typeNative(int argc, Value *argv) {
+    const char *type = decodeValueType(argv[0]);
+    size_t len = strlen(type);
+    ObjString *string = allocateString(type, len);
+    return OBJ_VAL(string);
 }

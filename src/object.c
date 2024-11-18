@@ -19,7 +19,7 @@ Obj* allocateObject(size_t size, ObjType type) {
     object->isMarked = false;
     vm.objects = object;
     #ifdef DEBUG_LOG_GC
-        printf("%p allocate %zu for %d\n", object, size, type);
+        printf("allocate %p, size %zu bytes, type %s\n", object, size, decodeObjType(OBJ_VAL(object)));
     #endif
     return object;
 }
@@ -89,7 +89,7 @@ uint32_t getHash(ObjString *string) {
     return string->hash;
 }
 
-static ObjString* allocateString(const char *chars, int length) {
+ObjString* allocateString(const char *chars, int length) {
     int size = sizeof(ObjString) + length + 1;
     ObjString *string = (ObjString*)allocateObject(size, OBJ_STRING); 
     string->isInterned = false;
@@ -196,7 +196,7 @@ void printObject(Value value) {
             printf("%.*s\n", string->length, string->chars);
         }
         case OBJ_UPVALUE:
-            printf("upvalue");
+            printValue(*(((ObjUpvalue*)AS_OBJ(value))->location));
             break;
     }
 }
@@ -214,4 +214,22 @@ int writeObject(Value value, char *buffer, const size_t maxSize) {
             return resolveEscapeSequence(AS_RAW_STRING(value)->chars, AS_RAW_STRING(value)->length, buffer);
     }
     return -1; // unreachable
+}
+
+const char* decodeObjType(Value value) {
+    switch (OBJ_TYPE(value)) {
+        case OBJ_NATIVE:
+            return "NATIVE";
+        case OBJ_FUNCTION:
+            return "FUNCTION";
+        case OBJ_STRING:
+            return "STRING";
+        case OBJ_RAW_STRING:
+            return "RAW STRING";
+        case OBJ_UPVALUE:
+            return "UPVALUE";
+        case OBJ_CLOSURE:
+            return "CLOSURE";
+    }
+    return ""; // uncreachable
 }

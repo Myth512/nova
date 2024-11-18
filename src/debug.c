@@ -2,34 +2,7 @@
 
 #include "debug.h"
 #include "object.h"
-
-static char* decodeObjType(Value value) {
-    switch (OBJ_TYPE(value)) {
-        case OBJ_NATIVE:
-            return "NATIVE";
-        case OBJ_FUNCTION:
-            return "FUNCTION";
-        case OBJ_STRING:
-            return "STRING";
-        case OBJ_RAW_STRING:
-            return "RAW STRING";
-    }
-    return ""; // uncreachable
-}
-
-static char* decodeValueType(Value value) {
-    switch (value.type) {
-        case VAL_BOOL:
-            return "BOOL";
-        case VAL_NIL:
-            return "NIL";
-        case VAL_NUMBER:
-            return "NUMBER";
-        case VAL_OBJ:
-            return decodeObjType(value);
-    }
-    return ""; // uncreachable
-}
+#include "value.h"
 
 static int simpleInstruction(const char *name, int offset) {
     printf("%s\n", name);
