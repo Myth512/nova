@@ -96,6 +96,10 @@ int printInstruction(CodeVec *vec, int offset) {
             return byteInstruction("GET UPVALUE", vec, offset);
         case OP_SET_UPVALUE:
             return byteInstruction("SET UPVALUE", vec, offset);
+        case OP_SET_AT:
+            return simpleInstruction("SET AT", offset);
+        case OP_GET_AT:
+            return simpleInstruction("GET AT", offset);
         case OP_INCREMENT:
             return simpleInstruction("INCREMENT", offset);
         case OP_DECREMENT:

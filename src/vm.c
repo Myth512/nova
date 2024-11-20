@@ -1,6 +1,7 @@
 #include <math.h>
 #include <string.h>
 #include <time.h>
+#include <stdarg.h>
 
 #include "vm.h"
 #include "debug.h"
@@ -19,8 +20,12 @@
 VM vm;
 CallFrame *frame;
 
-static void reportError(const char *message) {
-    fprintf(stderr, "\033[31mRuntime Error\033[0m: %s\n", message);
+static void reportError(const char *format, ...) {
+    va_list args;
+    va_start(args, format);
+    fprintf(stderr, "\033[31mRuntime Error\033[0m: ");
+    vprintf(format, args);
+    printf("\n");
     int index = frame->ip - frame->closure->function->code.code - 1;
     int line = frame->closure->function->code.lines[index];
     int column = frame->closure->function->code.columns[index];
@@ -51,12 +56,10 @@ static Value peek(int distance) {
 
 static bool call(ObjClosure *closure, int argCount) {
     if (argCount != closure->function->arity) {
-        printf("Expected %d arguments but got %d\n", closure->function->arity, argCount);
-        return false;
+        reportError("Expected %d arguments but go %d", closure->function->arity, argCount);
     }
     if (vm.frameSize == FRAMES_SIZE) {
-        printf("Stack overflow");
-        return false;
+        reportError("Stack overflow");
     }
     CallFrame *frame = &vm.frames[vm.frameSize++];
     frame->closure = closure;
@@ -315,6 +318,59 @@ static void buildArray() {
     push(OBJ_VAL(array));
 }
 
+static void getAt() {
+    Value index = pop();
+    Value object = pop();
+
+    if (!IS_OBJ(object))
+        reportError("'%s' is not subscripable", decodeValueType(object));
+
+    switch (AS_OBJ(object)->type) {
+        case OBJ_ARRAY: {
+            if (!IS_NUMBER(index)) {
+                reportError("Index must be a number");
+            }
+            float i = AS_NUMBER(index);
+            if (i != (int)i) {
+                reportError("Index must be a whole number");
+            }
+            if (AS_ARRAY(object)->values.size <= i || i < 0) {
+                reportError("Index is out of range");
+            }
+            push(AS_ARRAY(object)->values.values[(int)i]);
+            break;
+        }
+        default:
+            reportError("'%s' is not subscripable", decodeObjType(object));
+    }
+}
+
+static void setAt() {
+    Value value = pop();
+    Value index = pop();
+    Value object = peek(0);
+
+    switch (AS_OBJ(object)->type) {
+        case OBJ_ARRAY: {
+            if (!IS_NUMBER(index)) {
+                reportError("Index must be a number");
+            }
+            float i = AS_NUMBER(index);
+            if (i != (int)i) {
+                reportError("Index must be a whole number");
+            }
+            if (AS_ARRAY(object)->values.size <= i || i < 0) {
+                reportError("Index is out of range");
+            }
+            AS_ARRAY(object)->values.values[(int)i] = value;
+            break;
+        }
+        default:
+            reportError("Object is not subscripable");
+    }
+
+}
+
 static InterpretResult run() {
     frame = &vm.frames[vm.frameSize - 1];
     while (true) {
@@ -346,7 +402,7 @@ static InterpretResult run() {
                 ObjString *name = READ_STRING();
                 Value value;
                 if (!tableGet(&vm.globals, name, &value)) {
-                    reportError("Undefined variable");
+                    reportError("Undefined variable '%s'", name->chars);
                 }
                 push(value);
                 break;
@@ -354,14 +410,13 @@ static InterpretResult run() {
             case OP_DEFINE_GLOBAL: {
                 ObjString *name = READ_STRING();
                 tableSet(&vm.globals, name, peek(0));
-                pop();
                 break;
             }
             case OP_SET_GLOBAL: {
                 ObjString *name = READ_STRING();
-                if (tableSet(&vm.globals, name, pop())) {
+                if (tableSet(&vm.globals, name, peek(0))) {
                     tableDelete(&vm.globals, name);
-                    reportError("Undefined variable");
+                    reportError("Undefined variable '%s'", name->chars);
                 }
                 break;
             }
@@ -372,7 +427,7 @@ static InterpretResult run() {
             }
             case OP_SET_LOCAL: {
                 uint8_t slot = READ_BYTE();
-                frame->slots[slot] = pop();
+                frame->slots[slot] = peek(0);
                 break;
             }
             case OP_GET_UPVALUE: {
@@ -382,9 +437,15 @@ static InterpretResult run() {
             }
             case OP_SET_UPVALUE: {
                 uint8_t slot = READ_BYTE();
-                *frame->closure->upvalues[slot]->location = pop();
+                *frame->closure->upvalues[slot]->location = peek(0);
                 break;
             }
+            case OP_GET_AT:
+                getAt();
+                break;
+            case OP_SET_AT:
+                setAt();
+                break;
             case OP_FALSE:
                 push(BOOL_VAL(false));
                 break;

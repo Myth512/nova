@@ -59,7 +59,13 @@ typedef enum {
     PREC_PRIMARY
 } Precedence;
 
-typedef void (*ParseFn)();
+typedef enum {
+    VAR_MODE_READ,
+    VAR_MODE_ASSIGNMENT,
+    VAR_MODE_DECLARATION
+} VarAccessMode;
+
+typedef void (*ParseFn)(bool);
 
 typedef struct {
     ParseFn prefix;
@@ -68,31 +74,33 @@ typedef struct {
     Precedence precedence;
 } ParseRule;
 
-static void literal();
+static void literal(bool canAssign);
 
-static void number();
+static void number(bool canAssign);
 
-static void string();
+static void string(bool canAssign);
 
-static void fstring();
+static void fstring(bool canAssign);
 
-static void array();
+static void array(bool canAssign);
 
-static void grouping();
+static void grouping(bool canAssign);
 
-static void unary();
+static void unary(bool canAssign);
 
-static void binary();
+static void binary(bool canAssign);
 
-static void getVariable();
+static void variable(bool canAssign);
 
-static void and();
+static void and(bool canAssign);
 
-static void or();
+static void or(bool canAssign);
 
 static void statement(int breakPointer, int continuePointer);
 
-static void call();
+static void call(bool canAssign);
+
+static void at(bool canAssign);
 
 static void declaration(int breakPointer, int continuePointer);
 
@@ -101,11 +109,11 @@ ParseRule rules[] = {
   [TOKEN_RIGHT_PAREN]   = {NULL,     NULL,   NULL,    PREC_NONE},
   [TOKEN_LEFT_BRACE]    = {NULL,     NULL,   NULL,    PREC_NONE}, 
   [TOKEN_RIGHT_BRACE]   = {NULL,     NULL,   NULL,    PREC_NONE},
-  [TOKEN_LEFT_BRACKET]  = {array,     NULL,   NULL,    PREC_NONE},
+  [TOKEN_LEFT_BRACKET]  = {array,    at,   NULL,      PREC_FACTOR},
   [TOKEN_RIGHT_BRACKET] = {NULL,     NULL,   NULL,    PREC_NONE},
   [TOKEN_COMMA]         = {NULL,     NULL,   NULL,    PREC_NONE},
   [TOKEN_DOT]           = {NULL,     NULL,   NULL,    PREC_NONE},
-  [TOKEN_PLUS]          = {unary,     binary, NULL,    PREC_TERM},
+  [TOKEN_PLUS]          = {unary,    binary, NULL,    PREC_TERM},
   [TOKEN_MINUS]         = {unary,    binary, NULL,    PREC_TERM},
   [TOKEN_STAR]          = {NULL,     binary, NULL,    PREC_FACTOR},
   [TOKEN_CARET]         = {NULL,     binary, NULL,    PREC_POWER},
@@ -128,7 +136,7 @@ ParseRule rules[] = {
   [TOKEN_GREATER_EQUAL] = {NULL,     binary, NULL,    PREC_EQUALITY},
   [TOKEN_LESS]          = {NULL,     binary, NULL,    PREC_EQUALITY},
   [TOKEN_LESS_EQUAL]    = {NULL,     binary, NULL,    PREC_EQUALITY},
-  [TOKEN_IDENTIFIER]    = {getVariable, NULL,   NULL,    PREC_NONE},
+  [TOKEN_IDENTIFIER]    = {variable, NULL,   NULL,    PREC_NONE},
   [TOKEN_STRING]        = {string,   NULL,   NULL,    PREC_NONE},
   [TOKEN_FSTRING]       = {fstring,  NULL,   NULL,    PREC_NONE},
   [TOKEN_NUMBER]        = {number,   NULL,   NULL,    PREC_NONE},
@@ -233,6 +241,10 @@ static bool consume(TokenType type, bool skipLineBreak) {
     return false;
 }
 
+static bool consumeEOS() {
+    return consume(TOKEN_LINE_BREAK, false) || consume(TOKEN_SEMICOLON, false);
+}
+
 static void emitByte(uint8_t byte, Token token) {
     pushInstruction(currentCode(), byte, token.line, token.column, token.length);
 }
@@ -307,8 +319,8 @@ static ObjFunction* endCompiler() {
     return function;
 }
 
-static void parseExpression(Precedence precedence) {
-    void (*prefixFunc)() = getRule(parser.current.type)->prefix;
+static void parseExpression(Precedence precedence, bool canAssign) {
+    ParseFn prefixFunc = getRule(parser.current.type)->prefix;
 
     if (prefixFunc == NULL) {
         reportError("Expect expression", &parser.current);
@@ -316,19 +328,23 @@ static void parseExpression(Precedence precedence) {
         return;
     }
 
-    prefixFunc();
+    canAssign &= precedence <= PREC_ASSIGNMENT;
+
+    prefixFunc(canAssign);
 
     while (precedence < getRule(parser.current.type)->precedence) {
-        void (*infixFunc)() = getRule(parser.current.type)->infix;
-        infixFunc();
+        ParseFn infixFunc = getRule(parser.current.type)->infix;
+        infixFunc(canAssign);
     }
 }
 
 static void expression() {
-    parseExpression(PREC_ASSIGNMENT);
+    parseExpression(PREC_ASSIGNMENT, false);
 }
 
-static void literal() {
+static void literal(bool canAssign) {
+    (void)canAssign;
+
     switch (parser.current.type) {
         case TOKEN_TRUE:
             emitByte(OP_TRUE, parser.current); 
@@ -345,13 +361,17 @@ static void literal() {
     advance(false);
 }
 
-static void number() {
+static void number(bool canAssign) {
+    (void)canAssign;
+
     double value = strtod(parser.current.start, NULL);
     emitConstant(NUMBER_VAL(value));
     advance(false);
 }
 
-static void string() {
+static void string(bool canAssign) {
+    (void)canAssign;
+
     emitConstant(OBJ_VAL(copyString(parser.current.start, parser.current.length)));
     advance(false);
 }
@@ -361,7 +381,9 @@ static void rawString() {
     advance(false);
 }
 
-static void array() {
+static void array(bool canAssign) {
+    (void)canAssign;
+
     size_t size = 0;
     advance(true);
     if (!match(TOKEN_RIGHT_BRACKET, true)) {
@@ -375,7 +397,9 @@ static void array() {
     emitBytes(OP_BUILD_ARRAY, (uint8_t)size, (Token){0});
 }
 
-static void fstring() {
+static void fstring(bool canAssign) {
+    (void)canAssign;
+
     int count = 0;
 
     while (!check(TOKEN_STRING)) {
@@ -398,20 +422,24 @@ static void fstring() {
     emitBytes(OP_BUILD_FSTRING, (uint8_t)count, (Token){0});
 }
 
-static void grouping() {
+static void grouping(bool canAssign) {
+    (void)canAssign;
+
     advance(true);
-    parseExpression(PREC_ASSIGNMENT);
+    parseExpression(PREC_ASSIGNMENT, false);
 
     if (!consume(TOKEN_RIGHT_PAREN, true))
         reportError("Opening parenthesis does not closed", NULL);
 }
 
-static void unary() {
+static void unary(bool canAssign) {
+    (void)canAssign;
+
     Token operator = parser.current;
     advance(false);
 
     Precedence precedence = getRule(operator.type)->precedence + 1;
-    parseExpression(precedence);
+    parseExpression(precedence, false);
 
     switch (operator.type) {
         case TOKEN_PLUS:
@@ -427,10 +455,12 @@ static void unary() {
     }
 }
 
-static void binary() {
+static void binary(bool canAssign) {
+    (void)canAssign;
+    
     Token operator = parser.current;
     advance(true);
-    parseExpression(getRule(operator.type)->precedence);
+    parseExpression(getRule(operator.type)->precedence, false);
 
     switch (operator.type) {
         case TOKEN_BANG_EQUAL:
@@ -486,11 +516,9 @@ static uint8_t identifierConstant(Token *name) {
 }
 
 static void expressionStatement() {
-    expression();
+    parseExpression(PREC_ASSIGNMENT, true);
     
-    if (parser.current.type == TOKEN_LINE_BREAK || parser.current.type == TOKEN_SEMICOLON)
-        advance(false);
-    else
+    if (!consumeEOS())
         reportError("Expect eos after statement", &parser.current);
 
     emitByte(OP_POP, (Token){0});
@@ -635,160 +663,57 @@ static void resolveVariable(Token *name, uint8_t *getOp, uint8_t *setOp, uint8_t
     *arg = identifierConstant(name);
 }
 
-static void getVariable() {
-    Token *name = &parser.current;
+static void variable(bool canAssign) {
     uint8_t getOp, setOp, arg;
-    resolveVariable(name, &getOp, &setOp, &arg);
-    emitBytes(getOp, arg, *name);
-    advance(false);
-}
-
-void variableDeclaration(Token name) {
-    expression();
-    createVariable(name);
-}
-
-void setVariable(Token name, Token operator) {
-    uint8_t getOp, setOp, arg;
-    resolveVariable(&name, &getOp, &setOp, &arg);
-
-    if (operator.type != TOKEN_EQUAL)
-        emitBytes(getOp, arg, name);
-    
-    if (operator.type != TOKEN_PLUS_PLUS && operator.type != TOKEN_MINUS_MINUS)
-        expression();
-
-    switch (operator.type) {
-        case TOKEN_PLUS_PLUS:
-            emitByte(OP_INCREMENT, operator);
-            break;
-        case TOKEN_MINUS_MINUS:
-            emitByte(OP_DECREMENT, operator);
-            break;
-        case TOKEN_PLUS_EQUAL:
-            emitByte(OP_ADD, operator);
-            break;
-        case TOKEN_MINUS_EQUAL:
-            emitByte(OP_SUBTRUCT, operator);
-            break;
-        case TOKEN_STAR_EQUAL:
-            emitByte(OP_MULTIPLY, operator);
-            break;
-        case TOKEN_SLASH_EQUAL:
-            emitByte(OP_DIVIDE, operator);
-            break;
-        case TOKEN_CARET_EQUAL:
-            emitByte(OP_POWER, operator);
-            break;
-        case TOKEN_PERCENT_EQUAL:
-            emitByte(OP_MOD, operator);
-            break;
-        default:
-            break;
-    }
-    emitBytes(setOp, arg, name);
-}
-
-static void singleVariable() {
     Token name = parser.current;
-    Token operator = parser.next;
+    resolveVariable(&name, &getOp, &setOp, &arg);
+    advance(false);
 
-    switch (operator.type) {
-        case TOKEN_COLON_EQUAL:
-            advance(false);
-            advance(true);
-            variableDeclaration(name);
-            break;
-        case TOKEN_EQUAL:
-        case TOKEN_PLUS_PLUS:
-        case TOKEN_MINUS_MINUS:
-        case TOKEN_PLUS_EQUAL:
-        case TOKEN_MINUS_EQUAL:
-        case TOKEN_STAR_EQUAL:
-        case TOKEN_SLASH_EQUAL:
-        case TOKEN_CARET_EQUAL:
-        case TOKEN_PERCENT_EQUAL:
-            advance(false);
-            advance(false);
-            setVariable(name, operator);
-            break;
-        default:
-            expression();
-            emitByte(OP_POP, (Token){0});
-            break;
-    }
-}
+    if (match(TOKEN_COLON_EQUAL, false)) {
+        if (!canAssign)
+            reportError("Variable declaration is now allowed here", &name);
 
-static void parseMultipleVariables(TokenVec *variables) {
-    do {
-        if (!check(TOKEN_IDENTIFIER))
-            reportError("Expect variable name after comma", &parser.current);
-        
-        TokenVecPush(variables, parser.current);
-        advance(false);
-    } while (match(TOKEN_COMMA, true));
-
-    Token operator = parser.current;
-    advance(true);
-    if (operator.type == TOKEN_LINE_BREAK || operator.type == TOKEN_SEMICOLON)
+        expression();
+        createVariable(name);
         return;
-
-    for (int i = 0; i < variables->size; i++) {
-        Token name = variables->tokens[i];
-
-        if (operator.type == TOKEN_COLON_EQUAL) {
-            variableDeclaration(name);
-        } else if (operator.type == TOKEN_EQUAL) {
-            setVariable(name, operator);
-        } else {
-            reportError("Unsupported operator for multiple variables", &operator);
-            return;
-        }
-
-        if (i != variables->size - 1 && !consume(TOKEN_COMMA, false)) {
-            reportError("Number of variables does not match number of values", &parser.current);
-            return;
-        }
     }
-}
 
-static void multipleVariables() {
-    TokenVec variables;
-    TokenVecInit(&variables);
-    parseMultipleVariables(&variables);
-    TokenVecFree(&variables);
-}
+    if (match(TOKEN_EQUAL, false)) {
+        if (!canAssign)
+            reportError("Variable assignment is now allowed here", &parser.current);
 
-static void variable() {
-    if (checkNext(TOKEN_COMMA))
-        multipleVariables();
-    else
-        singleVariable();
+        expression();
+        emitBytes(setOp, arg, name);
+        return;
+    }
 
-    if (!consume(TOKEN_LINE_BREAK, false) && !consume(TOKEN_SEMICOLON, false))
-        reportError("Expect eos", &parser.current);
+    emitBytes(getOp, arg, name);
 }
 
 // ======================================
 //            Control flow
 // ======================================    
 
-static void and() {
+static void and(bool canAssign) {
+    (void)canAssign;
+
     advance(true);
     int endJump = emitJump(OP_JUMP_FALSE);
 
     emitByte(OP_POP, (Token){0});
-    parseExpression(PREC_AND);
+    parseExpression(PREC_AND, false);
 
     patchJump(endJump);
 }
 
-static void or(){
+static void or(bool canAssign){
+    (void)canAssign;
+
     advance(true);
     int endJump = emitJump(OP_JUMP_TRUE);
 
     emitByte(OP_POP, (Token){0});
-    parseExpression(PREC_OR);
+    parseExpression(PREC_OR, false);
 
     patchJump(endJump);
 }
@@ -849,7 +774,7 @@ static void breakStatement(int breakPointer) {
     
     emitLoop(OP_LOOP, breakPointer - 1);
 
-    if (!consume(TOKEN_LINE_BREAK, false) && !consume(TOKEN_SEMICOLON, false))
+    if (!consumeEOS())
         reportError("Expect eos after 'break'", &parser.current);
 }
 
@@ -861,7 +786,7 @@ static void continueStatement(int continuePointer) {
 
     emitLoop(OP_LOOP, continuePointer);
 
-    if (!consume(TOKEN_LINE_BREAK, false) && !consume(TOKEN_SEMICOLON, false))
+    if (!consumeEOS())
         reportError("Expect eos after 'continue'", &parser.current);
 }
 
@@ -907,7 +832,7 @@ static void forLoop() {
         jumpToBody = emitJump(OP_JUMP);
         postPointer = currentCode()->size;
 
-        singleVariable();
+        expression();
 
         if (hasCondition)
             emitLoop(OP_LOOP, conditionPointer);
@@ -1076,11 +1001,30 @@ static uint8_t parseArguments() {
     return argc;
 }
 
-static void call() {
+static void call(bool canAssign) {
+    (void)canAssign;
+
     Token name = parser.current;
     advance(true);
     uint8_t argc = parseArguments();
     emitBytes(OP_CALL, argc, name);
+}
+
+static void at(bool canAssign) {
+    (void)canAssign;
+
+    advance(true);
+    expression();
+    advance(false);
+
+    if (match(TOKEN_EQUAL, false)) {
+        if (!canAssign)
+            reportError("Assignment is not allowed here", &parser.current);
+        expression();
+        emitByte(OP_SET_AT, (Token){0});
+    } else {
+        emitByte(OP_GET_AT, (Token){0});
+    }
 }
 
 static void returnStatement() {
@@ -1088,7 +1032,7 @@ static void returnStatement() {
     if (current->type == TYPE_TOP_LEVEL)
         reportError("Can't return from top-level code", &parser.current);
     
-    if (match(TOKEN_LINE_BREAK, false) || match(TOKEN_SEMICOLON, false)) {
+    if (consumeEOS()) {
         emitBytes(OP_NIL, OP_RETURN, (Token){0});
     } else {
         expression(false);
@@ -1104,9 +1048,6 @@ static void statement(int breakPointer, int continuePointer) {
         case TOKEN_LINE_BREAK:
         case TOKEN_SEMICOLON:
             advance(false);
-            break;
-        case TOKEN_IDENTIFIER:
-            variable();
             break;
         case TOKEN_IF:
             ifStatement(breakPointer, continuePointer);
