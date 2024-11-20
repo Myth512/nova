@@ -576,12 +576,13 @@ static void createLocal(Token name) {
     }
 
     if (current->localCount == UINT8_MAX + 1) {
-        reportError("Too many variable in function", NULL);
+        reportError("Too many variables in function", NULL);
     }
     Local *local = &current->locals[current->localCount++];
     local->name = name;
     local->depth = current->scopeDepth;
     local->isCaptured = false;
+    emitByte(OP_NIL, (Token){0});
 }
 
 static void createGlobal(Token name) {
@@ -728,8 +729,9 @@ static void variable(bool canAssign) {
     Token operator = parser.current;
 
     if (match(TOKEN_COLON_EQUAL, false)) {
-        if (!canAssign)
+        if (!canAssign) {
             reportError("Variable declaration is now allowed here", &operator);
+        }
 
         expression();
         createVariable(name);
@@ -886,7 +888,7 @@ static void forLoop() {
         jumpToBody = emitJump(OP_JUMP);
         postPointer = currentCode()->size;
 
-        expression();
+        parseExpression(PREC_ASSIGNMENT, true);
 
         if (hasCondition)
             emitLoop(OP_LOOP, conditionPointer);
@@ -1026,8 +1028,10 @@ static void declareFunction(Token name) {
 }
 
 static void defineFunction(Token name) {
-    if (current->scopeDepth == 0)
+    if (current->scopeDepth == 0) {
         createGlobal(name);
+        emitByte(OP_POP, (Token){0});
+    }
 }
 
 static void funcDeclaration() {

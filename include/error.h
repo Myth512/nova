@@ -3,6 +3,8 @@
 
 #include "token.h"
 
+void reportRuntimeError(const char *format, ...);
+
 const char* getCodeLine(const char *source, int line);
 
 void printCodeLine(const char *codeLine, int line);

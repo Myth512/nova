@@ -1,7 +1,16 @@
 #include <stdio.h>
+#include <stdarg.h>
 
 #include "error.h"
 #include "token.h"
+
+void reportRuntimeError(const char *format, ...) {
+    va_list args;
+    va_start(args, format);
+    fprintf(stderr, "\033[31mRuntime Error\033[0m: ");
+    vprintf(format, args);
+    printf("\n");
+}
 
 const char* getCodeLine(const char *source, int line) {
     int curLine = 1;

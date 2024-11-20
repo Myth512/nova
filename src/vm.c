@@ -20,13 +20,8 @@
 VM vm;
 CallFrame *frame;
 
-static void reportError(const char *format, ...) {
-    va_list args;
-    va_start(args, format);
-    fprintf(stderr, "\033[31mRuntime Error\033[0m: ");
-    vprintf(format, args);
-    printf("\n");
-    int index = frame->ip - frame->closure->function->code.code - 1;
+static void printErrorInCode(int offset) {
+    int index = frame->ip - frame->closure->function->code.code - 1 + offset;
     int line = frame->closure->function->code.lines[index];
     int column = frame->closure->function->code.columns[index];
     int length = frame->closure->function->code.lengths[index];
@@ -56,10 +51,12 @@ static Value peek(int distance) {
 
 static bool call(ObjClosure *closure, int argCount) {
     if (argCount != closure->function->arity) {
-        reportError("Expected %d arguments but go %d", closure->function->arity, argCount);
+        reportRuntimeError("Expected %d arguments but go %d", closure->function->arity, argCount);
+        printErrorInCode(0);
     }
     if (vm.frameSize == FRAMES_SIZE) {
-        reportError("Stack overflow");
+        reportRuntimeError("Stack overflow");
+        printErrorInCode(0);
     }
     CallFrame *frame = &vm.frames[vm.frameSize++];
     frame->closure = closure;
@@ -102,7 +99,8 @@ static bool callValue(Value callee, int argc) {
                 break;
         }
     }
-    reportError("Can only call functions and classes");
+    reportRuntimeError("Can only call functions and classes");
+    printErrorInCode(0);
     return false;
 }
 
@@ -172,21 +170,24 @@ static inline double multiply(double a, double b) {
 
 static inline double divide(double a, double b) {
     if (b == 0) {
-        reportError("Division by zero");
+        reportRuntimeError("Division by zero");
+        printErrorInCode(0);
     }
     return a / b;
 }
 
 static inline double modulo(double a, double b) {
     if (b == 0) {
-        reportError("Division by zero");
+        reportRuntimeError("Division by zero");
+        printErrorInCode(0);
     }
     return fmod(a, b);
 }
 
 static void arithmetic(double (*function)(double, double)) {
     if (!IS_NUMBER(peek(0)) || !IS_NUMBER(peek(1))) {
-        reportError("Operands must be numbers");
+        reportRuntimeError("Operands must be numbers");
+        printErrorInCode(0);
     }
 
     double b = AS_NUMBER(pop());
@@ -206,7 +207,8 @@ static inline void plus() {
 
 static inline void increment() {
     if (!IS_NUMBER(peek(0))) {
-        reportError("Operand must be number");
+        reportRuntimeError("Operand must be number");
+        printErrorInCode(0);
     }
 
     double a = AS_NUMBER(pop());
@@ -216,7 +218,8 @@ static inline void increment() {
 
 static inline void decrement() {
     if (!IS_NUMBER(peek(0))) {
-        reportError("Operand must be number");
+        reportRuntimeError("Operand must be number");
+        printErrorInCode(0);
     }
 
     double a = AS_NUMBER(pop());
@@ -249,7 +252,8 @@ static inline bool greaterEqual(double a, double b) {
 
 static void inequality(bool (*function)(double, double)) {
     if (!IS_NUMBER(peek(0)) || !IS_NUMBER(peek(1))) {
-        reportError("Operands must be numbers");
+        reportRuntimeError("Operands must be numbers");
+        printErrorInCode(0);
     }
 
     double b = AS_NUMBER(pop());
@@ -323,23 +327,30 @@ static void getAt() {
     Value key = pop();
     Value object = pop();
 
-    if (!IS_OBJ(object))
-        reportError("%s is not subscripable", decodeValueType(object));
+    if (!IS_OBJ(object)) {
+        reportRuntimeError("%s is not subscripable", decodeValueType(object));
+        printErrorInCode(0);
+    }
 
     switch (AS_OBJ(object)->type) {
         case OBJ_ARRAY: {
             if (!IS_NUMBER(key)) {
-                reportError("Index must be a number");
+                reportRuntimeError("Index must be a number");
+                printErrorInCode(0);
             }
             float fi = AS_NUMBER(key);
-            if (fi != (int)fi)
-                reportError("Index must be a whole number");
+            if (fi != (int)fi) {
+                reportRuntimeError("Index must be a whole number");
+                printErrorInCode(0);
+            }
             
             int i = (int)fi;
 
             int size = AS_ARRAY(object)->values.size;
-            if (i >= size || i < -size)
-                reportError("Index is out of range");
+            if (i >= size || i < -size) {
+                reportRuntimeError("Index is out of range");
+                printErrorInCode(0);
+            }
             if (i < 0)
                 i += size;
 
@@ -348,17 +359,21 @@ static void getAt() {
         }
         case OBJ_STRING: {
             if (!IS_NUMBER(key)) {
-                reportError("Index must be a number");
+                reportRuntimeError("Index must be a number");
+                printErrorInCode(0);
             }
             float fi = AS_NUMBER(key);
-            if (fi != (int)fi)
-                reportError("Index must be a whole number");
-            
+            if (fi != (int)fi) {
+                reportRuntimeError("Index must be a whole number");
+                printErrorInCode(0);
+            }
             int i = (int)fi;
 
             int length = AS_STRING(object)->length; 
-            if (i >= length || i < -length)
-                reportError("Index is out of range");
+            if (i >= length || i < -length) {
+                reportRuntimeError("Index is out of range");
+                printErrorInCode(0);
+            }
             if (i < 0)
                 i += length;
             
@@ -368,7 +383,8 @@ static void getAt() {
             break;
         }
         default:
-            reportError("%s is not subscripable", decodeObjType(object));
+            reportRuntimeError("%s is not subscripable", decodeObjType(object));
+            printErrorInCode(0);
     }
 }
 
@@ -377,23 +393,29 @@ static void setAt() {
     Value key = pop();
     Value object = peek(0);
 
-    if (!IS_OBJ(object))
-        reportError("%s is not subscripable", decodeValueType(object));
+    if (!IS_OBJ(object)) {
+        reportRuntimeError("%s is not subscripable", decodeValueType(object));
+        printErrorInCode(0);
+    }
 
     switch (AS_OBJ(object)->type) {
         case OBJ_ARRAY: {
             if (!IS_NUMBER(key)) {
-                reportError("Index must be a number");
+                reportRuntimeError("Index must be a number");
+                printErrorInCode(0);
             }
             float fi = AS_NUMBER(key);
             if (fi != (int)fi) {
-                reportError("Index must be a whole number");
+                reportRuntimeError("Index must be a whole number");
+                printErrorInCode(0);
             }
             int i = (int)fi;
 
             int size = AS_ARRAY(object)->values.size;
-            if (i >= size || i < -size)
-                reportError("Index is out of range");
+            if (i >= size || i < -size) {
+                reportRuntimeError("Index is out of range");
+                printErrorInCode(0);
+            }
             if (i < 0)
                 i += size;
 
@@ -401,9 +423,11 @@ static void setAt() {
             break;
         }
         case OBJ_STRING:
-            reportError("Strings are immutable");
+            reportRuntimeError("Strings are immutable");
+            printErrorInCode(0);
         default:
-            reportError("%s is not subscripable", decodeObjType(value));
+            reportRuntimeError("%s is not subscripable", decodeObjType(value));
+            printErrorInCode(0);
     }
 
 }
@@ -439,7 +463,8 @@ static InterpretResult run() {
                 ObjString *name = READ_STRING();
                 Value value;
                 if (!tableGet(&vm.globals, name, &value)) {
-                    reportError("Undefined variable '%s'", name->chars);
+                    reportRuntimeError("Undefined variable '%s'", name->chars);
+                    printErrorInCode(0);
                 }
                 push(value);
                 break;
@@ -453,7 +478,8 @@ static InterpretResult run() {
                 ObjString *name = READ_STRING();
                 if (tableSet(&vm.globals, name, peek(0))) {
                     tableDelete(&vm.globals, name);
-                    reportError("Undefined variable '%s'", name->chars);
+                    reportRuntimeError("Undefined variable '%s'", name->chars);
+                    printErrorInCode(0);
                 }
                 break;
             }
@@ -536,7 +562,8 @@ static InterpretResult run() {
                 break;
             case OP_NEGATE:
                 if (!IS_NUMBER(peek(0))) {
-                    reportError("Operand must be number");
+                    reportRuntimeError("Operand must be number");
+                    printErrorInCode(0);
                 }
                 push(NUMBER_VAL(-AS_NUMBER(pop())));
                 break;

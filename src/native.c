@@ -6,6 +6,7 @@
 #include "native.h"
 #include "value.h"
 #include "object.h"
+#include "error.h"
 
 Value clockNative(int argc, Value *argv) {
     return NUMBER_VAL((double)clock() / CLOCKS_PER_SEC);
@@ -21,10 +22,10 @@ Value printNative(int argc, Value *argv) {
 
 Value sqrtNative(int argc, Value *argv) {
     if (argc != 1) {
-        printf("expect 1 argument but got %d\n", argc);
+        reportRuntimeError("Expect 1 argument but got %d\n", argc);
     }
     if (!IS_NUMBER(argv[0])) {
-        printf("argument must be a number\n");
+        reportRuntimeError("argument must be a number\n");
     }
     return NUMBER_VAL(sqrt(AS_NUMBER(argv[0])));
 }
@@ -58,11 +59,11 @@ Value typeNative(int argc, Value *argv) {
 
 Value lenNative(int argc, Value *argv) {
     if (argc != 1) {
-        printf("Expect 1 argument but got %d\n", argc);
+        reportRuntimeError("Expect 1 argument but got %d\n", argc);
     }
     Value value = argv[0];
     if (!IS_OBJ(value)) {
-        printf("%s does not have len", decodeValueType(value));
+        reportRuntimeError("%s does not have len", decodeValueType(value));
     }
     switch (AS_OBJ(value)->type) {
         case OBJ_ARRAY:
@@ -70,6 +71,6 @@ Value lenNative(int argc, Value *argv) {
         case OBJ_STRING:
             return NUMBER_VAL(AS_STRING(value)->length);
         default:
-            printf("%s does not have len", decodeValueType(value));
+            reportRuntimeError("%s does not have len", decodeValueType(value));
     }
 }
