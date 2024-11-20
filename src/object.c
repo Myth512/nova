@@ -19,7 +19,7 @@ Obj* allocateObject(size_t size, ObjType type) {
     object->isMarked = false;
     vm.objects = object;
     #ifdef DEBUG_LOG_GC
-        printf("allocate %p, size %zu bytes, type %s\n", object, size, decodeObjType(OBJ_VAL(object)));
+        printf("allocate %p, size %zu bytes, %s\n", object, size, decodeObjType(OBJ_VAL(object)));
     #endif
     return object;
 }
@@ -229,17 +229,19 @@ int writeObject(Value value, char *buffer, const size_t maxSize) {
 const char* decodeObjType(Value value) {
     switch (OBJ_TYPE(value)) {
         case OBJ_NATIVE:
-            return "NATIVE";
+            return "<type native>";
         case OBJ_FUNCTION:
-            return "FUNCTION";
+            return "<type function>";
         case OBJ_STRING:
-            return "STRING";
+            return "<type string>";
         case OBJ_RAW_STRING:
-            return "RAW STRING";
+            return "<type raw string>";
         case OBJ_UPVALUE:
-            return "UPVALUE";
+            return "<type upvalue>";
         case OBJ_CLOSURE:
-            return "CLOSURE";
+            return "<type closure>";
+        case OBJ_ARRAY:
+            return "<type array>";
     }
     return ""; // uncreachable
 }

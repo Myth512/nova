@@ -55,3 +55,21 @@ Value typeNative(int argc, Value *argv) {
     ObjString *string = allocateString(type, len);
     return OBJ_VAL(string);
 }
+
+Value lenNative(int argc, Value *argv) {
+    if (argc != 1) {
+        printf("Expect 1 argument but got %d\n", argc);
+    }
+    Value value = argv[0];
+    if (!IS_OBJ(value)) {
+        printf("%s does not have len", decodeValueType(value));
+    }
+    switch (AS_OBJ(value)->type) {
+        case OBJ_ARRAY:
+            return NUMBER_VAL(AS_ARRAY(value)->values.size);
+        case OBJ_STRING:
+            return NUMBER_VAL(AS_STRING(value)->length);
+        default:
+            printf("%s does not have len", decodeValueType(value));
+    }
+}

@@ -88,11 +88,11 @@ bool compareValues(Value a, Value b) {
 const char* decodeValueType(Value value) {
     switch (value.type) {
         case VAL_BOOL:
-            return "BOOL";
+            return "<type bool>";
         case VAL_NIL:
-            return "NIL";
+            return "<type nil>";
         case VAL_NUMBER:
-            return "NUMBER";
+            return "<type number>";
         case VAL_OBJ:
             return decodeObjType(value);
     }

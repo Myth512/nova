@@ -663,31 +663,85 @@ static void resolveVariable(Token *name, uint8_t *getOp, uint8_t *setOp, uint8_t
     *arg = identifierConstant(name);
 }
 
+static bool isAssignment(Token operator) {
+    switch (operator.type) {
+        case TOKEN_EQUAL:
+        case TOKEN_PLUS_PLUS:
+        case TOKEN_MINUS_MINUS:
+        case TOKEN_PLUS_EQUAL:
+        case TOKEN_MINUS_EQUAL:
+        case TOKEN_STAR_EQUAL:
+        case TOKEN_SLASH_EQUAL:
+        case TOKEN_CARET_EQUAL:
+        case TOKEN_PERCENT_EQUAL:
+            return true;
+        default:
+            return false;
+    }
+}
+
+static void variableAssignment(uint8_t getOp, uint8_t setOp, uint8_t arg, Token operator) {
+    if (operator.type != TOKEN_EQUAL)
+        emitBytes(getOp, arg, operator);
+
+    if (operator.type != TOKEN_PLUS_PLUS && operator.type != TOKEN_MINUS_MINUS)
+        expression();
+
+    switch (operator.type) {
+        case TOKEN_PLUS_PLUS:
+            emitByte(OP_INCREMENT, operator);
+            break;
+        case TOKEN_MINUS_MINUS:
+            emitByte(OP_DECREMENT, operator);
+            break;
+        case TOKEN_PLUS_EQUAL:
+            emitByte(OP_ADD, operator);
+            break;
+        case TOKEN_MINUS_EQUAL:
+            emitByte(OP_SUBTRUCT, operator);
+            break;
+        case TOKEN_STAR_EQUAL:
+            emitByte(OP_MULTIPLY, operator);
+            break;
+        case TOKEN_SLASH_EQUAL:
+            emitByte(OP_DIVIDE, operator);
+            break;
+        case TOKEN_CARET_EQUAL:
+            emitByte(OP_POWER, operator);
+            break;
+        case TOKEN_PERCENT_EQUAL:
+            emitByte(OP_MOD, operator);
+            break;
+        default:
+            // to remove warnings
+            break;
+    }
+
+    emitBytes(setOp, arg, operator);
+}
+
 static void variable(bool canAssign) {
     uint8_t getOp, setOp, arg;
     Token name = parser.current;
     resolveVariable(&name, &getOp, &setOp, &arg);
     advance(false);
+    Token operator = parser.current;
 
     if (match(TOKEN_COLON_EQUAL, false)) {
         if (!canAssign)
-            reportError("Variable declaration is now allowed here", &name);
+            reportError("Variable declaration is now allowed here", &operator);
 
         expression();
         createVariable(name);
-        return;
-    }
-
-    if (match(TOKEN_EQUAL, false)) {
+    } else if (isAssignment(operator)) {
+        advance(false);
         if (!canAssign)
-            reportError("Variable assignment is now allowed here", &parser.current);
+            reportError("Variable assignment is now allowed here", &operator);
 
-        expression();
-        emitBytes(setOp, arg, name);
-        return;
+        variableAssignment(getOp, setOp, arg, operator);
+    } else {
+        emitBytes(getOp, arg, name);
     }
-
-    emitBytes(getOp, arg, name);
 }
 
 // ======================================
@@ -1014,6 +1068,7 @@ static void at(bool canAssign) {
     (void)canAssign;
 
     advance(true);
+    Token index = parser.current;
     expression();
     advance(false);
 
@@ -1021,9 +1076,9 @@ static void at(bool canAssign) {
         if (!canAssign)
             reportError("Assignment is not allowed here", &parser.current);
         expression();
-        emitByte(OP_SET_AT, (Token){0});
+        emitByte(OP_SET_AT, index);
     } else {
-        emitByte(OP_GET_AT, (Token){0});
+        emitByte(OP_GET_AT, index);
     }
 }
 

@@ -84,6 +84,7 @@ static void defineNatives() {
     // defineNative("min", minNative);
     // defineNative("max", maxNative);
     defineNative("type", typeNative);
+    defineNative("len", lenNative);
 }
 
 static bool callValue(Value callee, int argc) {
@@ -319,54 +320,90 @@ static void buildArray() {
 }
 
 static void getAt() {
-    Value index = pop();
+    Value key = pop();
     Value object = pop();
 
     if (!IS_OBJ(object))
-        reportError("'%s' is not subscripable", decodeValueType(object));
+        reportError("%s is not subscripable", decodeValueType(object));
 
     switch (AS_OBJ(object)->type) {
         case OBJ_ARRAY: {
-            if (!IS_NUMBER(index)) {
+            if (!IS_NUMBER(key)) {
                 reportError("Index must be a number");
             }
-            float i = AS_NUMBER(index);
-            if (i != (int)i) {
+            float fi = AS_NUMBER(key);
+            if (fi != (int)fi)
                 reportError("Index must be a whole number");
-            }
-            if (AS_ARRAY(object)->values.size <= i || i < 0) {
+            
+            int i = (int)fi;
+
+            int size = AS_ARRAY(object)->values.size;
+            if (i >= size || i < -size)
                 reportError("Index is out of range");
+            if (i < 0)
+                i += size;
+
+            push(AS_ARRAY(object)->values.values[i]);
+            break;
+        }
+        case OBJ_STRING: {
+            if (!IS_NUMBER(key)) {
+                reportError("Index must be a number");
             }
-            push(AS_ARRAY(object)->values.values[(int)i]);
+            float fi = AS_NUMBER(key);
+            if (fi != (int)fi)
+                reportError("Index must be a whole number");
+            
+            int i = (int)fi;
+
+            int length = AS_STRING(object)->length; 
+            if (i >= length || i < -length)
+                reportError("Index is out of range");
+            if (i < 0)
+                i += length;
+            
+            char chr = AS_STRING(object)->chars[i];
+            ObjString *string = allocateString(&chr, 1);
+            push(OBJ_VAL(string));
             break;
         }
         default:
-            reportError("'%s' is not subscripable", decodeObjType(object));
+            reportError("%s is not subscripable", decodeObjType(object));
     }
 }
 
 static void setAt() {
     Value value = pop();
-    Value index = pop();
+    Value key = pop();
     Value object = peek(0);
+
+    if (!IS_OBJ(object))
+        reportError("%s is not subscripable", decodeValueType(object));
 
     switch (AS_OBJ(object)->type) {
         case OBJ_ARRAY: {
-            if (!IS_NUMBER(index)) {
+            if (!IS_NUMBER(key)) {
                 reportError("Index must be a number");
             }
-            float i = AS_NUMBER(index);
-            if (i != (int)i) {
+            float fi = AS_NUMBER(key);
+            if (fi != (int)fi) {
                 reportError("Index must be a whole number");
             }
-            if (AS_ARRAY(object)->values.size <= i || i < 0) {
+            int i = (int)fi;
+
+            int size = AS_ARRAY(object)->values.size;
+            if (i >= size || i < -size)
                 reportError("Index is out of range");
-            }
-            AS_ARRAY(object)->values.values[(int)i] = value;
+            if (i < 0)
+                i += size;
+
+            AS_ARRAY(object)->values.values[i] = value;
             break;
         }
+        case OBJ_STRING:
+            reportError("Strings are immutable");
         default:
-            reportError("Object is not subscripable");
+            reportError("%s is not subscripable", decodeObjType(value));
     }
 
 }

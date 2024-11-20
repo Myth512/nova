@@ -155,7 +155,7 @@ void markObject(Obj *obj) {
 
     #ifdef DEBUG_LOG_GC
         printIndent();
-        printf("mark %p, type %s, data ", obj, decodeObjType(OBJ_VAL(obj)));
+        printf("mark %p, %s, data ", obj, decodeObjType(OBJ_VAL(obj)));
         printValue(OBJ_VAL(obj));
         printf("\n");
     #endif
