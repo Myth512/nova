@@ -10,6 +10,8 @@
 #include "object.h"
 #include "error.h"
 
+#define NO_ARG -1
+
 typedef struct {
     const char *source;
     Token current;
@@ -252,6 +254,13 @@ static void emitByte(uint8_t byte, Token token) {
 static void emitBytes(uint8_t byte1, uint8_t byte2, Token token) {
     emitByte(byte1, token);
     emitByte(byte2, token); 
+}
+
+static void emitAssignment(uint8_t op, int arg, Token token) {
+    if (arg != NO_ARG)
+        emitBytes(op, (uint8_t)arg, token);
+    else
+        emitByte(op, token);
 }
 
 static int emitJump(uint8_t instruction) {
@@ -681,9 +690,9 @@ static bool isAssignment(Token operator) {
     }
 }
 
-static void variableAssignment(uint8_t getOp, uint8_t setOp, uint8_t arg, Token operator) {
+static void assignment(uint8_t getOp, uint8_t setOp, int arg, Token operator) {
     if (operator.type != TOKEN_EQUAL)
-        emitBytes(getOp, arg, operator);
+        emitAssignment(getOp, arg, operator);
 
     if (operator.type != TOKEN_PLUS_PLUS && operator.type != TOKEN_MINUS_MINUS)
         expression();
@@ -718,7 +727,7 @@ static void variableAssignment(uint8_t getOp, uint8_t setOp, uint8_t arg, Token 
             break;
     }
 
-    emitBytes(setOp, arg, operator);
+    emitAssignment(setOp, arg, operator);
 }
 
 static void variable(bool canAssign) {
@@ -729,9 +738,8 @@ static void variable(bool canAssign) {
     Token operator = parser.current;
 
     if (match(TOKEN_COLON_EQUAL, false)) {
-        if (!canAssign) {
+        if (!canAssign)
             reportError("Variable declaration is now allowed here", &operator);
-        }
 
         expression();
         createVariable(name);
@@ -740,7 +748,7 @@ static void variable(bool canAssign) {
         if (!canAssign)
             reportError("Variable assignment is now allowed here", &operator);
 
-        variableAssignment(getOp, setOp, arg, operator);
+        assignment(getOp, setOp, arg, operator);
     } else {
         emitBytes(getOp, arg, name);
     }
@@ -1076,11 +1084,18 @@ static void at(bool canAssign) {
     expression();
     advance(false);
 
-    if (match(TOKEN_EQUAL, false)) {
+    Token operator = parser.current;
+
+    if (match(TOKEN_COLON_EQUAL, false)) {
+        reportError("Invalid syntax", &operator);
+    }
+
+    if (isAssignment(operator)) {
+        advance(true);
         if (!canAssign)
-            reportError("Assignment is not allowed here", &parser.current);
-        expression();
-        emitByte(OP_SET_AT, index);
+            reportError("Assignment is not allowed here", &operator);
+
+        assignment(OP_GET_AT_NO_POP, OP_SET_AT, NO_ARG, operator);
     } else {
         emitByte(OP_GET_AT, index);
     }

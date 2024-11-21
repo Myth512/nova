@@ -39,6 +39,7 @@ typedef enum {
     OP_BUILD_FSTRING,
     OP_BUILD_ARRAY,
     OP_GET_AT,
+    OP_GET_AT_NO_POP,
     OP_SET_AT,
     OP_TO_STRING,
     OP_JUMP,

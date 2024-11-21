@@ -323,9 +323,17 @@ static void buildArray() {
     push(OBJ_VAL(array));
 }
 
-static void getAt() {
-    Value key = pop();
-    Value object = pop();
+static void getAt(bool popValues) {
+    Value key;
+    Value object; 
+
+    if (popValues) {
+        key = pop();
+        object = pop();
+    } else {
+        key = peek(0);
+        object = peek(1);
+    }
 
     if (!IS_OBJ(object)) {
         reportRuntimeError("%s is not subscripable", decodeValueType(object));
@@ -504,7 +512,10 @@ static InterpretResult run() {
                 break;
             }
             case OP_GET_AT:
-                getAt();
+                getAt(true);
+                break;
+            case OP_GET_AT_NO_POP:
+                getAt(false);
                 break;
             case OP_SET_AT:
                 setAt();

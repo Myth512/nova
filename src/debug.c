@@ -100,6 +100,8 @@ int printInstruction(CodeVec *vec, int offset) {
             return simpleInstruction("SET AT", offset);
         case OP_GET_AT:
             return simpleInstruction("GET AT", offset);
+        case OP_GET_AT_NO_POP:
+            return simpleInstruction("GET AT NO POP", offset);
         case OP_INCREMENT:
             return simpleInstruction("INCREMENT", offset);
         case OP_DECREMENT:
