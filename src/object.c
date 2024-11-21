@@ -72,18 +72,18 @@ int resolveEscapeSequence(const char *source, int sourceLength, char *destinatio
     return destinationLength;
 }
 
-static uint32_t hashString(const char *key, int length) {
-    uint32_t hash = 2166136261u;
-    for (int i = 0; i < length; i++) {
-        hash ^= (uint8_t)key[i];
-        hash *= 16777619;
+static uint64_t hashString(const char *value) {
+    uint64_t hash = 0;
+    while (*value) {
+        hash = (hash * 31) + (unsigned char)(*value); 
+        value++;  
     }
     return hash;
 }
 
 uint32_t getHash(ObjString *string) {
     if (!string->isHashed) {
-        string->hash = hashString(string->chars, string->length);
+        string->hash = hashString(string->chars);
         string->isHashed = true;
     }
     return string->hash;
@@ -139,6 +139,16 @@ bool compareStrings(ObjString *a, ObjString *b) {
     if (a->length != b->length) 
         return false;
     return memcmp(a->chars, b->chars, a->length) == 0;
+}
+
+bool compareArrays(ObjArray *a, ObjArray *b) {
+    if (a->values.size != b->values.size)
+        return false;
+    for (int i = 0; i < a->values.size; i++) {
+        if (!compareValues(a->values.values[i], b->values.values[i]))
+            return false;
+    }
+    return true;
 }
 
 ObjUpvalue *createUpvalue(Value *slot) {
@@ -252,4 +262,30 @@ const char* decodeObjType(Value value) {
             return "<type array>";
     }
     return ""; // uncreachable
+}
+
+uint64_t hashObject(Value value) {
+    switch (OBJ_TYPE(value)) {
+        case OBJ_NATIVE:
+            return hashLong((long)AS_NATIVE(value)->function);
+        case OBJ_STRING:
+            return getHash(AS_STRING(value)); 
+        case OBJ_CLOSURE:
+            return hashLong((long)AS_CLOSURE(value)->function);
+        default:
+            return 0;
+    }
+}
+
+bool compareObjects(Value a, Value b) {
+    switch (a.type) {
+        case OBJ_NATIVE:
+            return AS_NATIVE(a)->function == AS_NATIVE(b)->function;
+        case OBJ_CLOSURE:
+            return AS_CLOSURE(a)->function == AS_CLOSURE(b)->function;
+        case OBJ_STRING:
+            return compareStrings(AS_STRING(a), AS_STRING(b));
+        case OBJ_ARRAY:
+            return compareArrays(AS_ARRAY(a), AS_ARRAY(b));
+    }
 }

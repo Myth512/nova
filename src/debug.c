@@ -134,8 +134,6 @@ int printInstruction(CodeVec *vec, int offset) {
             return simpleInstruction("LESS", offset);
         case OP_LESS_EQUAL:
             return simpleInstruction("LESS EQUAL", offset);
-        case OP_TO_STRING:
-            return simpleInstruction("TO STRING", offset);
         case OP_RETURN:
             return simpleInstruction("RETURN", offset);
         case OP_BUILD_FSTRING:

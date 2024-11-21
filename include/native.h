@@ -17,4 +17,6 @@ Value typeNative(int argc, Value *argv);
 
 Value lenNative(int argc, Value *argv);
 
+Value hashNative(int argc, Value *argv);
+
 #endif

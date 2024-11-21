@@ -21,6 +21,7 @@
 #define AS_CSTRING(value)       (((ObjString*)AS_OBJ(value))->chars)
 #define AS_RAW_STRING(value)    ((ObjRawString*)AS_OBJ(value))
 #define AS_ARRAY(value)         ((ObjArray*)AS_OBJ(value))
+#define AS_UPVALUE(value)       ((ObjUpvalue*)AS_OBJ(value))
 
 typedef enum {
     OBJ_CLOSURE,
@@ -123,5 +124,7 @@ void printObject(Value value);
 int writeObject(Value value, char *buffer, const size_t maxSize);
 
 const char* decodeObjType(Value value);
+
+uint64_t hashObject(Value value);
 
 #endif

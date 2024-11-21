@@ -75,13 +75,14 @@ static void defineNative(const char *name, NativeFn function) {
 }
 
 static void defineNatives() {
-    // defineNative("clock", clockNative);
+    defineNative("clock", clockNative);
     defineNative("print", printNative);
-    // defineNative("sqrt", sqrtNative);
-    // defineNative("min", minNative);
-    // defineNative("max", maxNative);
+    defineNative("sqrt", sqrtNative);
+    defineNative("min", minNative);
+    defineNative("max", maxNative);
     defineNative("type", typeNative);
     defineNative("len", lenNative);
+    defineNative("hash", hashNative);
 }
 
 static bool callValue(Value callee, int argc) {

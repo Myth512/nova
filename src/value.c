@@ -57,7 +57,7 @@ int writeValue(Value value, char *buffer, const size_t maxSize) {
         case VAL_NIL:
             return snprintf(buffer, 4, "nil");
         case VAL_NUMBER:
-            return snprintf(buffer, maxSize, "%g", AS_NUMBER(value));
+            return snprintf(buffer, maxSize, "%f", AS_NUMBER(value));
         case VAL_OBJ:
             return writeObject(value, buffer, maxSize);
     }
@@ -97,4 +97,56 @@ const char* decodeValueType(Value value) {
             return decodeObjType(value);
     }
     return ""; // uncreachable
+}
+
+uint64_t hashNumber(double value) {
+    union {
+        double d;
+        uint64_t i;
+    } u;
+    u.d = value;
+
+    uint64_t hash = u.i;
+    hash ^= (hash >> 33);
+    hash *= 0xff51afd7ed558ccd;
+    hash ^= (hash >> 33);
+    hash *= 0xc4ceb9fe1a85ec53;
+    hash ^= (hash >> 33);
+
+    return hash;
+}
+
+uint64_t hashLong(long value) {
+    uint64_t hash = (uint64_t)value;
+    
+    hash ^= (hash >> 33);
+    hash *= 0xff51afd7ed558ccd;
+    hash ^= (hash >> 33);
+    hash *= 0xc4ceb9fe1a85ec53;
+    hash ^= (hash >> 33);
+
+    return hash;
+}
+
+uint64_t hashBool(bool value) {
+    if (value)
+        return hashLong(1);
+    return hashLong(0);
+}
+
+uint64_t hashNil() {
+    return hashLong(-1);
+}
+
+uint64_t hashValue(Value value) {
+    switch (value.type) {
+        case VAL_BOOL:
+            return hashBool(AS_BOOL(value));
+        case VAL_NIL:
+            return hashNil();
+        case VAL_NUMBER:
+            return hashNumber(AS_NUMBER(value));
+        case VAL_OBJ:
+            return hashObject(value);
+    }
 }

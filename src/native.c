@@ -74,3 +74,10 @@ Value lenNative(int argc, Value *argv) {
             reportRuntimeError("%s does not have len", decodeValueType(value));
     }
 }
+
+Value hashNative(int argc, Value *argv) {
+    if (argc != 1) {
+        reportRuntimeError("Expect 1 argument but got %d\n", argc);
+    }
+    return NUMBER_VAL(hashValue(argv[0]));
+}

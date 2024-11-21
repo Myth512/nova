@@ -2,6 +2,7 @@
 #define VALUE_H
 
 #include <stdbool.h>
+#include <stdint.h>
 
 typedef struct Obj Obj;
 typedef struct ObjString ObjString;
@@ -58,5 +59,9 @@ int writeValue(Value value, char *buffer, const size_t maxSize);
 bool compareValues(Value a, Value b);
 
 const char* decodeValueType(Value value);
+
+uint64_t hashLong(long value);
+
+uint64_t hashValue(Value value);
 
 #endif

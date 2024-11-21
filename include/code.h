@@ -41,7 +41,6 @@ typedef enum {
     OP_GET_AT,
     OP_GET_AT_NO_POP,
     OP_SET_AT,
-    OP_TO_STRING,
     OP_JUMP,
     OP_JUMP_TRUE,
     OP_JUMP_TRUE_POP,
