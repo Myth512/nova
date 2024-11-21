@@ -12,6 +12,7 @@
 #define IS_FUNCTION(value)      isObjType(value, OBJ_FUNCTION)
 #define IS_NATIVE(value)        isObjType(value, OBJ_NATIVE)
 #define IS_STRING(value)        isObjType(value, OBJ_STRING)
+#define IS_ARRAY(value)         isObjType(value, OBJ_ARRAY)
 
 #define AS_CLOSURE(value)       ((ObjClosure*)AS_OBJ(value))
 #define AS_FUNCTION(value)      ((ObjFunction*)AS_OBJ(value))
@@ -112,6 +113,8 @@ ObjString* takeString(char *chars, int length);
 bool compareStrings(ObjString *a, ObjString *b);
 
 uint32_t getHash(ObjString *string);
+
+ObjArray* allocateArray(int size);
 
 int resolveEscapeSequence(const char *source, int sourceLength, char *destination);
 

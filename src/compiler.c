@@ -395,7 +395,7 @@ static void array(bool canAssign) {
 
     size_t size = 0;
     advance(true);
-    if (!match(TOKEN_RIGHT_BRACKET, true)) {
+    if (!match(TOKEN_RIGHT_BRACKET, false)) {
         do {
             expression();
             size++;

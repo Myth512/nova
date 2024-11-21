@@ -135,7 +135,7 @@ static void closeUpvalues(Value *last) {
     }
 }
 
-static inline void concatenate() {
+static inline void concatenateStrings() {
     ObjString *b = AS_STRING(pop());
     ObjString *a = AS_STRING(pop());
 
@@ -152,6 +152,27 @@ static inline void concatenate() {
     result->length = length;
     result->isHashed = false;
     result->isInterned = false;
+
+    push(OBJ_VAL(result));
+}
+
+static void concatenateArrays() {
+    ObjArray *a = AS_ARRAY(pop());
+    ObjArray *b = AS_ARRAY(pop());
+
+    size_t aSize = a->values.size;
+    size_t bSize = b->values.size;
+
+    size_t size = aSize + bSize; 
+
+    ObjArray *result = allocateArray(size);
+
+    for (int i = 0; i < aSize; i++) {
+        result->values.values[i] = a->values.values[i];
+    }
+    for (int i = 0; i < bSize; i++) {
+        result->values.values[aSize + i] = b->values.values[i];
+    }
 
     push(OBJ_VAL(result));
 }
@@ -196,13 +217,91 @@ static void arithmetic(double (*function)(double, double)) {
     push(NUMBER_VAL(function(a, b)));
 }
 
-static inline void plus() {
+static void plus() {
     if (IS_STRING(peek(0)) && IS_STRING(peek(1))) {
-        concatenate();
-        return;
+        concatenateStrings();
+    } else if (IS_ARRAY(peek(0)) && IS_ARRAY(peek(1))) {
+        concatenateArrays();
+    } else if (IS_NUMBER(peek(0)) && IS_NUMBER(peek(1))) {
+        arithmetic(add);
+    } else {
+        reportRuntimeError("'+' operator is not supported for %s and %s", decodeValueType(peek(0)), decodeValueType(peek(1)));
+    }
+}
+
+static void repeatString() {
+    ObjString* string;
+    double number;
+
+    if (IS_STRING(peek(0))) {
+        string = AS_STRING(pop());
+        number = AS_NUMBER(pop());
+    } else {
+        number = AS_NUMBER(pop());
+        string = AS_STRING(pop());
     }
 
-    arithmetic(add);
+    if (number != (int)number) {
+        reportRuntimeError("Can't multiply string by non whole number");
+        printErrorInCode(0);
+    }
+
+    size_t initLength = string->length;
+    size_t newLength = initLength * number;
+
+    ObjString *result = (ObjString*)allocateObject(sizeof(ObjString) + newLength, OBJ_STRING);
+    result->isHashed = false;
+    result->isInterned = false;
+    result->length = newLength;
+
+    for (int i = 0; i < number; i++) {
+        memcpy(result->chars + i * initLength, string->chars, initLength);
+    }
+
+    push(OBJ_VAL(result));
+}
+
+static void repeatArray() {
+    ObjArray *array;
+    double number;
+
+    if (IS_ARRAY(peek(0))) {
+        array = AS_ARRAY(pop());
+        number = AS_NUMBER(pop());
+    } else {
+        number = AS_NUMBER(pop());
+        array = AS_ARRAY(pop());
+    }
+
+    if (number != (int)number) {
+        reportRuntimeError("Can't multiply array by non whole number");
+        printErrorInCode(0);
+    }
+
+    size_t initSize = array->values.size;
+    size_t newSize = initSize * number;
+
+    ObjArray *result = allocateArray(newSize);
+
+    for (int i = 0; i < newSize; i++) {
+        result->values.values[i] = array->values.values[i % initSize];
+    }
+
+    push(OBJ_VAL(result));
+}
+
+static void star() {
+    if (IS_ARRAY(peek(0)) && IS_NUMBER(peek(1)) ||
+        IS_NUMBER(peek(0)) && IS_ARRAY(peek(1))) {
+        repeatArray(); 
+    } else if (IS_STRING(peek(0)) && IS_NUMBER(peek(1)) ||
+             IS_NUMBER(peek(0)) && IS_STRING(peek(1))) {
+        repeatString();
+    } else if (IS_NUMBER(peek(0)) && IS_NUMBER(peek(1))) {
+        arithmetic(multiply);
+    } else {
+        reportRuntimeError("'*' operator is not supported for %s and %s", decodeValueType(peek(0)), decodeValueType(peek(1)));
+    }
 }
 
 static inline void increment() {
@@ -304,13 +403,8 @@ static void buildFormattedString() {
 }
 
 static void buildArray() {
-    ObjArray *array = (ObjArray*)allocateObject(sizeof(ObjArray), OBJ_ARRAY);
     size_t size = READ_BYTE();
-    array->values.size = size; 
-    array->values.capacity = size; 
-    if (size != 0) {
-        growValueVec(&array->values);
-    }
+    ObjArray *array = allocateArray(size);
 
     for (int i = 0; i < size; i++) {
         Value value = peek(size - i - 1);
@@ -557,7 +651,7 @@ static InterpretResult run() {
                 arithmetic(subtract);
                 break;
             case OP_MULTIPLY:
-                arithmetic(multiply);
+                star();
                 break;
             case OP_DIVIDE:
                 arithmetic(divide);

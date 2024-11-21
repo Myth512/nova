@@ -118,6 +118,14 @@ ObjString* takeString(char *chars, int length) {
     return allocateString(chars, length);
 }
 
+ObjArray* allocateArray(int size) {
+    ObjArray *array = (ObjArray*)allocateObject(sizeof(ObjArray), OBJ_ARRAY);
+    array->values.size = size; 
+    array->values.capacity = size; 
+    array->values.values = (Value*)reallocate(array->values.values, 0, size * sizeof(Value));
+    return array;
+}
+
 ObjRawString* createRawString(const char *chars, int length) {
     ObjRawString *string = (ObjRawString*)allocateObject(sizeof(ObjRawString), OBJ_RAW_STRING);
     string->chars = chars;
