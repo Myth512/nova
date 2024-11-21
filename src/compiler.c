@@ -591,7 +591,10 @@ static void createLocal(Token name) {
     local->name = name;
     local->depth = current->scopeDepth;
     local->isCaptured = false;
-    emitByte(OP_NIL, (Token){0});
+    Token token;
+    token.column = -1;
+    token.line = -1;
+    token.length = -1;
 }
 
 static void createGlobal(Token name) {
@@ -600,9 +603,10 @@ static void createGlobal(Token name) {
 }
 
 static void createVariable(Token name) {
-    if (current->scopeDepth > 0)
+    if (current->scopeDepth > 0) {
         createLocal(name);
-    else 
+        emitByte(OP_NIL, (Token){0});
+    } else 
         createGlobal(name);
 }
 
@@ -897,6 +901,7 @@ static void forLoop() {
         postPointer = currentCode()->size;
 
         parseExpression(PREC_ASSIGNMENT, true);
+        emitByte(OP_POP, (Token){0});
 
         if (hasCondition)
             emitLoop(OP_LOOP, conditionPointer);

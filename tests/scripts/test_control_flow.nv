@@ -55,7 +55,8 @@ if x > 0 {
 }
 
 // Case 7, expected: false
-a, b := false, false
+a := false
+b := false
 
 if a == true and b == true {
 	print(true)
@@ -64,7 +65,8 @@ if a == true and b == true {
 }
 
 // Case 8, expected: false
-a, b = false, true
+a = false
+b = true
 
 if a == true and b == true {
 	print(true)
@@ -73,7 +75,8 @@ if a == true and b == true {
 }
 
 // Case 9, expected: false
-a, b = true, false
+a = true
+b = false
 
 if a == true and b == true {
 	print(true)
@@ -82,7 +85,8 @@ if a == true and b == true {
 }
 	
 // Case 10, expected: true
-a, b = true, true 
+a = true
+b = true
 
 if a == true and b == true {
 	print(true)
@@ -91,7 +95,8 @@ if a == true and b == true {
 }
 
 // Case 11, expected: false
-a, b = false, false
+a = false
+b = false
 
 if a == true or b == true {
 	print(true)
@@ -100,7 +105,8 @@ if a == true or b == true {
 }
 
 // Case 12, expected: true
-a, b = false, true
+a = false
+b = true 
 
 if a == true or b == true {
 	print(true)
@@ -109,7 +115,8 @@ if a == true or b == true {
 }
 
 // Case 13, expected: true
-a, b = true, false
+a = true
+b = false
 
 if a == true or b == true {
 	print(true)
@@ -118,7 +125,8 @@ if a == true or b == true {
 }
 
 // Case 14, expected: true
-a, b = true, true
+a = true
+b = true
 
 if a == true or b == true {
 	print(true)
