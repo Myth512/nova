@@ -186,7 +186,7 @@ static inline double modulo(double a, double b) {
 
 static void arithmetic(double (*function)(double, double)) {
     if (!IS_NUMBER(peek(0)) || !IS_NUMBER(peek(1))) {
-        reportRuntimeError("Operands must be numbers");
+        reportRuntimeError("Arithmetic operations are not supported for %s and %s", decodeValueType(peek(0)), decodeValueType(peek(1)));
         printErrorInCode(0);
     }
 
@@ -207,7 +207,7 @@ static inline void plus() {
 
 static inline void increment() {
     if (!IS_NUMBER(peek(0))) {
-        reportRuntimeError("Operand must be number");
+        reportRuntimeError("Increment is not supported for %s", decodeValueType(peek(0)));
         printErrorInCode(0);
     }
 
@@ -218,7 +218,7 @@ static inline void increment() {
 
 static inline void decrement() {
     if (!IS_NUMBER(peek(0))) {
-        reportRuntimeError("Operand must be number");
+        reportRuntimeError("Decrement is not supported for %s", decodeValueType(peek(0)));
         printErrorInCode(0);
     }
 
@@ -252,7 +252,7 @@ static inline bool greaterEqual(double a, double b) {
 
 static void inequality(bool (*function)(double, double)) {
     if (!IS_NUMBER(peek(0)) || !IS_NUMBER(peek(1))) {
-        reportRuntimeError("Operands must be numbers");
+        reportRuntimeError("Comparison between %s and %s is not supported", decodeValueType(peek(0)), decodeValueType(peek(1)));
         printErrorInCode(0);
     }
 
@@ -573,7 +573,7 @@ static InterpretResult run() {
                 break;
             case OP_NEGATE:
                 if (!IS_NUMBER(peek(0))) {
-                    reportRuntimeError("Operand must be number");
+                    reportRuntimeError("Negation is not supported for %s", decodeValueType(peek(0)));
                     printErrorInCode(0);
                 }
                 push(NUMBER_VAL(-AS_NUMBER(pop())));
