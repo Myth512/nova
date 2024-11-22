@@ -79,6 +79,16 @@ static void freeObject(Obj *object) {
             FREE(ObjUpvalue, object);
             break;
         }
+        case OBJ_CLASS: {
+            FREE(ObjClass, object);
+            break;
+        }
+        case OBJ_INSTANCE: {
+            ObjInstance *instance = (ObjInstance*)object;
+            freeTable(&instance->fields);
+            FREE(ObjInstance, object);
+            break;
+        }
     }
 }
 
@@ -142,6 +152,17 @@ static void markReferences(Obj *obj) {
             #ifdef DEBUG_LOG_GC
                 indent--;
             #endif
+            break;
+        }
+        case OBJ_CLASS: {
+            ObjClass *class = (ObjClass*)obj;
+            markObject((Obj*)class->name);
+            break;
+        }
+        case OBJ_INSTANCE: {
+            ObjInstance *instance = (ObjInstance*)obj;
+            markObject((Obj*)instance->class);
+            markTable(&instance->fields);
             break;
         }
     }

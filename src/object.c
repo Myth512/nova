@@ -187,12 +187,25 @@ ObjNative* createNative(NativeFn function, const char *name) {
     return native;
 }
 
+ObjClass *createClass(ObjString *name) {
+    ObjClass *class = (ObjClass*)allocateObject(sizeof(ObjClass), OBJ_CLASS);
+    class->name = name;
+    return class;
+}
+
 void printFunction(ObjFunction *function) {
     if (function->name == NULL) {
         printf("<script>");
         return;
     }
     printf("<function %s>", function->name->chars);
+}
+
+ObjInstance *createInstance(ObjClass *class) {
+    ObjInstance *instance = (ObjInstance*)allocateObject(sizeof(ObjInstance), OBJ_INSTANCE);
+    instance->class = class;
+    initTable(&instance->fields);
+    return instance;
 }
 
 void printObject(Value value) {
@@ -216,7 +229,7 @@ void printObject(Value value) {
         case OBJ_UPVALUE:
             printValue(*(((ObjUpvalue*)AS_OBJ(value))->location));
             break;
-        case OBJ_ARRAY:
+        case OBJ_ARRAY: {
             printf("[");
             size_t size = AS_ARRAY(value)->values.size;
             for (int i = 0; i < size; i++) {
@@ -226,6 +239,13 @@ void printObject(Value value) {
                 }
             }
             printf("]");
+        }
+        case OBJ_CLASS:
+            printf("%s", AS_CLASS(value)->name->chars);
+            break;
+        case OBJ_INSTANCE:
+            printf("instance of %s", AS_INSTANCE(value)->class->name->chars);
+            break;
     }
 }
 
@@ -260,8 +280,12 @@ const char* decodeObjType(Value value) {
             return "<type closure>";
         case OBJ_ARRAY:
             return "<type array>";
+        case OBJ_CLASS:
+            return "<type class>";
+        case OBJ_INSTANCE:
+            return "<type instance>";
     }
-    return ""; // uncreachable
+    return "invalid type"; // uncreachable
 }
 
 uint64_t hashObject(Value value) {

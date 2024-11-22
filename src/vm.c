@@ -88,6 +88,11 @@ static void defineNatives() {
 static bool callValue(Value callee, int argc) {
     if (IS_OBJ(callee)) {
         switch (OBJ_TYPE(callee)) {
+            case OBJ_CLASS: {
+                ObjClass *class = AS_CLASS(callee);
+                vm.top[-argc - 1] = OBJ_VAL(createInstance(class));
+                return true;
+            }
             case OBJ_CLOSURE:
                 return call(AS_CLOSURE(callee), argc);
             case OBJ_NATIVE:
@@ -745,6 +750,37 @@ static InterpretResult run() {
                 closeUpvalues(vm.top - 1);
                 pop();
                 break;
+            case OP_CLASS:
+                push(OBJ_VAL(createClass(READ_STRING())));
+                break;
+            case OP_GET_PROPERTY: {
+                if (!IS_INSTANCE(peek(0))) {
+                    reportRuntimeError("Only instances have properties");
+                    printErrorInCode(0);
+                }
+                ObjInstance *instance = AS_INSTANCE(peek(0));
+                ObjString *name = READ_STRING();
+
+                Value value;
+                if (tableGet(&instance->fields, name, &value)) {
+                    pop();
+                    push(value);
+                    break;
+                }
+
+                reportRuntimeError("Undefined property '%s'", name->chars);
+                printErrorInCode(0);
+                break;
+            }
+            case OP_SET_PROPERTY: {
+                if (!IS_INSTANCE(peek(1))) {
+                    reportRuntimeError("Only instances have fields");
+                    printErrorInCode(0);
+                }
+                ObjInstance *instance = AS_INSTANCE(peek(1));
+                tableSet(&instance->fields, READ_STRING(), peek(0));
+                break;
+            }
             case OP_RETURN: {
                 Value result = pop();
                 closeUpvalues(frame->slots);

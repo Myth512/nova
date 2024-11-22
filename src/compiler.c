@@ -104,6 +104,8 @@ static void call(bool canAssign);
 
 static void at(bool canAssign);
 
+static void dot(bool canAssign);
+
 static void declaration(int breakPointer, int continuePointer);
 
 ParseRule rules[] = {
@@ -111,10 +113,10 @@ ParseRule rules[] = {
   [TOKEN_RIGHT_PAREN]   = {NULL,     NULL,   NULL,    PREC_NONE},
   [TOKEN_LEFT_BRACE]    = {NULL,     NULL,   NULL,    PREC_NONE}, 
   [TOKEN_RIGHT_BRACE]   = {NULL,     NULL,   NULL,    PREC_NONE},
-  [TOKEN_LEFT_BRACKET]  = {array,    at,   NULL,      PREC_FACTOR},
+  [TOKEN_LEFT_BRACKET]  = {array,    at,     NULL,    PREC_CALL},
   [TOKEN_RIGHT_BRACKET] = {NULL,     NULL,   NULL,    PREC_NONE},
   [TOKEN_COMMA]         = {NULL,     NULL,   NULL,    PREC_NONE},
-  [TOKEN_DOT]           = {NULL,     NULL,   NULL,    PREC_NONE},
+  [TOKEN_DOT]           = {NULL,     dot,   NULL,     PREC_CALL},
   [TOKEN_PLUS]          = {unary,    binary, NULL,    PREC_TERM},
   [TOKEN_MINUS]         = {unary,    binary, NULL,    PREC_TERM},
   [TOKEN_STAR]          = {NULL,     binary, NULL,    PREC_FACTOR},
@@ -1081,6 +1083,39 @@ static void call(bool canAssign) {
     emitBytes(OP_CALL, argc, name);
 }
 
+static void classDeclaration() {
+    advance(false);
+    Token name = parser.current;
+    if (!consume(TOKEN_IDENTIFIER, false)) {
+        reportError("Expect class name", &parser.current);
+    }
+    uint8_t nameConstant = identifierConstant(&name);
+    
+    declareFunction(name);
+    emitBytes(OP_CLASS, nameConstant, name);
+    defineFunction(name);
+}
+
+static void dot(bool canAssign) {
+    advance(false);
+    Token name = parser.current;
+    if (!consume(TOKEN_IDENTIFIER, false)) {
+        reportError("Expect property name after '.'", &parser.current);
+    }
+    uint8_t arg = identifierConstant(&name);
+
+    Token operator = parser.current;
+    if (isAssignment(operator)) {
+        if (!canAssign)
+            reportError("Assignment is not allowed here", &operator);
+        
+        advance(false);
+        assignment(OP_GET_PROPERTY, OP_SET_PROPERTY, arg, operator);
+    } else {
+        emitBytes(OP_GET_PROPERTY, arg, name);
+    }
+}
+
 static void at(bool canAssign) {
     (void)canAssign;
 
@@ -1158,6 +1193,9 @@ static void declaration(int breakPointer, int continuePointer) {
     switch (parser.current.type) {
         case TOKEN_DEF:
             funcDeclaration();
+            break;
+        case TOKEN_CLASS:
+            classDeclaration();
             break;
         default:
             statement(breakPointer, continuePointer);

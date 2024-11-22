@@ -173,6 +173,12 @@ int printInstruction(CodeVec *vec, int offset) {
         }
         case OP_CLOSE_UPVALUE:
             return simpleInstruction("CLOSE UPVALUE", offset);
+        case OP_CLASS:
+            return constantInstruction("CLASS", vec, offset);
+        case OP_GET_PROPERTY:
+            return constantInstruction("GET PROPERTY", vec, offset);
+        case OP_SET_PROPERTY:
+            return constantInstruction("SET PROPERTY", vec, offset);
         default:
             printf("Unknown opcode %d\n", opcode);
             return offset + 1;
