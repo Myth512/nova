@@ -88,6 +88,10 @@ static void defineNatives() {
 static bool callValue(Value callee, int argc) {
     if (IS_OBJ(callee)) {
         switch (OBJ_TYPE(callee)) {
+            case OBJ_BOUND_METHOD: {
+                ObjBoundMethod *bound = AS_BOUND_METHOD(callee);
+                return call(bound->method, argc);
+            }
             case OBJ_CLASS: {
                 ObjClass *class = AS_CLASS(callee);
                 vm.top[-argc - 1] = OBJ_VAL(createInstance(class));
@@ -108,6 +112,19 @@ static bool callValue(Value callee, int argc) {
     reportRuntimeError("Can only call functions and classes");
     printErrorInCode(0);
     return false;
+}
+
+static void bindMethod(ObjClass *class, ObjString *name) {
+    Value method;
+    if (!tableGet(&class->methods, name, &method)) {
+        reportRuntimeError("Undefined property '%s'", name->chars);
+        printErrorInCode(0);
+    }
+
+    ObjBoundMethod *bound = createBoundMethod(peek(0), AS_CLOSURE(method));
+
+    pop();
+    push(OBJ_VAL(bound));
 }
 
 static ObjUpvalue *captureUpvalue(Value *local) {
@@ -139,6 +156,13 @@ static void closeUpvalues(Value *last) {
         upvalue->location = &upvalue->closed;
         vm.openUpvalues = upvalue->next;
     }
+}
+
+static void defineMethod(ObjString* name) {
+    Value method = peek(0);
+    ObjClass *class = AS_CLASS(peek(1));
+    tableSet(&class->methods, name, method);
+    pop();
 }
 
 static inline void concatenateStrings() {
@@ -753,6 +777,9 @@ static InterpretResult run() {
             case OP_CLASS:
                 push(OBJ_VAL(createClass(READ_STRING())));
                 break;
+            case OP_METHOD:
+                defineMethod(READ_STRING());
+                break;
             case OP_GET_PROPERTY: {
                 if (!IS_INSTANCE(peek(0))) {
                     reportRuntimeError("Only instances have properties");
@@ -768,8 +795,7 @@ static InterpretResult run() {
                     break;
                 }
 
-                reportRuntimeError("Undefined property '%s'", name->chars);
-                printErrorInCode(0);
+                bindMethod(instance->class, name);
                 break;
             }
             case OP_SET_PROPERTY: {

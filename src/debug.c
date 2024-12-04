@@ -175,6 +175,8 @@ int printInstruction(CodeVec *vec, int offset) {
             return simpleInstruction("CLOSE UPVALUE", offset);
         case OP_CLASS:
             return constantInstruction("CLASS", vec, offset);
+        case OP_METHOD:
+            return constantInstruction("METHOD", vec, offset);
         case OP_GET_PROPERTY:
             return constantInstruction("GET PROPERTY", vec, offset);
         case OP_SET_PROPERTY:

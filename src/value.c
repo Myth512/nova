@@ -57,7 +57,7 @@ int writeValue(Value value, char *buffer, const size_t maxSize) {
         case VAL_NIL:
             return snprintf(buffer, 4, "nil");
         case VAL_NUMBER:
-            return snprintf(buffer, maxSize, "%f", AS_NUMBER(value));
+            return snprintf(buffer, maxSize, "%g", AS_NUMBER(value));
         case VAL_OBJ:
             return writeObject(value, buffer, maxSize);
     }

@@ -760,6 +760,18 @@ static void variable(bool canAssign) {
     }
 }
 
+static void declareVariable(Token name) {
+    if (current->scopeDepth > 0)
+        createLocal(name);
+}
+
+static void defineVariable(Token name) {
+    if (current->scopeDepth == 0) {
+        createGlobal(name);
+        emitByte(OP_POP, (Token){0});
+    }
+}
+
 // ======================================
 //            Control flow
 // ======================================    
@@ -1037,24 +1049,12 @@ static void function(FunctionType type) {
     }
 }
 
-static void declareFunction(Token name) {
-    if (current->scopeDepth > 0)
-        createLocal(name);
-}
-
-static void defineFunction(Token name) {
-    if (current->scopeDepth == 0) {
-        createGlobal(name);
-        emitByte(OP_POP, (Token){0});
-    }
-}
-
 static void funcDeclaration() {
     advance(false);
     Token name = parser.current;
-    declareFunction(name);
+    declareVariable(name);
     function(TYPE_FUNCTION);
-    defineFunction(name);
+    defineVariable(name);
 }
 
 static uint8_t parseArguments() {
@@ -1083,17 +1083,42 @@ static void call(bool canAssign) {
     emitBytes(OP_CALL, argc, name);
 }
 
+static void method() {
+    Token name = parser.current;
+    
+    uint8_t constant = identifierConstant(&name);
+    function(TYPE_FUNCTION);
+    emitBytes(OP_METHOD, constant, (Token){0});
+}
+
 static void classDeclaration() {
     advance(false);
     Token name = parser.current;
-    if (!consume(TOKEN_IDENTIFIER, false)) {
+    if (!consume(TOKEN_IDENTIFIER, false))
         reportError("Expect class name", &parser.current);
-    }
+    
     uint8_t nameConstant = identifierConstant(&name);
     
-    declareFunction(name);
+    declareVariable(name);
     emitBytes(OP_CLASS, nameConstant, name);
-    defineFunction(name);
+    defineVariable(name);
+
+    uint8_t getOp, setOp, arg;
+    resolveVariable(&name, &getOp, &setOp, &arg); 
+    emitBytes(getOp, arg, name);
+    
+    if (!consume(TOKEN_LEFT_BRACE, true)) 
+        reportError("Expect '{' before class body", &parser.current);
+    
+    while (!check(TOKEN_RIGHT_BRACE) && !check(TOKEN_EOF)) {
+        if (consume(TOKEN_DEF, true))
+            method();
+    }
+    
+    if (!consume(TOKEN_RIGHT_BRACE, false))
+        reportError("Expect '}' after class body", &parser.current);
+
+    emitByte(OP_POP, (Token){0});
 }
 
 static void dot(bool canAssign) {

@@ -16,6 +16,7 @@
 #define IS_ARRAY(value)         isObjType(value, OBJ_ARRAY)
 #define IS_CLASS(value)         isObjType(value, OBJ_CLASS)
 #define IS_INSTANCE(value)      isObjType(value, OBJ_INSTANCE)
+#define IS_BOUND_METHOD(value)  isObjType(value, OBJ_BOUND_METHOD)
 
 #define AS_CLOSURE(value)       ((ObjClosure*)AS_OBJ(value))
 #define AS_FUNCTION(value)      ((ObjFunction*)AS_OBJ(value))
@@ -27,9 +28,11 @@
 #define AS_UPVALUE(value)       ((ObjUpvalue*)AS_OBJ(value))
 #define AS_CLASS(value)         ((ObjClass*)AS_OBJ(value))
 #define AS_INSTANCE(value)      ((ObjInstance*)AS_OBJ(value))
+#define AS_BOUND_METHOD(value)  ((ObjBoundMethod*)AS_OBJ(value))
 
 typedef enum {
     OBJ_CLASS,
+    OBJ_BOUND_METHOD,
     OBJ_INSTANCE,
     OBJ_CLOSURE,
     OBJ_FUNCTION,
@@ -99,6 +102,7 @@ typedef struct {
 typedef struct {
     Obj obj;
     ObjString *name;
+    Table methods;
 } ObjClass;
 
 typedef struct {
@@ -106,6 +110,12 @@ typedef struct {
     ObjClass *class;
     Table fields;
 } ObjInstance;
+
+typedef struct {
+    Obj obj;
+    Value reciever;
+    ObjClosure *method;
+} ObjBoundMethod;
 
 static inline bool isObjType(Value value, ObjType type) {
     return IS_OBJ(value) && AS_OBJ(value)->type == type;
@@ -126,6 +136,8 @@ ObjNative* createNative(NativeFn function, const char *name);
 ObjClass *createClass(ObjString *name);
 
 ObjInstance *createInstance(ObjClass *class);
+
+ObjBoundMethod *createBoundMethod(Value reciever, ObjClosure *method);
 
 ObjString* copyString(const char *chars, int length);
 

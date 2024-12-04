@@ -208,6 +208,13 @@ ObjInstance *createInstance(ObjClass *class) {
     return instance;
 }
 
+ObjBoundMethod *createBoundMethod(Value reciever, ObjClosure *method) {
+    ObjBoundMethod *bound = (ObjBoundMethod*)allocateObject(sizeof(ObjBoundMethod), OBJ_BOUND_METHOD);
+    bound->reciever = reciever;
+    bound->method = method;
+    return bound;
+}
+
 void printObject(Value value) {
     switch (OBJ_TYPE(value)) {
         case OBJ_CLOSURE:
@@ -245,6 +252,9 @@ void printObject(Value value) {
             break;
         case OBJ_INSTANCE:
             printf("instance of %s", AS_INSTANCE(value)->class->name->chars);
+            break;
+        case OBJ_BOUND_METHOD:
+            printFunction(AS_BOUND_METHOD(value)->method->function);
             break;
     }
 }
