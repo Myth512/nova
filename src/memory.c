@@ -252,6 +252,8 @@ static void mark() {
         indent--;
         printf("\033[0m");
     #endif
+
+    markObject((Obj*)vm.initString);
 }
 
 static void sweep() {

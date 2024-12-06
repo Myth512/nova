@@ -232,6 +232,7 @@ void printObject(Value value) {
         case OBJ_RAW_STRING: {
             ObjRawString *string = AS_RAW_STRING(value);
             printf("%.*s\n", string->length, string->chars);
+            break;
         }
         case OBJ_UPVALUE:
             printValue(*(((ObjUpvalue*)AS_OBJ(value))->location));

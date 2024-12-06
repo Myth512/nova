@@ -33,6 +33,8 @@ typedef struct {
 
 typedef enum {
     TYPE_FUNCTION,
+    TYPE_METHOD,
+    TYPE_INITIALIZER,
     TYPE_TOP_LEVEL
 } FunctionType;
 
@@ -45,6 +47,10 @@ typedef struct Compiler {
     Upvalue upvalues[UINT8_MAX + 1];
     int scopeDepth;
 } Compiler;
+
+typedef struct ClassCompiler {
+    struct ClassCompiler *enclosing;
+} ClassCompiler;
 
 typedef enum {
     PREC_NONE,
@@ -106,6 +112,8 @@ static void at(bool canAssign);
 
 static void dot(bool canAssign);
 
+static void self(bool canAssign);
+
 static void declaration(int breakPointer, int continuePointer);
 
 ParseRule rules[] = {
@@ -156,7 +164,7 @@ ParseRule rules[] = {
   [TOKEN_DEF]           = {NULL,     NULL,   NULL,    PREC_NONE},
   [TOKEN_RETURN]        = {NULL,     NULL,   NULL,    PREC_NONE},
   [TOKEN_CLASS]         = {NULL,     NULL,   NULL,    PREC_NONE},
-  [TOKEN_SELF]          = {NULL,     NULL,   NULL,    PREC_NONE},
+  [TOKEN_SELF]          = {self,     NULL,   NULL,    PREC_NONE},
   [TOKEN_SUPER]         = {NULL,     NULL,   NULL,    PREC_NONE},
   [TOKEN_LINE_BREAK]    = {NULL,     NULL,   NULL,    PREC_NONE},
   [TOKEN_SEMICOLON]     = {NULL,     NULL,   NULL,    PREC_NONE},
@@ -170,6 +178,7 @@ static ParseRule* getRule(TokenType type) {
 
 Parser parser;
 Compiler *current = NULL;
+ClassCompiler *currentClass = NULL;
 CodeVec *compilingCode;
 
 static CodeVec* currentCode() {
@@ -280,6 +289,15 @@ static void emitLoop(uint8_t instruction, int loopStart) {
     emitByte(offset & 0xff, (Token){0});
 }
 
+static void emitReturn() {
+    if (current->type == TYPE_INITIALIZER) {
+        emitBytes(OP_GET_LOCAL, 0, (Token){0});
+    } else {
+        emitByte(OP_NIL, (Token){0});
+    }
+    emitByte(OP_RETURN, (Token){0});
+}
+
 static uint8_t createConstant(Value value) {
     ValueVec *constants = &currentCode()->constants;
     int size = constants->size;
@@ -311,15 +329,20 @@ static void initCompiler(Compiler *compiler, FunctionType type) {
     Local* local = &current->locals[current->localCount++];
     local->depth = 0;
     local->isCaptured = false;
-    local->name.start = "";
-    local->name.length = 0;
+    if (type != TYPE_FUNCTION) {
+        local->name.start = "self";
+        local->name.length = 4;
+    } else {
+        local->name.start = "";
+        local->name.length = 0;
+    }
 }
 
 static ObjFunction* endCompiler() {
     ObjFunction *function = current->function;
     if (function->code.size == 0 ||
         function->code.code[function->code.size - 1] != OP_RETURN)
-            emitBytes(OP_NIL, OP_RETURN, (Token){0});
+            emitReturn();
 
     #ifdef DEBUG_PRINT_CODE
         if (parser.errorCount == 0)
@@ -772,6 +795,15 @@ static void defineVariable(Token name) {
     }
 }
 
+static void self(bool canAssign) {
+    (void)canAssign;
+
+    if (currentClass == NULL) 
+        reportError("Can't use 'self' outside of a class", &parser.current);
+
+    variable(false);
+}
+
 // ======================================
 //            Control flow
 // ======================================    
@@ -1087,7 +1119,10 @@ static void method() {
     Token name = parser.current;
     
     uint8_t constant = identifierConstant(&name);
-    function(TYPE_FUNCTION);
+    FunctionType type = TYPE_METHOD;
+    if (name.length == 4 && memcmp(name.start, "init", 4) == 0)
+        type = TYPE_INITIALIZER;
+    function(type);
     emitBytes(OP_METHOD, constant, (Token){0});
 }
 
@@ -1102,6 +1137,10 @@ static void classDeclaration() {
     declareVariable(name);
     emitBytes(OP_CLASS, nameConstant, name);
     defineVariable(name);
+
+    ClassCompiler classCompiler;
+    classCompiler.enclosing = currentClass;
+    currentClass = &classCompiler;
 
     uint8_t getOp, setOp, arg;
     resolveVariable(&name, &getOp, &setOp, &arg); 
@@ -1119,6 +1158,8 @@ static void classDeclaration() {
         reportError("Expect '}' after class body", &parser.current);
 
     emitByte(OP_POP, (Token){0});
+
+    currentClass = currentClass->enclosing;
 }
 
 static void dot(bool canAssign) {
@@ -1172,8 +1213,11 @@ static void returnStatement() {
         reportError("Can't return from top-level code", &parser.current);
     
     if (consumeEOS()) {
-        emitBytes(OP_NIL, OP_RETURN, (Token){0});
+        emitReturn();
     } else {
+        if (current->type == TYPE_INITIALIZER) 
+            reportError("Can't return a value from an initializer", &parser.current);
+        
         expression(false);
         if (!consume(TOKEN_LINE_BREAK, false) && !consume(TOKEN_SEMICOLON, false)) {
             reportError("Expect eos after value", &parser.current);

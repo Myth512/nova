@@ -90,11 +90,19 @@ static bool callValue(Value callee, int argc) {
         switch (OBJ_TYPE(callee)) {
             case OBJ_BOUND_METHOD: {
                 ObjBoundMethod *bound = AS_BOUND_METHOD(callee);
+                vm.top[-argc - 1] = bound->reciever;
                 return call(bound->method, argc);
             }
             case OBJ_CLASS: {
                 ObjClass *class = AS_CLASS(callee);
                 vm.top[-argc - 1] = OBJ_VAL(createInstance(class));
+                Value initializer;
+                if (tableGet(&class->methods, vm.initString, &initializer)) {
+                    return call(AS_CLOSURE(initializer), argc);
+                } else if (argc != 0) {
+                    reportRuntimeError("Expect 0 arguments but got %d", argc);
+                    return false;
+                }
                 return true;
             }
             case OBJ_CLOSURE:
@@ -832,6 +840,8 @@ void initVM() {
     vm.nextGC = 1024 * 1024;
     initTable(&vm.globals);
     initTable(&vm.strings);
+    vm.initString = NULL;
+    vm.initString = copyString("init", 4);
     defineNatives();
 }
 
@@ -839,6 +849,7 @@ void freeVM() {
     freeObjects();
     initTable(&vm.globals);
     freeTable(&vm.strings);
+    vm.initString = NULL;
     return;
 }
 
