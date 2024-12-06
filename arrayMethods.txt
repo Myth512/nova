@@ -1,0 +1,17 @@
+%{
+#include <string.h>
+#include "native.h"
+%}
+
+struct Keyword {
+	const char *name;
+	Value (*method)(int, Value*);	
+}
+
+%%
+push, arrayPushNative
+pop, arrayPopNative
+insert, arrayInsertNative
+reverse, arrayReverseNative
+sort, arraySortNative
+%%

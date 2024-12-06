@@ -23,4 +23,10 @@ Value arrayPushNative(int argc, Value *argv);
 
 Value arrayPopNative(int argc, Value *argv);
 
+Value arrayInsertNative(int argc, Value *argv);
+
+Value arrayReverseNative(int argc, Value *argv);
+
+Value arraySortNative(int argc, Value *argv);
+
 #endif

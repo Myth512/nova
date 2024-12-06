@@ -31,6 +31,27 @@ void pushValue(ValueVec *vec, Value value) {
     vec->values[vec->size++] = value;
 }
 
+void insertValue(ValueVec *vec, int index, Value value) {
+    if (vec->size + 1 >= vec->capacity) {
+        growValueVec(vec);
+    }
+
+    for (int i = vec->size; i > index; i--) {
+        vec->values[i] = vec->values[i-1];
+    }
+    vec->values[index] = value;
+    vec->size++;
+}
+
+void reverseValueVec(ValueVec *vec) {
+    int size = vec->size;
+    for (int i = 0; i < size / 2; i++) {
+        Value tmp = vec->values[i];
+        vec->values[i] = vec->values[size - i - 1];
+        vec->values[size - i - 1] = tmp;
+    }
+}
+
 Value popValue(ValueVec *vec) {
     return vec->values[--vec->size];
 }

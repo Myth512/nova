@@ -10,6 +10,7 @@
 #include "compiler.h"
 #include "native.h"
 #include "error.h"
+#include "arrayMethods.h"
 
 #define READ_BYTE()     (*frame->ip++)
 #define READ_CONSTANT() (frame->closure->function->code.constants.values[READ_BYTE()]) 
@@ -585,17 +586,14 @@ static void getProperty() {
     ObjString *name = READ_STRING();
     switch (OBJ_TYPE(peek(0))) {
         case OBJ_ARRAY: {
-            ObjNativeMethod *method = NULL; 
-
-            if (strcmp("push", name->chars) == 0)
-                method = createNativeMethod(peek(0), arrayPushNative, "push");
-            else if (strcmp("pop", name->chars) == 0)
-                method = createNativeMethod(peek(0), arrayPopNative, "pop");
-
-            if (method != NULL)
+            const struct Keyword *result = in_word_set(name->chars, strlen(name->chars));
+            if (result) {
+                ObjNativeMethod *method = createNativeMethod(peek(0), result->method, result->name);
                 push(OBJ_VAL(method));
-            else
-                reportRuntimeError("Array does not have field '%s'", name->chars);
+            } else {
+                reportRuntimeError("Array does not have method '%s'", name->chars);
+                printErrorInCode(0);
+            }
             break;
         }
         case OBJ_INSTANCE: {
