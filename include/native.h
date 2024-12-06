@@ -19,4 +19,8 @@ Value lenNative(int argc, Value *argv);
 
 Value hashNative(int argc, Value *argv);
 
+Value arrayPushNative(int argc, Value *argv);
+
+Value arrayPopNative(int argc, Value *argv);
+
 #endif

@@ -31,6 +31,10 @@ void pushValue(ValueVec *vec, Value value) {
     vec->values[vec->size++] = value;
 }
 
+Value popValue(ValueVec *vec) {
+    return vec->values[--vec->size];
+}
+
 void printValue(Value value) {
     switch (value.type) {
         case VAL_BOOL:

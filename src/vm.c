@@ -93,6 +93,15 @@ static bool callValue(Value callee, int argc) {
                 vm.top[-argc - 1] = bound->reciever;
                 return call(bound->method, argc);
             }
+            case OBJ_NATIVE_BOUND_METHOD: {
+                ObjNativeBoundMethod *method = AS_NATIVE_BOUND_METHOD(callee);
+                vm.top[-argc - 1] = method->reciever;
+                NativeFn native = method->method;
+                Value result = native(argc, vm.top - argc);
+                vm.top -= argc + 1;
+                push(result);
+                return true;
+            }
             case OBJ_CLASS: {
                 ObjClass *class = AS_CLASS(callee);
                 vm.top[-argc - 1] = OBJ_VAL(createInstance(class));
@@ -572,6 +581,50 @@ static void setAt() {
 
 }
 
+static void getProperty() {
+    ObjString *name = READ_STRING();
+    switch (OBJ_TYPE(peek(0))) {
+        case OBJ_ARRAY: {
+            ObjNativeBoundMethod *method = NULL; 
+
+            if (strcmp("push", name->chars) == 0)
+                method = createNativeBoundMethod(peek(0), arrayPushNative, "push");
+            else if (strcmp("pop", name->chars) == 0)
+                method = createNativeBoundMethod(peek(0), arrayPopNative, "pop");
+
+            if (method != NULL)
+                push(OBJ_VAL(method));
+            else
+                reportRuntimeError("Array does not have field '%s'", name->chars);
+            break;
+        }
+        case OBJ_INSTANCE: {
+            ObjInstance *instance = AS_INSTANCE(peek(0));
+            Value value;
+            if (tableGet(&instance->fields, name, &value)) {
+                pop();
+                push(value);
+                return;
+            }
+
+            bindMethod(instance->class, name);
+            break;        
+        }
+        default: {
+            reportRuntimeError("Object of %s does not have fields", decodeValueType(peek(0)));
+        }
+    }
+}
+
+static void setProperty() {
+    if (!IS_INSTANCE(peek(1))) {
+        reportRuntimeError("Only instances have fields");
+        printErrorInCode(0);
+    }
+    ObjInstance *instance = AS_INSTANCE(peek(1));
+    tableSet(&instance->fields, READ_STRING(), peek(0));
+}
+
 static InterpretResult run() {
     frame = &vm.frames[vm.frameSize - 1];
     while (true) {
@@ -788,33 +841,12 @@ static InterpretResult run() {
             case OP_METHOD:
                 defineMethod(READ_STRING());
                 break;
-            case OP_GET_PROPERTY: {
-                if (!IS_INSTANCE(peek(0))) {
-                    reportRuntimeError("Only instances have properties");
-                    printErrorInCode(0);
-                }
-                ObjInstance *instance = AS_INSTANCE(peek(0));
-                ObjString *name = READ_STRING();
-
-                Value value;
-                if (tableGet(&instance->fields, name, &value)) {
-                    pop();
-                    push(value);
-                    break;
-                }
-
-                bindMethod(instance->class, name);
+            case OP_GET_PROPERTY:
+                getProperty();
                 break;
-            }
-            case OP_SET_PROPERTY: {
-                if (!IS_INSTANCE(peek(1))) {
-                    reportRuntimeError("Only instances have fields");
-                    printErrorInCode(0);
-                }
-                ObjInstance *instance = AS_INSTANCE(peek(1));
-                tableSet(&instance->fields, READ_STRING(), peek(0));
+            case OP_SET_PROPERTY:
+                setProperty();
                 break;
-            }
             case OP_RETURN: {
                 Value result = pop();
                 closeUpvalues(frame->slots);

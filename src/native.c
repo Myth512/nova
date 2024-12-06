@@ -81,3 +81,17 @@ Value hashNative(int argc, Value *argv) {
     }
     return NUMBER_VAL(hashValue(argv[0]));
 }
+
+Value arrayPushNative(int argc, Value *argv) {
+    ObjArray *array = AS_ARRAY(argv[-1]);
+    pushValue(&array->values, argv[0]);
+    return NIL_VAL;
+}
+
+Value arrayPopNative(int argc, Value *argv) {
+    ObjArray *array = AS_ARRAY(argv[-1]);
+    if (array->values.size == 0) {
+        reportRuntimeError("Can't pop from empty array");
+    }
+    return popValue(&array->values);
+}

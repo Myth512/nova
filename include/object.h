@@ -29,10 +29,12 @@
 #define AS_CLASS(value)         ((ObjClass*)AS_OBJ(value))
 #define AS_INSTANCE(value)      ((ObjInstance*)AS_OBJ(value))
 #define AS_BOUND_METHOD(value)  ((ObjBoundMethod*)AS_OBJ(value))
+#define AS_NATIVE_BOUND_METHOD(value) ((ObjNativeBoundMethod*)AS_OBJ(value))
 
 typedef enum {
     OBJ_CLASS,
     OBJ_BOUND_METHOD,
+    OBJ_NATIVE_BOUND_METHOD,
     OBJ_INSTANCE,
     OBJ_CLOSURE,
     OBJ_FUNCTION,
@@ -117,6 +119,13 @@ typedef struct {
     ObjClosure *method;
 } ObjBoundMethod;
 
+typedef struct {
+    Obj obj;
+    Value reciever;
+    char *name;
+    NativeFn method;
+} ObjNativeBoundMethod;
+
 static inline bool isObjType(Value value, ObjType type) {
     return IS_OBJ(value) && AS_OBJ(value)->type == type;
 }
@@ -138,6 +147,8 @@ ObjClass *createClass(ObjString *name);
 ObjInstance *createInstance(ObjClass *class);
 
 ObjBoundMethod *createBoundMethod(Value reciever, ObjClosure *method);
+
+ObjNativeBoundMethod *createNativeBoundMethod(Value reciever, NativeFn function, const char *name);
 
 ObjString* copyString(const char *chars, int length);
 

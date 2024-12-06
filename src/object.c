@@ -215,6 +215,14 @@ ObjBoundMethod *createBoundMethod(Value reciever, ObjClosure *method) {
     return bound;
 }
 
+ObjNativeBoundMethod *createNativeBoundMethod(Value reciever, NativeFn function, const char *name) {
+    ObjNativeBoundMethod *native = (ObjNativeBoundMethod*)allocateObject(sizeof(ObjNativeBoundMethod), OBJ_NATIVE_BOUND_METHOD);
+    native->reciever = reciever;
+    native->name = name;
+    native->method = function;
+    return native;
+}
+
 void printObject(Value value) {
     switch (OBJ_TYPE(value)) {
         case OBJ_CLOSURE:
@@ -247,6 +255,7 @@ void printObject(Value value) {
                 }
             }
             printf("]");
+            break;
         }
         case OBJ_CLASS:
             printf("%s", AS_CLASS(value)->name->chars);

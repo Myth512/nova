@@ -52,6 +52,8 @@ void growValueVec(ValueVec *vec);
 
 void pushValue(ValueVec *values, Value value);
 
+Value popValue(ValueVec *vec);
+
 void printValue(Value value);
 
 int writeValue(Value value, char *buffer, const size_t maxSize);
