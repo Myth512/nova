@@ -89,8 +89,8 @@ static void freeObject(Obj *object) {
             FREE(ObjInstance, object);
             break;
         }
-        case OBJ_BOUND_METHOD: {
-            FREE(ObjBoundMethod, object);
+        case OBJ_METHOD: {
+            FREE(ObjMethod, object);
             break;
         }
     }
@@ -169,10 +169,10 @@ static void markReferences(Obj *obj) {
             markTable(&instance->fields);
             break;
         }
-        case OBJ_BOUND_METHOD: {
-            ObjBoundMethod *bound = (ObjBoundMethod*)obj;
-            markValue(bound->reciever);
-            markObject((Obj*)bound->method);
+        case OBJ_METHOD: {
+            ObjMethod *method = (ObjMethod*)obj;
+            markValue(method->reciever);
+            markObject((Obj*)method->method);
             break;
         }
     }

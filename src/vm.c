@@ -88,13 +88,13 @@ static void defineNatives() {
 static bool callValue(Value callee, int argc) {
     if (IS_OBJ(callee)) {
         switch (OBJ_TYPE(callee)) {
-            case OBJ_BOUND_METHOD: {
-                ObjBoundMethod *bound = AS_BOUND_METHOD(callee);
-                vm.top[-argc - 1] = bound->reciever;
-                return call(bound->method, argc);
+            case OBJ_METHOD: {
+                ObjMethod *method = AS_METHOD(callee);
+                vm.top[-argc - 1] = method->reciever;
+                return call(method->method, argc);
             }
-            case OBJ_NATIVE_BOUND_METHOD: {
-                ObjNativeBoundMethod *method = AS_NATIVE_BOUND_METHOD(callee);
+            case OBJ_NATIVE_METHOD: {
+                ObjNativeMethod *method = AS_NATIVE_METHOD(callee);
                 vm.top[-argc - 1] = method->reciever;
                 NativeFn native = method->method;
                 Value result = native(argc, vm.top - argc);
@@ -138,10 +138,10 @@ static void bindMethod(ObjClass *class, ObjString *name) {
         printErrorInCode(0);
     }
 
-    ObjBoundMethod *bound = createBoundMethod(peek(0), AS_CLOSURE(method));
+    ObjMethod *methodObj = createMethod(peek(0), AS_CLOSURE(method));
 
     pop();
-    push(OBJ_VAL(bound));
+    push(OBJ_VAL(methodObj));
 }
 
 static ObjUpvalue *captureUpvalue(Value *local) {
@@ -585,12 +585,12 @@ static void getProperty() {
     ObjString *name = READ_STRING();
     switch (OBJ_TYPE(peek(0))) {
         case OBJ_ARRAY: {
-            ObjNativeBoundMethod *method = NULL; 
+            ObjNativeMethod *method = NULL; 
 
             if (strcmp("push", name->chars) == 0)
-                method = createNativeBoundMethod(peek(0), arrayPushNative, "push");
+                method = createNativeMethod(peek(0), arrayPushNative, "push");
             else if (strcmp("pop", name->chars) == 0)
-                method = createNativeBoundMethod(peek(0), arrayPopNative, "pop");
+                method = createNativeMethod(peek(0), arrayPopNative, "pop");
 
             if (method != NULL)
                 push(OBJ_VAL(method));

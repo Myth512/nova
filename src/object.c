@@ -208,15 +208,15 @@ ObjInstance *createInstance(ObjClass *class) {
     return instance;
 }
 
-ObjBoundMethod *createBoundMethod(Value reciever, ObjClosure *method) {
-    ObjBoundMethod *bound = (ObjBoundMethod*)allocateObject(sizeof(ObjBoundMethod), OBJ_BOUND_METHOD);
-    bound->reciever = reciever;
-    bound->method = method;
-    return bound;
+ObjMethod *createMethod(Value reciever, ObjClosure *function) {
+    ObjMethod *method = (ObjMethod*)allocateObject(sizeof(ObjMethod), OBJ_METHOD);
+    method->reciever = reciever;
+    method->method = function;
+    return method;
 }
 
-ObjNativeBoundMethod *createNativeBoundMethod(Value reciever, NativeFn function, const char *name) {
-    ObjNativeBoundMethod *native = (ObjNativeBoundMethod*)allocateObject(sizeof(ObjNativeBoundMethod), OBJ_NATIVE_BOUND_METHOD);
+ObjNativeMethod *createNativeMethod(Value reciever, NativeFn function, const char *name) {
+    ObjNativeMethod *native = (ObjNativeMethod*)allocateObject(sizeof(ObjNativeMethod), OBJ_NATIVE_METHOD);
     native->reciever = reciever;
     native->name = name;
     native->method = function;
@@ -263,8 +263,8 @@ void printObject(Value value) {
         case OBJ_INSTANCE:
             printf("instance of %s", AS_INSTANCE(value)->class->name->chars);
             break;
-        case OBJ_BOUND_METHOD:
-            printFunction(AS_BOUND_METHOD(value)->method->function);
+        case OBJ_METHOD:
+            printFunction(AS_METHOD(value)->method->function);
             break;
     }
 }
