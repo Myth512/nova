@@ -190,6 +190,7 @@ ObjNative* createNative(NativeFn function, const char *name) {
 ObjClass *createClass(ObjString *name) {
     ObjClass *class = (ObjClass*)allocateObject(sizeof(ObjClass), OBJ_CLASS);
     class->name = name;
+    initTable(&class->methods);
     return class;
 }
 

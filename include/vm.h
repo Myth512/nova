@@ -16,6 +16,16 @@ typedef struct {
 } CallFrame;
 
 typedef struct {
+    ObjString *init;
+    ObjString *add;
+    ObjString *sub;
+    ObjString *mul;
+    ObjString *div;
+    ObjString *mod;
+    ObjString *pow;
+} MagicStrings;
+
+typedef struct {
     const char *source;
     CallFrame frames[FRAMES_SIZE];
     int frameSize;
@@ -25,7 +35,7 @@ typedef struct {
     Value *top;
     Table globals;
     Table strings;
-    ObjString *initString;
+    MagicStrings magicStrings;
     ObjUpvalue *openUpvalues;
     Obj *objects;
     size_t bytesAllocated;

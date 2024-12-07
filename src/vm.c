@@ -107,7 +107,7 @@ static bool callValue(Value callee, int argc) {
                 ObjClass *class = AS_CLASS(callee);
                 vm.top[-argc - 1] = OBJ_VAL(createInstance(class));
                 Value initializer;
-                if (tableGet(&class->methods, vm.initString, &initializer)) {
+                if (tableGet(&class->methods, vm.magicStrings.init, &initializer)) {
                     return call(AS_CLOSURE(initializer), argc);
                 } else if (argc != 0) {
                     reportRuntimeError("Expect 0 arguments but got %d", argc);
@@ -265,6 +265,26 @@ static void arithmetic(double (*function)(double, double)) {
     push(NUMBER_VAL(function(a, b)));
 }
 
+static void magicMethod(ObjString *name) {
+    Value method;
+    if (IS_INSTANCE(peek(0))) {
+        ObjInstance *instanse = AS_INSTANCE(peek(0));
+        if (tableGet(&instanse->class->methods, name, &method)) {
+            callValue(method, 1);
+            return;
+        }
+    } 
+    if (IS_INSTANCE(peek(1))) {
+        ObjInstance *instanse = AS_INSTANCE(peek(1));
+        if (tableGet(&instanse->class->methods, name, &method)) {
+            call(AS_CLOSURE(method), 1);
+            frame = &vm.frames[vm.frameSize - 1];
+            return;
+        }
+    }
+    reportRuntimeError("None of instances have magic method '%s'", name->chars);
+}
+
 static void plus() {
     if (IS_STRING(peek(0)) && IS_STRING(peek(1))) {
         concatenateStrings();
@@ -272,6 +292,8 @@ static void plus() {
         concatenateArrays();
     } else if (IS_NUMBER(peek(0)) && IS_NUMBER(peek(1))) {
         arithmetic(add);
+    } else if (IS_INSTANCE(peek(0)) || IS_INSTANCE(peek(1))) {
+        magicMethod(vm.magicStrings.add);
     } else {
         reportRuntimeError("'+' operator is not supported for %s and %s", decodeValueType(peek(0)), decodeValueType(peek(1)));
     }
@@ -863,6 +885,16 @@ static InterpretResult run() {
     }
 }
 
+void initMagicMethods() {
+    vm.magicStrings.init = copyString("_init_", 6);
+    vm.magicStrings.add = copyString("_add_", 5);
+    vm.magicStrings.sub = copyString("_sub_", 5);
+    vm.magicStrings.mul = copyString("_mul_", 5);
+    vm.magicStrings.div = copyString("_div_", 5);
+    vm.magicStrings.mod = copyString("_mod_", 5);
+    vm.magicStrings.pow = copyString("_pow_", 5);
+}
+
 void initVM() {
     resetStack();
     vm.objects = NULL;
@@ -870,8 +902,7 @@ void initVM() {
     vm.nextGC = 1024 * 1024;
     initTable(&vm.globals);
     initTable(&vm.strings);
-    vm.initString = NULL;
-    vm.initString = copyString("init", 4);
+    initMagicMethods();
     defineNatives();
 }
 
@@ -879,7 +910,6 @@ void freeVM() {
     freeObjects();
     initTable(&vm.globals);
     freeTable(&vm.strings);
-    vm.initString = NULL;
     return;
 }
 

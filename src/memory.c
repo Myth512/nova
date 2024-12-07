@@ -253,7 +253,7 @@ static void mark() {
         printf("\033[0m");
     #endif
 
-    markObject((Obj*)vm.initString);
+    markObject((Obj*)vm.magicStrings.init);
 }
 
 static void sweep() {
@@ -278,7 +278,6 @@ static void sweep() {
 }
 
 void collectGarbage() {
-    // printTable(&vm.globals);
     #ifdef DEBUG_LOG_GC
         printf("gc begin\n");
         size_t before = vm.bytesAllocated;

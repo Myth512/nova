@@ -1120,7 +1120,7 @@ static void method() {
     
     uint8_t constant = identifierConstant(&name);
     FunctionType type = TYPE_METHOD;
-    if (name.length == 4 && memcmp(name.start, "init", 4) == 0)
+    if (name.length == 6 && memcmp(name.start, "_init_", 6) == 0)
         type = TYPE_INITIALIZER;
     function(type);
     emitBytes(OP_METHOD, constant, (Token){0});
