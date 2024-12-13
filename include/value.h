@@ -66,6 +66,8 @@ bool compareValues(Value a, Value b);
 
 const char* decodeValueType(Value value);
 
+const char *decodeValueTypeClean(Value value);
+
 uint64_t hashLong(long value);
 
 uint64_t hashValue(Value value);

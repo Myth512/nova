@@ -171,6 +171,8 @@ int writeObject(Value value, char *buffer, const size_t maxSize);
 
 const char* decodeObjType(Value value);
 
+const char *decodeObjTypeClean(Value value);
+
 uint64_t hashObject(Value value);
 
 #endif

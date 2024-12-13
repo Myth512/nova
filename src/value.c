@@ -124,6 +124,20 @@ const char* decodeValueType(Value value) {
     return ""; // uncreachable
 }
 
+const char *decodeValueTypeClean(Value value) {
+    switch (value.type) {
+        case VAL_BOOL:
+            return "bool";
+        case VAL_NIL:
+            return "nil";
+        case VAL_NUMBER:
+            return "number";
+        case VAL_OBJ:
+            return decodeObjTypeClean(value);
+    }
+    return ""; // uncreachable
+}
+
 uint64_t hashNumber(double value) {
     union {
         double d;

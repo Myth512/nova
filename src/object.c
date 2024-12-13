@@ -312,6 +312,26 @@ const char* decodeObjType(Value value) {
     return "invalid type"; // uncreachable
 }
 
+const char *decodeObjTypeClean(Value value) {
+    switch (OBJ_TYPE(value)) {
+        case OBJ_NATIVE:
+            return "native";
+        case OBJ_STRING:
+            return "string";
+        case OBJ_UPVALUE:
+            return "upvalue";
+        case OBJ_CLOSURE:
+            return "function";
+        case OBJ_ARRAY:
+            return "array";
+        case OBJ_CLASS:
+            return "class";
+        case OBJ_INSTANCE:
+            return AS_INSTANCE(value)->class->name->chars;
+    }
+    return "invalid type"; // uncreachable
+}
+
 uint64_t hashObject(Value value) {
     switch (OBJ_TYPE(value)) {
         case OBJ_NATIVE:
