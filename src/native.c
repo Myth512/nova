@@ -83,8 +83,8 @@ Value hashNative(int argc, Value *argv) {
 }
 
 Value arrayPushNative(int argc, Value *argv) {
-    ObjArray *array = AS_ARRAY(argv[-1]);
-    pushValue(&array->values, argv[0]);
+    ObjArray *array = AS_ARRAY(argv[0]);
+    pushValue(&array->values, argv[1]);
     return NIL_VAL;
 }
 

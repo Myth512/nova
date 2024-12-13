@@ -235,6 +235,9 @@ void printObject(Value value) {
         case OBJ_NATIVE:
             printf("<native function %s>", AS_NATIVE(value)->name);
             break;
+        case OBJ_NATIVE_METHOD:
+            printf("<native method %s>", AS_NATIVE_METHOD(value)->name);
+            break;
         case OBJ_STRING:
             printf("%s", AS_CSTRING(value));
             break;

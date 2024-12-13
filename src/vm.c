@@ -30,6 +30,16 @@ static void printErrorInCode(int offset) {
     exit(1);
 }
 
+static void printStack() {
+    printf("stack: ");
+    for (Value *slot = vm.stack; slot < vm.top; slot++) {
+        printf("[ ");
+        printValue(*slot);
+        printf(" ]");
+    }
+    printf("\n");
+}
+
 static void resetStack() {
     vm.top = vm.stack;
     vm.frameSize = 0;
@@ -50,9 +60,9 @@ static Value peek(int distance) {
     return vm.top[-1 - distance];
 }
 
-static bool call(ObjClosure *closure, int argCount) {
-    if (argCount != closure->function->arity) {
-        reportRuntimeError("Expected %d arguments but go %d", closure->function->arity, argCount);
+static bool call(ObjClosure *closure, int argc) {
+    if (argc != closure->function->arity) {
+        reportRuntimeError("Expected %d arguments but go %d", closure->function->arity, argc);
         printErrorInCode(0);
     }
     if (vm.frameSize == FRAMES_SIZE) {
@@ -62,7 +72,7 @@ static bool call(ObjClosure *closure, int argCount) {
     CallFrame *frame = &vm.frames[vm.frameSize++];
     frame->closure = closure;
     frame->ip = closure->function->code.code;
-    frame->slots = vm.top - argCount - 1;
+    frame->slots = vm.top - argc - 1;
     return true;
 }
 
@@ -97,10 +107,12 @@ static bool callValue(Value callee, int argc) {
             case OBJ_NATIVE_METHOD: {
                 ObjNativeMethod *method = AS_NATIVE_METHOD(callee);
                 vm.top[-argc - 1] = method->reciever;
+                printStack();
                 NativeFn native = method->method;
-                Value result = native(argc, vm.top - argc);
+                Value result = native(argc, vm.top - argc - 1);
                 vm.top -= argc + 1;
                 push(result);
+                printStack();
                 return true;
             }
             case OBJ_CLASS: {
@@ -265,15 +277,14 @@ static void arithmetic(double (*function)(double, double)) {
     push(NUMBER_VAL(function(a, b)));
 }
 
+static void swapValues(Value *a, Value *b) {
+    Value *tmp = a;
+    a = b;
+    b = tmp;
+}
+
 static void magicMethod(ObjString *name) {
     Value method;
-    if (IS_INSTANCE(peek(0))) {
-        ObjInstance *instanse = AS_INSTANCE(peek(0));
-        if (tableGet(&instanse->class->methods, name, &method)) {
-            callValue(method, 1);
-            return;
-        }
-    } 
     if (IS_INSTANCE(peek(1))) {
         ObjInstance *instanse = AS_INSTANCE(peek(1));
         if (tableGet(&instanse->class->methods, name, &method)) {
@@ -282,6 +293,15 @@ static void magicMethod(ObjString *name) {
             return;
         }
     }
+    if (IS_INSTANCE(peek(0))) {
+        ObjInstance *instanse = AS_INSTANCE(peek(0));
+        if (tableGet(&instanse->class->methods, name, &method)) {
+            swapValues(vm.top, vm.top - 1);
+            call(AS_CLOSURE(method), 1);
+            frame = &vm.frames[vm.frameSize - 1];
+            return;
+        }
+    } 
     reportRuntimeError("None of instances have magic method '%s'", name->chars);
 }
 
@@ -369,6 +389,8 @@ static void star() {
         repeatString();
     } else if (IS_NUMBER(peek(0)) && IS_NUMBER(peek(1))) {
         arithmetic(multiply);
+    } else if (IS_INSTANCE(peek(0)) || IS_INSTANCE(peek(1))) {
+        magicMethod(vm.magicStrings.mul);
     } else {
         reportRuntimeError("'*' operator is not supported for %s and %s", decodeValueType(peek(0)), decodeValueType(peek(1)));
     }
@@ -605,12 +627,17 @@ static void setAt() {
 }
 
 static void getProperty() {
+    if (!IS_OBJ(peek(0))) {
+        reportRuntimeError("Object of %s does not have fields", decodeValueType(peek(0)));
+        printErrorInCode(0);
+    }
     ObjString *name = READ_STRING();
     switch (OBJ_TYPE(peek(0))) {
         case OBJ_ARRAY: {
             const struct Keyword *result = in_word_set(name->chars, strlen(name->chars));
             if (result) {
                 ObjNativeMethod *method = createNativeMethod(peek(0), result->method, result->name);
+                pop();
                 push(OBJ_VAL(method));
             } else {
                 reportRuntimeError("Array does not have method '%s'", name->chars);
@@ -632,6 +659,7 @@ static void getProperty() {
         }
         default: {
             reportRuntimeError("Object of %s does not have fields", decodeValueType(peek(0)));
+            printErrorInCode(0);
         }
     }
 }
@@ -650,13 +678,7 @@ static InterpretResult run() {
     while (true) {
 
         #ifdef DEBUG_TRACE_EXECUTION
-            printf("stack: ");
-            for (Value *slot = vm.stack; slot < vm.top; slot++) {
-                printf("[ ");
-                printValue(*slot);
-                printf(" ]");
-            }
-            printf("\n");
+            printStack();
             printInstruction(&frame->closure->function->code, (int)(frame->ip - frame->closure->function->code.code));
         #endif
 
@@ -830,8 +852,8 @@ static InterpretResult run() {
                 break;
             }
             case OP_CALL: {
-                int argCount = READ_BYTE();
-                if (!callValue(peek(argCount), argCount))
+                int argc = READ_BYTE();
+                if (!callValue(peek(argc), argc))
                     return INTERPRET_RUNTIME_ERROR;
                 frame = &vm.frames[vm.frameSize - 1];
                 break;
