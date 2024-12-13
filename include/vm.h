@@ -18,11 +18,23 @@ typedef struct {
 typedef struct {
     ObjString *init;
     ObjString *add;
+    ObjString *ladd;
+    ObjString *radd;
     ObjString *sub;
+    ObjString *lsub;
+    ObjString *rsub;
     ObjString *mul;
+    ObjString *lmul;
+    ObjString *rmul;
     ObjString *div;
+    ObjString *ldiv;
+    ObjString *rdiv;
     ObjString *mod;
+    ObjString *lmod;
+    ObjString *rmod;
     ObjString *pow;
+    ObjString *lpow;
+    ObjString *rpow;
 } MagicStrings;
 
 typedef struct {

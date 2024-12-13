@@ -112,3 +112,7 @@ Value arrayReverseNative(int argc, Value *argv) {
 Value arraySortNative(int argc, Value *argv) {
 
 }
+
+Value arrayConcatinateNative(int argc, Value *argv) {
+
+}

@@ -107,12 +107,10 @@ static bool callValue(Value callee, int argc) {
             case OBJ_NATIVE_METHOD: {
                 ObjNativeMethod *method = AS_NATIVE_METHOD(callee);
                 vm.top[-argc - 1] = method->reciever;
-                printStack();
                 NativeFn native = method->method;
                 Value result = native(argc, vm.top - argc - 1);
                 vm.top -= argc + 1;
                 push(result);
-                printStack();
                 return true;
             }
             case OBJ_CLASS: {
@@ -279,44 +277,8 @@ static void arithmetic(double (*function)(double, double)) {
 
 static void swapValues(Value *a, Value *b) {
     Value *tmp = a;
-    a = b;
-    b = tmp;
-}
-
-static void magicMethod(ObjString *name) {
-    Value method;
-    if (IS_INSTANCE(peek(1))) {
-        ObjInstance *instanse = AS_INSTANCE(peek(1));
-        if (tableGet(&instanse->class->methods, name, &method)) {
-            call(AS_CLOSURE(method), 1);
-            frame = &vm.frames[vm.frameSize - 1];
-            return;
-        }
-    }
-    if (IS_INSTANCE(peek(0))) {
-        ObjInstance *instanse = AS_INSTANCE(peek(0));
-        if (tableGet(&instanse->class->methods, name, &method)) {
-            swapValues(vm.top, vm.top - 1);
-            call(AS_CLOSURE(method), 1);
-            frame = &vm.frames[vm.frameSize - 1];
-            return;
-        }
-    } 
-    reportRuntimeError("None of instances have magic method '%s'", name->chars);
-}
-
-static void plus() {
-    if (IS_STRING(peek(0)) && IS_STRING(peek(1))) {
-        concatenateStrings();
-    } else if (IS_ARRAY(peek(0)) && IS_ARRAY(peek(1))) {
-        concatenateArrays();
-    } else if (IS_NUMBER(peek(0)) && IS_NUMBER(peek(1))) {
-        arithmetic(add);
-    } else if (IS_INSTANCE(peek(0)) || IS_INSTANCE(peek(1))) {
-        magicMethod(vm.magicStrings.add);
-    } else {
-        reportRuntimeError("'+' operator is not supported for %s and %s", decodeValueType(peek(0)), decodeValueType(peek(1)));
-    }
+    *a = *b;
+    *b = *tmp;
 }
 
 static void repeatString() {
@@ -378,22 +340,6 @@ static void repeatArray() {
     }
 
     push(OBJ_VAL(result));
-}
-
-static void star() {
-    if (IS_ARRAY(peek(0)) && IS_NUMBER(peek(1)) ||
-        IS_NUMBER(peek(0)) && IS_ARRAY(peek(1))) {
-        repeatArray(); 
-    } else if (IS_STRING(peek(0)) && IS_NUMBER(peek(1)) ||
-             IS_NUMBER(peek(0)) && IS_STRING(peek(1))) {
-        repeatString();
-    } else if (IS_NUMBER(peek(0)) && IS_NUMBER(peek(1))) {
-        arithmetic(multiply);
-    } else if (IS_INSTANCE(peek(0)) || IS_INSTANCE(peek(1))) {
-        magicMethod(vm.magicStrings.mul);
-    } else {
-        reportRuntimeError("'*' operator is not supported for %s and %s", decodeValueType(peek(0)), decodeValueType(peek(1)));
-    }
 }
 
 static inline void increment() {
@@ -626,40 +572,35 @@ static void setAt() {
 
 }
 
-static void getProperty() {
-    if (!IS_OBJ(peek(0))) {
-        reportRuntimeError("Object of %s does not have fields", decodeValueType(peek(0)));
-        printErrorInCode(0);
-    }
-    ObjString *name = READ_STRING();
-    switch (OBJ_TYPE(peek(0))) {
+static bool getProperty(Value obj, ObjString *name, Value *value) {
+    if (!IS_OBJ(obj))
+        return false;
+
+    switch (OBJ_TYPE(obj)) {
         case OBJ_ARRAY: {
             const struct Keyword *result = in_word_set(name->chars, strlen(name->chars));
             if (result) {
-                ObjNativeMethod *method = createNativeMethod(peek(0), result->method, result->name);
-                pop();
-                push(OBJ_VAL(method));
-            } else {
-                reportRuntimeError("Array does not have method '%s'", name->chars);
-                printErrorInCode(0);
-            }
-            break;
+                ObjNativeMethod *method = createNativeMethod(obj, result->method, result->name);
+                *value = OBJ_VAL(method);
+                return true;
+            } 
+            return false;
         }
         case OBJ_INSTANCE: {
-            ObjInstance *instance = AS_INSTANCE(peek(0));
-            Value value;
-            if (tableGet(&instance->fields, name, &value)) {
-                pop();
-                push(value);
-                return;
+            ObjInstance *instance = AS_INSTANCE(obj);
+            if (tableGet(&instance->fields, name, value))
+                return true;
+
+            if (tableGet(&instance->class->methods, name, value)) {
+                ObjMethod *method = createMethod(obj, AS_CLOSURE(*value));
+                *value = OBJ_VAL(method);
+                return true;
             }
 
-            bindMethod(instance->class, name);
-            break;        
+            return false;
         }
         default: {
-            reportRuntimeError("Object of %s does not have fields", decodeValueType(peek(0)));
-            printErrorInCode(0);
+            return false;
         }
     }
 }
@@ -671,6 +612,45 @@ static void setProperty() {
     }
     ObjInstance *instance = AS_INSTANCE(peek(1));
     tableSet(&instance->fields, READ_STRING(), peek(0));
+}
+
+static void magicMethod(ObjString *universal, ObjString *left, ObjString *right) {
+    Value method;
+
+    if (left && getProperty(peek(1), left, &method)) {
+        callValue(method, 1);
+        frame = &vm.frames[vm.frameSize - 1];
+        printStack();
+    }
+
+    if (universal && getProperty(peek(1), universal, &method)) {
+        callValue(method, 1);
+        frame = &vm.frames[vm.frameSize - 1];
+        printStack();
+    }
+
+    if (right && getProperty(peek(0), right, &method)) {
+        swapValues(vm.top - 1, vm.top - 2);
+        callValue(method, 1);
+        frame = &vm.frames[vm.frameSize - 1];
+    }
+
+    if (universal && getProperty(peek(0), universal, &method)) {
+        swapValues(vm.top - 1, vm.top - 2);
+        callValue(method, 1);
+        frame = &vm.frames[vm.frameSize - 1];
+    }
+
+    reportRuntimeError("Unsupported operation %s for %s and %s", universal->chars, decodeValueType(peek(0)), decodeValueType(peek(1)));
+    printErrorInCode(0);
+}
+
+static void operator(double (*function)(double, double), ObjString *universal, ObjString *left, ObjString *right) {
+    if (IS_NUMBER(peek(0)) && IS_NUMBER(peek(1))) {
+        arithmetic(function);
+    } else {
+        magicMethod(universal, left, right);
+    }
 }
 
 static InterpretResult run() {
@@ -778,16 +758,16 @@ static InterpretResult run() {
                 decrement();
                 break;
             case OP_ADD:
-                plus();
+                operator(add, vm.magicStrings.add, vm.magicStrings.ladd, vm.magicStrings.radd);
                 break;
             case OP_SUBTRUCT:
-                arithmetic(subtract);
+                operator(subtract, vm.magicStrings.sub, vm.magicStrings.lsub, vm.magicStrings.rsub);
                 break;
             case OP_MULTIPLY:
-                star();
+                operator(multiply, vm.magicStrings.mul, vm.magicStrings.lmul, vm.magicStrings.rmul);
                 break;
             case OP_DIVIDE:
-                arithmetic(divide);
+                operator(divide, vm.magicStrings.div, vm.magicStrings.ldiv, vm.magicStrings.rdiv);
                 break;
             case OP_MOD:
                 arithmetic(modulo);
@@ -884,7 +864,16 @@ static InterpretResult run() {
                 defineMethod(READ_STRING());
                 break;
             case OP_GET_PROPERTY:
-                getProperty();
+                Value obj = peek(0);
+                ObjString *name = READ_STRING();
+                Value value;
+                if (getProperty(obj, name, &value)) {
+                    pop();
+                    push(value);
+                } else {
+                    reportRuntimeError("Object of %s does not have property %s", decodeValueType(obj), name->chars);
+                    printErrorInCode(0);
+                }
                 break;
             case OP_SET_PROPERTY:
                 setProperty();
@@ -910,11 +899,23 @@ static InterpretResult run() {
 void initMagicMethods() {
     vm.magicStrings.init = copyString("_init_", 6);
     vm.magicStrings.add = copyString("_add_", 5);
+    vm.magicStrings.ladd = copyString("_ladd_", 6);
+    vm.magicStrings.radd = copyString("_radd_", 6);
     vm.magicStrings.sub = copyString("_sub_", 5);
+    vm.magicStrings.lsub = copyString("_lsub_", 6);
+    vm.magicStrings.rsub = copyString("_rsub_", 6);
     vm.magicStrings.mul = copyString("_mul_", 5);
+    vm.magicStrings.lmul = copyString("_lmul_", 6);
+    vm.magicStrings.rmul = copyString("_rmul_", 6);
     vm.magicStrings.div = copyString("_div_", 5);
+    vm.magicStrings.ldiv = copyString("_ldiv_", 6);
+    vm.magicStrings.rdiv = copyString("_rdiv_", 6);
     vm.magicStrings.mod = copyString("_mod_", 5);
+    vm.magicStrings.lmod = copyString("_lmod_", 6);
+    vm.magicStrings.rmod = copyString("_rmod_", 6);
     vm.magicStrings.pow = copyString("_pow_", 5);
+    vm.magicStrings.lpow = copyString("_lpow_", 6);
+    vm.magicStrings.rpow = copyString("_rpow_", 6);
 }
 
 void initVM() {
