@@ -265,7 +265,7 @@ void printObject(Value value) {
             printf("%s", AS_CLASS(value)->name->chars);
             break;
         case OBJ_INSTANCE:
-            printf("instance of %s", AS_INSTANCE(value)->class->name->chars);
+            printInstanse(value);
             break;
         case OBJ_METHOD:
             printFunction(AS_METHOD(value)->method->function);

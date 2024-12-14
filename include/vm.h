@@ -20,9 +20,12 @@ typedef struct {
     ObjString *add;
     ObjString *ladd;
     ObjString *radd;
+    ObjString *inc;
+    ObjString *dec;
     ObjString *sub;
     ObjString *lsub;
     ObjString *rsub;
+    ObjString *neg;
     ObjString *mul;
     ObjString *lmul;
     ObjString *rmul;
@@ -35,6 +38,17 @@ typedef struct {
     ObjString *pow;
     ObjString *lpow;
     ObjString *rpow;
+    ObjString *eq;
+    ObjString *ne;
+    ObjString *lt;
+    ObjString *le;
+    ObjString *gt;
+    ObjString *ge;
+    ObjString *call;
+    ObjString *getat;
+    ObjString *setat;
+    ObjString *len;
+    ObjString *str;
 } MagicStrings;
 
 typedef struct {
@@ -69,6 +83,9 @@ Value pop();
 void initVM();
 
 void freeVM();
+
+
+void printInstanse(Value value);
 
 InterpretResult interpret(const char *source);
 

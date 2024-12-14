@@ -96,7 +96,7 @@ static void defineNatives() {
     defineNative("hash", hashNative);
 }
 
-static bool callValue(Value callee, int argc) {
+static bool callValueInternal(Value callee, int argc) {
     if (IS_OBJ(callee)) {
         switch (OBJ_TYPE(callee)) {
             case OBJ_METHOD: {
@@ -140,6 +140,12 @@ static bool callValue(Value callee, int argc) {
     reportRuntimeError("Can only call functions and classes");
     printErrorInCode(0);
     return false;
+}
+
+static bool callValue(Value callee, int argc) {
+    bool res = callValueInternal(callee, argc);
+    frame = &vm.frames[vm.frameSize - 1];
+    return res;
 }
 
 static void bindMethod(ObjClass *class, ObjString *name) {
@@ -263,16 +269,16 @@ static inline double modulo(double a, double b) {
     return fmod(a, b);
 }
 
-static void arithmetic(double (*function)(double, double)) {
-    if (!IS_NUMBER(peek(0)) || !IS_NUMBER(peek(1))) {
-        reportRuntimeError("Arithmetic operations are not supported for %s and %s", decodeValueType(peek(0)), decodeValueType(peek(1)));
-        printErrorInCode(0);
-    }
+static inline double increment(double a) {
+    return a + 1;
+}
 
-    double b = AS_NUMBER(pop());
-    double a = AS_NUMBER(pop());
+static inline double decrement(double a) {
+    return a - 1;
+}
 
-    push(NUMBER_VAL(function(a, b)));
+static inline double negation(double a) {
+    return -a;
 }
 
 static void swapValues(Value *a, Value *b) {
@@ -280,6 +286,7 @@ static void swapValues(Value *a, Value *b) {
     *a = *b;
     *b = *tmp;
 }
+
 
 static void repeatString() {
     ObjString* string;
@@ -342,35 +349,6 @@ static void repeatArray() {
     push(OBJ_VAL(result));
 }
 
-static inline void increment() {
-    if (!IS_NUMBER(peek(0))) {
-        reportRuntimeError("Increment is not supported for %s", decodeValueType(peek(0)));
-        printErrorInCode(0);
-    }
-
-    double a = AS_NUMBER(pop());
-
-    push(NUMBER_VAL(a + 1));
-}
-
-static inline void decrement() {
-    if (!IS_NUMBER(peek(0))) {
-        reportRuntimeError("Decrement is not supported for %s", decodeValueType(peek(0)));
-        printErrorInCode(0);
-    }
-
-    double a = AS_NUMBER(pop());
-
-    push(NUMBER_VAL(a - 1));
-}
-
-static void equality(bool inverse) {
-    Value b = pop();
-    Value a = pop();
-
-    push(BOOL_VAL(compareValues(a, b) ^ inverse));
-}
-
 static inline bool less(double a, double b) {
     return a < b;
 }
@@ -385,18 +363,6 @@ static inline bool greater(double a, double b) {
 
 static inline bool greaterEqual(double a, double b) {
     return a >= b;
-}
-
-static void inequality(bool (*function)(double, double)) {
-    if (!IS_NUMBER(peek(0)) || !IS_NUMBER(peek(1))) {
-        reportRuntimeError("Comparison between %s and %s is not supported", decodeValueType(peek(0)), decodeValueType(peek(1)));
-        printErrorInCode(0);
-    }
-
-    double b = AS_NUMBER(pop());
-    double a = AS_NUMBER(pop());
-    
-    push(BOOL_VAL(function(a, b)));
 }
 
 static bool isFalsey(Value value) {
@@ -614,42 +580,102 @@ static void setProperty() {
     tableSet(&instance->fields, READ_STRING(), peek(0));
 }
 
-static void magicMethod(ObjString *universal, ObjString *left, ObjString *right) {
+static bool callBinaryMethod(ObjString *universal, ObjString *left, ObjString *right) {
     Value method;
 
     if (left && getProperty(peek(1), left, &method)) {
         callValue(method, 1);
-        frame = &vm.frames[vm.frameSize - 1];
-        printStack();
+        return true;
     }
 
     if (universal && getProperty(peek(1), universal, &method)) {
         callValue(method, 1);
-        frame = &vm.frames[vm.frameSize - 1];
-        printStack();
+        return true;
     }
 
     if (right && getProperty(peek(0), right, &method)) {
         swapValues(vm.top - 1, vm.top - 2);
         callValue(method, 1);
-        frame = &vm.frames[vm.frameSize - 1];
+        return true;
     }
 
     if (universal && getProperty(peek(0), universal, &method)) {
         swapValues(vm.top - 1, vm.top - 2);
         callValue(method, 1);
-        frame = &vm.frames[vm.frameSize - 1];
+        return true;
     }
 
-    reportRuntimeError("Unsupported operation %s for %s and %s", universal->chars, decodeValueType(peek(0)), decodeValueType(peek(1)));
+    return false;
+}
+
+static bool callUnaryMethod(ObjString *universal) {
+    Value method;
+
+    if (getProperty(peek(0), universal, &method)) {
+        callValue(method, 0);
+        return true;
+    }
+
+    return false;
+}
+
+static void arithmetic(char *name, double (*function)(double, double), ObjString *universal, ObjString *left, ObjString *right) {
+    if (IS_NUMBER(peek(0)) && IS_NUMBER(peek(1))) {
+        double b = AS_NUMBER(pop());
+        double a = AS_NUMBER(pop());
+        push(NUMBER_VAL(function(a, b)));
+        return;
+    }
+
+    if (callBinaryMethod(universal, left, right))
+        return;
+
+    reportRuntimeError("Unsupported operator '%s' for %s and %s", name, decodeValueType(peek(1)), decodeValueType(peek(0)));
     printErrorInCode(0);
 }
 
-static void operator(double (*function)(double, double), ObjString *universal, ObjString *left, ObjString *right) {
+static inline void unary(char *name, double (*function)(double), ObjString *method) {
+    if (IS_NUMBER(peek(0))) {
+        double a = AS_NUMBER(pop());
+        push(NUMBER_VAL(function(a)));
+        return;
+    }
+
+    if (callUnaryMethod(method))
+        return;
+
+    reportRuntimeError("Unsupported operator '%s' for %s", name, decodeValueType(peek(0)));
+    printErrorInCode(0);
+}
+
+static void inequality(char *name, bool (*function)(double, double), ObjString *method) {
     if (IS_NUMBER(peek(0)) && IS_NUMBER(peek(1))) {
-        arithmetic(function);
-    } else {
-        magicMethod(universal, left, right);
+        double b = AS_NUMBER(pop());
+        double a = AS_NUMBER(pop());
+        push(BOOL_VAL(function(a, b)));
+        return;
+    }
+
+    if (callBinaryMethod(method, NULL, NULL))
+        return;
+
+    reportRuntimeError("Unsupported operator '%s' for %s and %s", name, decodeValueType(peek(1)), decodeValueType(peek(0)));
+    printErrorInCode(0);
+}
+
+static void equality(char *name, bool inverse, ObjString *method) {
+    if (callBinaryMethod(method, NULL, NULL))
+        return;
+    
+    Value b = pop();
+    Value a = pop();
+
+    push(BOOL_VAL(compareValues(a, b) ^ inverse));
+}
+
+void printInstanse(Value value) {
+    if (!callUnaryMethod(vm.magicStrings.str)) {
+        printf("instance of %s", AS_INSTANCE(value)->class->name->chars);
     }
 }
 
@@ -734,56 +760,52 @@ static InterpretResult run() {
                 push(BOOL_VAL(true));
                 break;
             case OP_EQUAL:
-                equality(false);
+                equality("!=", false, vm.magicStrings.eq);
                 break;
             case OP_NOT_EQUAL:
-                equality(true);
+                equality("!=", true, vm.magicStrings.ne);
                 break;
             case OP_GREATER:
-                inequality(greater);
+                inequality(">", greater, vm.magicStrings.gt);
                 break;
             case OP_GREATER_EQUAL:
-                inequality(greaterEqual);
+                inequality(">=", greaterEqual, vm.magicStrings.ge);
                 break;
             case OP_LESS:
-                inequality(less);
+                inequality("<", less, vm.magicStrings.lt);
                 break;
             case OP_LESS_EQUAL:
-                inequality(lessEqual);
+                inequality("<=", lessEqual, vm.magicStrings.le);
                 break;
             case OP_INCREMENT:
-                increment();
+                unary("++", increment, vm.magicStrings.inc);
                 break; 
             case OP_DECREMENT:
-                decrement();
+                unary("--", decrement, vm.magicStrings.dec);
                 break;
             case OP_ADD:
-                operator(add, vm.magicStrings.add, vm.magicStrings.ladd, vm.magicStrings.radd);
+                arithmetic("+", add, vm.magicStrings.add, vm.magicStrings.ladd, vm.magicStrings.radd);
                 break;
             case OP_SUBTRUCT:
-                operator(subtract, vm.magicStrings.sub, vm.magicStrings.lsub, vm.magicStrings.rsub);
+                arithmetic("-", subtract, vm.magicStrings.sub, vm.magicStrings.lsub, vm.magicStrings.rsub);
                 break;
             case OP_MULTIPLY:
-                operator(multiply, vm.magicStrings.mul, vm.magicStrings.lmul, vm.magicStrings.rmul);
+                arithmetic("*", multiply, vm.magicStrings.mul, vm.magicStrings.lmul, vm.magicStrings.rmul);
                 break;
             case OP_DIVIDE:
-                operator(divide, vm.magicStrings.div, vm.magicStrings.ldiv, vm.magicStrings.rdiv);
+                arithmetic("/", divide, vm.magicStrings.div, vm.magicStrings.ldiv, vm.magicStrings.rdiv);
                 break;
             case OP_MOD:
-                arithmetic(modulo);
+                arithmetic("%%", modulo, vm.magicStrings.mod, vm.magicStrings.lmod, vm.magicStrings.rmod);
                 break;
             case OP_POWER:
-                arithmetic(pow);
+                arithmetic("^", pow, vm.magicStrings.pow, vm.magicStrings.lpow, vm.magicStrings.rpow);
                 break;
             case OP_NOT:
                 push(BOOL_VAL(isFalsey(pop())));
                 break;
             case OP_NEGATE:
-                if (!IS_NUMBER(peek(0))) {
-                    reportRuntimeError("Negation is not supported for %s", decodeValueType(peek(0)));
-                    printErrorInCode(0);
-                }
-                push(NUMBER_VAL(-AS_NUMBER(pop())));
+                unary("-", negation, vm.magicStrings.neg);
                 break;
             case OP_BUILD_FSTRING:
                 buildFormattedString();
@@ -835,7 +857,6 @@ static InterpretResult run() {
                 int argc = READ_BYTE();
                 if (!callValue(peek(argc), argc))
                     return INTERPRET_RUNTIME_ERROR;
-                frame = &vm.frames[vm.frameSize - 1];
                 break;
             }
             case OP_CLOSURE: {
@@ -896,14 +917,17 @@ static InterpretResult run() {
     }
 }
 
-void initMagicMethods() {
+void initMagicStrings() {
     vm.magicStrings.init = copyString("_init_", 6);
     vm.magicStrings.add = copyString("_add_", 5);
     vm.magicStrings.ladd = copyString("_ladd_", 6);
     vm.magicStrings.radd = copyString("_radd_", 6);
+    vm.magicStrings.inc = copyString("_inc_", 5);
+    vm.magicStrings.dec = copyString("_dec_", 5);
     vm.magicStrings.sub = copyString("_sub_", 5);
     vm.magicStrings.lsub = copyString("_lsub_", 6);
     vm.magicStrings.rsub = copyString("_rsub_", 6);
+    vm.magicStrings.neg = copyString("_neg_", 5);
     vm.magicStrings.mul = copyString("_mul_", 5);
     vm.magicStrings.lmul = copyString("_lmul_", 6);
     vm.magicStrings.rmul = copyString("_rmul_", 6);
@@ -916,6 +940,17 @@ void initMagicMethods() {
     vm.magicStrings.pow = copyString("_pow_", 5);
     vm.magicStrings.lpow = copyString("_lpow_", 6);
     vm.magicStrings.rpow = copyString("_rpow_", 6);
+    vm.magicStrings.eq = copyString("_eq_", 4);
+    vm.magicStrings.ne = copyString("_ne_", 4);
+    vm.magicStrings.lt = copyString("_lt_", 4);
+    vm.magicStrings.le = copyString("_le_", 4);
+    vm.magicStrings.gt = copyString("_gt_", 4);
+    vm.magicStrings.ge = copyString("_ge_", 4);
+    vm.magicStrings.call = copyString("_call_", 6);
+    vm.magicStrings.getat = copyString("_getat_", 7);
+    vm.magicStrings.setat = copyString("_setat_", 7);
+    vm.magicStrings.len = copyString("_len_", 5);
+    vm.magicStrings.str = copyString("_str_", 5);
 }
 
 void initVM() {
@@ -925,7 +960,7 @@ void initVM() {
     vm.nextGC = 1024 * 1024;
     initTable(&vm.globals);
     initTable(&vm.strings);
-    initMagicMethods();
+    initMagicStrings();
     defineNatives();
 }
 
