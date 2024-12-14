@@ -1,6 +1,6 @@
 /* ANSI-C code produced by gperf version 3.1 */
-/* Command-line: gperf -t arrayMethods.txt  */
-/* Computed positions: -k'1' */
+/* Command-line: gperf -t -N in_array_set gperf/arrayMethods.txt  */
+/* Computed positions: -k'2-3' */
 
 #if !((' ' == 32) && ('!' == 33) && ('"' == 34) && ('#' == 35) \
       && ('%' == 37) && ('&' == 38) && ('\'' == 39) && ('(' == 40) \
@@ -29,22 +29,22 @@
 #error "gperf generated tables don't work with this execution character set. Please report a bug to <bug-gperf@gnu.org>."
 #endif
 
-#line 1 "arrayMethods.txt"
+#line 1 "gperf/arrayMethods.txt"
 
 #include <string.h>
-#include "native.h"
-#line 6 "arrayMethods.txt"
-struct Keyword {
+#include "novaArray.h"
+#line 6 "gperf/arrayMethods.txt"
+struct ArrayMethod {
 	const char *name;
 	Value (*method)(int, Value*);	
 };
 
-#define TOTAL_KEYWORDS 5
+#define TOTAL_KEYWORDS 16
 #define MIN_WORD_LENGTH 3
 #define MAX_WORD_LENGTH 7
 #define MIN_HASH_VALUE 4
-#define MAX_HASH_VALUE 9
-/* maximum key range = 6, duplicates = 0 */
+#define MAX_HASH_VALUE 39
+/* maximum key range = 36, duplicates = 0 */
 
 #ifdef __GNUC__
 __inline
@@ -58,53 +58,82 @@ hash (register const char *str, register size_t len)
 {
   static unsigned char asso_values[] =
     {
-     10,10,10,10,10,10,10,10,10,10,
-     10,10,10,10,10,10,10,10,10,10,
-     10,10,10,10,10,10,10,10,10,10,
-     10,10,10,10,10,10,10,10,10,10,
-     10,10,10,10,10,10,10,10,10,10,
-     10,10,10,10,10,10,10,10,10,10,
-     10,10,10,10,10,10,10,10,10,10,
-     10,10,10,10,10,10,10,10,10,10,
-     10,10,10,10,10,10,10,10,10,10,
-     10,10,10,10,10,10,10,10,10,10,
-     10,10,10,10,10, 0,10,10,10,10,
-     10,10, 5,10, 0, 0,10,10,10,10,
-     10,10,10,10,10,10,10,10,10,10,
-     10,10,10,10,10,10,10,10,10,10,
-     10,10,10,10,10,10,10,10,10,10,
-     10,10,10,10,10,10,10,10,10,10,
-     10,10,10,10,10,10,10,10,10,10,
-     10,10,10,10,10,10,10,10,10,10,
-     10,10,10,10,10,10,10,10,10,10,
-     10,10,10,10,10,10,10,10,10,10,
-     10,10,10,10,10,10,10,10,10,10,
-     10,10,10,10,10,10,10,10,10,10,
-     10,10,10,10,10,10,10,10,10,10,
-     10,10,10,10,10,10,10,10,10,10,
-     10,10,10,10,10,10,10,10,10,10,
-     10,10,10,10,10,10
+      40, 40, 40, 40, 40, 40, 40, 40, 40, 40,
+      40, 40, 40, 40, 40, 40, 40, 40, 40, 40,
+      40, 40, 40, 40, 40, 40, 40, 40, 40, 40,
+      40, 40, 40, 40, 40, 40, 40, 40, 40, 40,
+      40, 40, 40, 40, 40, 40, 40, 40, 40, 40,
+      40, 40, 40, 40, 40, 40, 40, 40, 40, 40,
+      40, 40, 40, 40, 40, 40, 40, 40, 40, 40,
+      40, 40, 40, 40, 40, 40, 40, 40, 40, 40,
+      40, 40, 40, 40, 40, 40, 40, 40, 40, 40,
+      40, 40, 40, 40, 40, 40, 40,  0, 40, 40,
+       0, 10, 40,  5, 40, 40, 40, 40,  0,  0,
+      10, 20,  0, 20, 15,  0,  0, 25, 10, 40,
+      40, 40, 40, 40, 40, 40, 40, 40, 40, 40,
+      40, 40, 40, 40, 40, 40, 40, 40, 40, 40,
+      40, 40, 40, 40, 40, 40, 40, 40, 40, 40,
+      40, 40, 40, 40, 40, 40, 40, 40, 40, 40,
+      40, 40, 40, 40, 40, 40, 40, 40, 40, 40,
+      40, 40, 40, 40, 40, 40, 40, 40, 40, 40,
+      40, 40, 40, 40, 40, 40, 40, 40, 40, 40,
+      40, 40, 40, 40, 40, 40, 40, 40, 40, 40,
+      40, 40, 40, 40, 40, 40, 40, 40, 40, 40,
+      40, 40, 40, 40, 40, 40, 40, 40, 40, 40,
+      40, 40, 40, 40, 40, 40, 40, 40, 40, 40,
+      40, 40, 40, 40, 40, 40, 40, 40, 40, 40,
+      40, 40, 40, 40, 40, 40, 40, 40, 40, 40,
+      40, 40, 40, 40, 40, 40
     };
-  return len + asso_values[(unsigned char)str[0]];
+  return len + asso_values[(unsigned char)str[2]] + asso_values[(unsigned char)str[1]];
 }
 
-struct Keyword *
-in_word_set (register const char *str, register size_t len)
+struct ArrayMethod *
+in_array_set (register const char *str, register size_t len)
 {
-  static struct Keyword wordlist[] =
+  static struct ArrayMethod wordlist[] =
     {
       {""}, {""}, {""}, {""},
-#line 16 "arrayMethods.txt"
-      {"sort", arraySortNative},
+#line 21 "gperf/arrayMethods.txt"
+      {"_lt_", arrayLess},
+#line 23 "gperf/arrayMethods.txt"
+      {"_add_", arrayAdd},
+      {""}, {""}, {""},
+#line 19 "gperf/arrayMethods.txt"
+      {"_gt_", arrayGreater},
+      {""}, {""}, {""}, {""},
+#line 22 "gperf/arrayMethods.txt"
+      {"_le_", arrayLessEqual},
+#line 27 "gperf/arrayMethods.txt"
+      {"_len_", arrayLen},
+#line 14 "gperf/arrayMethods.txt"
+      {"insert", arrayInsert},
+#line 26 "gperf/arrayMethods.txt"
+      {"_setat_", arraySetAt},
       {""},
-#line 14 "arrayMethods.txt"
-      {"insert", arrayInsertNative},
-#line 15 "arrayMethods.txt"
-      {"reverse", arrayReverseNative},
-#line 13 "arrayMethods.txt"
-      {"pop", arrayPopNative},
-#line 12 "arrayMethods.txt"
-      {"push", arrayPushNative}
+#line 20 "gperf/arrayMethods.txt"
+      {"_ge_", arrayGreaterEqual},
+      {""}, {""},
+#line 25 "gperf/arrayMethods.txt"
+      {"_getat_", arrayGetAt},
+#line 13 "gperf/arrayMethods.txt"
+      {"pop", arrayPop},
+#line 18 "gperf/arrayMethods.txt"
+      {"_ne_", arrayNotEqual},
+      {""}, {""},
+#line 15 "gperf/arrayMethods.txt"
+      {"reverse", arrayReverse},
+      {""},
+#line 12 "gperf/arrayMethods.txt"
+      {"push", arrayPush},
+#line 24 "gperf/arrayMethods.txt"
+      {"_mul_", arrayMultiply},
+      {""}, {""}, {""},
+#line 17 "gperf/arrayMethods.txt"
+      {"_eq_", arrayEqual},
+      {""}, {""}, {""}, {""},
+#line 16 "gperf/arrayMethods.txt"
+      {"sort", arraySort}
     };
 
   if (len <= MAX_WORD_LENGTH && len >= MIN_WORD_LENGTH)
@@ -121,5 +150,5 @@ in_word_set (register const char *str, register size_t len)
     }
   return 0;
 }
-#line 17 "arrayMethods.txt"
+#line 28 "gperf/arrayMethods.txt"
 

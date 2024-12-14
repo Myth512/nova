@@ -1,0 +1,28 @@
+%{
+#include <string.h>
+#include "novaArray.h"
+%}
+
+struct ArrayMethod {
+	const char *name;
+	Value (*method)(int, Value*);	
+}
+
+%%
+push, arrayPush
+pop, arrayPop
+insert, arrayInsert
+reverse, arrayReverse
+sort, arraySort
+_eq_, arrayEqual
+_ne_, arrayNotEqual
+_gt_, arrayGreater
+_ge_, arrayGreaterEqual
+_lt_, arrayLess
+_le_, arrayLessEqual
+_add_, arrayAdd
+_mul_, arrayMultiply
+_getat_, arrayGetAt
+_setat_, arraySetAt
+_len_, arrayLen
+%%

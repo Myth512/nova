@@ -336,8 +336,6 @@ uint64_t hashObject(Value value) {
     switch (OBJ_TYPE(value)) {
         case OBJ_NATIVE:
             return hashLong((long)AS_NATIVE(value)->function);
-        case OBJ_STRING:
-            return getHash(AS_STRING(value)); 
         case OBJ_CLOSURE:
             return hashLong((long)AS_CLOSURE(value)->function);
         default:
@@ -351,9 +349,5 @@ bool compareObjects(Value a, Value b) {
             return AS_NATIVE(a)->function == AS_NATIVE(b)->function;
         case OBJ_CLOSURE:
             return AS_CLOSURE(a)->function == AS_CLOSURE(b)->function;
-        case OBJ_STRING:
-            return compareStrings(AS_STRING(a), AS_STRING(b));
-        case OBJ_ARRAY:
-            return compareArrays(AS_ARRAY(a), AS_ARRAY(b));
     }
 }

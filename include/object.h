@@ -159,6 +159,8 @@ ObjString* takeString(char *chars, int length);
 
 bool compareStrings(ObjString *a, ObjString *b);
 
+bool compareObjects(Value a, Value b);
+
 uint32_t getHash(ObjString *string);
 
 ObjArray* allocateArray(int size);

@@ -1,0 +1,25 @@
+%{
+#include <string.h>
+#include "novaString.h"
+%}
+
+struct StringMethod {
+	const char *name;
+	Value (*method)(int, Value*);	
+}
+
+%%
+reverse, stringReverse
+replace, stringReplace
+_eq_, stringEqual
+_ne_, stringNotEqual
+_gt_, stringGreater
+_ge_, stringGreaterEqual
+_lt_, stringLess
+_le_, stringLessEqual
+_add_, stringAdd
+_mul_, stringMultiply
+_getat_, stringGetAt
+_len_, stringLen
+_hash_, stringHash
+%%

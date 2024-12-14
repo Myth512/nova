@@ -44,3 +44,8 @@ clean:
 
 test:
 	python3 tests/run_tests.py
+
+.PHONY: gperf
+gperf:
+	gperf -t -N in_array_set gperf/arrayMethods.txt > include/arrayMethods.h
+	gperf -t -N in_string_set gperf/stringMethods.txt > include/stringMethods.h

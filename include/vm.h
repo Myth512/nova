@@ -84,7 +84,6 @@ void initVM();
 
 void freeVM();
 
-
 void printInstanse(Value value);
 
 InterpretResult interpret(const char *source);

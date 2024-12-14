@@ -11,6 +11,7 @@
 #include "native.h"
 #include "error.h"
 #include "arrayMethods.h"
+#include "stringMethods.h"
 
 #define READ_BYTE()     (*frame->ip++)
 #define READ_CONSTANT() (frame->closure->function->code.constants.values[READ_BYTE()]) 
@@ -543,8 +544,17 @@ static bool getProperty(Value obj, ObjString *name, Value *value) {
         return false;
 
     switch (OBJ_TYPE(obj)) {
+        case OBJ_STRING: {
+            const struct StringMethod *result = in_string_set(name->chars, strlen(name->chars));
+            if (result) {
+                ObjNativeMethod *method = createNativeMethod(obj, result->method, result->name);
+                *value = OBJ_VAL(method);
+                return true;
+            } 
+            return false;
+        }
         case OBJ_ARRAY: {
-            const struct Keyword *result = in_word_set(name->chars, strlen(name->chars));
+            const struct ArrayMethod *result = in_array_set(name->chars, strlen(name->chars));
             if (result) {
                 ObjNativeMethod *method = createNativeMethod(obj, result->method, result->name);
                 *value = OBJ_VAL(method);
@@ -671,12 +681,6 @@ static void equality(char *name, bool inverse, ObjString *method) {
     Value a = pop();
 
     push(BOOL_VAL(compareValues(a, b) ^ inverse));
-}
-
-void printInstanse(Value value) {
-    if (!callUnaryMethod(vm.magicStrings.str)) {
-        printf("instance of %s", AS_INSTANCE(value)->class->name->chars);
-    }
 }
 
 static InterpretResult run() {

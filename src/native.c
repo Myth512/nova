@@ -81,38 +81,3 @@ Value hashNative(int argc, Value *argv) {
     }
     return NUMBER_VAL(hashValue(argv[0]));
 }
-
-Value arrayPushNative(int argc, Value *argv) {
-    ObjArray *array = AS_ARRAY(argv[0]);
-    pushValue(&array->values, argv[1]);
-    return NIL_VAL;
-}
-
-Value arrayPopNative(int argc, Value *argv) {
-    ObjArray *array = AS_ARRAY(argv[-1]);
-    if (array->values.size == 0) {
-        reportRuntimeError("Can't pop from empty array");
-    }
-    return popValue(&array->values);
-}
-
-Value arrayInsertNative(int argc, Value *argv) {
-    ObjArray *array = AS_ARRAY(argv[-1]);
-    int index = AS_NUMBER(argv[0]);
-    insertValue(&array->values, index, argv[1]);
-    return NIL_VAL;
-}
-
-Value arrayReverseNative(int argc, Value *argv) {
-    ObjArray *array = AS_ARRAY(argv[-1]);
-    reverseValueVec(&array->values);
-    return NIL_VAL;
-}
-
-Value arraySortNative(int argc, Value *argv) {
-
-}
-
-Value arrayConcatinateNative(int argc, Value *argv) {
-
-}
