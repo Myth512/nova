@@ -133,14 +133,6 @@ ObjRawString* createRawString(const char *chars, int length) {
     return string;
 }
 
-bool compareStrings(ObjString *a, ObjString *b) {
-    if (a->isInterned && b->isInterned)
-        return a == b;
-    if (a->length != b->length) 
-        return false;
-    return memcmp(a->chars, b->chars, a->length) == 0;
-}
-
 bool compareArrays(ObjArray *a, ObjArray *b) {
     if (a->values.size != b->values.size)
         return false;
@@ -350,10 +342,12 @@ uint64_t hashObject(Value value) {
 }
 
 bool compareObjects(Value a, Value b) {
-    switch (a.type) {
+    switch (OBJ_TYPE(a)) {
         case OBJ_NATIVE:
             return AS_NATIVE(a)->function == AS_NATIVE(b)->function;
         case OBJ_CLOSURE:
             return AS_CLOSURE(a)->function == AS_CLOSURE(b)->function;
+        case OBJ_STRING:
+            return compareStrings(AS_STRING(a), AS_STRING(b));
     }
 }

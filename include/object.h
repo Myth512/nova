@@ -46,6 +46,15 @@ typedef enum {
     OBJ_ARRAY
 } ObjType;
 
+typedef enum {
+    CMP_GT,
+    CMP_GE,
+    CMP_LT,
+    CMP_LE,
+    CMP_EQ,
+    CMP_NE
+} CompareOperator;
+
 struct Obj {
     ObjType type;
     bool isMarked;

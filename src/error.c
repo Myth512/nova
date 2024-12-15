@@ -12,6 +12,10 @@ void reportRuntimeError(const char *format, ...) {
     printf("\n");
 }
 
+void reportArityError(int expected, int got) {
+    reportRuntimeError("Expect %d arguments, but got %d", expected, got);
+}
+
 const char* getCodeLine(const char *source, int line) {
     int curLine = 1;
     const char *lineStart = source;

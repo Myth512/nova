@@ -187,27 +187,6 @@ static void defineMethod(ObjString* name) {
     pop();
 }
 
-static inline void concatenateStrings() {
-    ObjString *b = AS_STRING(pop());
-    ObjString *a = AS_STRING(pop());
-
-    int length = a->length + b->length;
-
-    int size = sizeof(ObjString) + length + 1;
-
-    ObjString *result = (ObjString*)allocateObject(size, OBJ_STRING);
-
-    memcpy(result->chars, a->chars, a->length);
-    memcpy(result->chars + a->length, b->chars, b->length);
-    result->chars[length] = '\0';
-
-    result->length = length;
-    result->isHashed = false;
-    result->isInterned = false;
-
-    push(OBJ_VAL(result));
-}
-
 static void concatenateArrays() {
     ObjArray *a = AS_ARRAY(pop());
     ObjArray *b = AS_ARRAY(pop());
