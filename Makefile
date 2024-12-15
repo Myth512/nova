@@ -47,5 +47,5 @@ test:
 
 .PHONY: gperf
 gperf:
-	gperf -t -N in_array_set gperf/arrayMethods.txt > include/arrayMethods.h
-	gperf -t -N in_string_set gperf/stringMethods.txt > include/stringMethods.h
+	gperf -t -N in_array_set -H array_hash gperf/arrayMethods.txt > include/arrayMethods.h
+	gperf -t -N in_string_set -H string_hash gperf/stringMethods.txt > include/stringMethods.h

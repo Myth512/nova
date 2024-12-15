@@ -265,7 +265,13 @@ void printObject(Value value) {
             printf("%s", AS_CLASS(value)->name->chars);
             break;
         case OBJ_INSTANCE:
-            printInstanse(value);
+            Value res;
+            bool success = callNovaMethod(value, vm.magicStrings.str, 0, &res);
+            if (success) {
+                printValue(res);
+            } else {
+                printf("Instanse of %s", AS_INSTANCE(value)->class->name->chars);
+            }
             break;
         case OBJ_METHOD:
             printFunction(AS_METHOD(value)->method->function);

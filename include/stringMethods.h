@@ -1,5 +1,5 @@
 /* ANSI-C code produced by gperf version 3.1 */
-/* Command-line: gperf -t -N in_string_set gperf/stringMethods.txt  */
+/* Command-line: gperf -t -N in_string_set -H string_hash gperf/stringMethods.txt  */
 /* Computed positions: -k'2-3' */
 
 #if !((' ' == 32) && ('!' == 33) && ('"' == 34) && ('#' == 35) \
@@ -54,7 +54,7 @@ inline
 #endif
 #endif
 static unsigned int
-hash (register const char *str, register size_t len)
+string_hash (register const char *str, register size_t len)
 {
   static unsigned char asso_values[] =
     {
@@ -132,7 +132,7 @@ in_string_set (register const char *str, register size_t len)
 
   if (len <= MAX_WORD_LENGTH && len >= MIN_WORD_LENGTH)
     {
-      register unsigned int key = hash (str, len);
+      register unsigned int key = string_hash (str, len);
 
       if (key <= MAX_HASH_VALUE)
         {

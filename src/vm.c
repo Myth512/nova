@@ -22,8 +22,8 @@
 VM vm;
 CallFrame *frame;
 
-static void printErrorInCode(int offset) {
-    int index = frame->ip - frame->closure->function->code.code - 1 + offset;
+void printErrorInCode() {
+    int index = frame->ip - frame->closure->function->code.code - 1;
     int line = frame->closure->function->code.lines[index];
     int column = frame->closure->function->code.columns[index];
     int length = frame->closure->function->code.lengths[index];
@@ -64,11 +64,11 @@ static Value peek(int distance) {
 static bool call(ObjClosure *closure, int argc) {
     if (argc != closure->function->arity) {
         reportRuntimeError("Expected %d arguments but go %d", closure->function->arity, argc);
-        printErrorInCode(0);
+        printErrorInCode();
     }
     if (vm.frameSize == FRAMES_SIZE) {
         reportRuntimeError("Stack overflow");
-        printErrorInCode(0);
+        printErrorInCode();
     }
     CallFrame *frame = &vm.frames[vm.frameSize++];
     frame->closure = closure;
@@ -139,7 +139,7 @@ static bool callValueInternal(Value callee, int argc) {
         }
     }
     reportRuntimeError("Can only call functions and classes");
-    printErrorInCode(0);
+    printErrorInCode();
     return false;
 }
 
@@ -147,19 +147,6 @@ static bool callValue(Value callee, int argc) {
     bool res = callValueInternal(callee, argc);
     frame = &vm.frames[vm.frameSize - 1];
     return res;
-}
-
-static void bindMethod(ObjClass *class, ObjString *name) {
-    Value method;
-    if (!tableGet(&class->methods, name, &method)) {
-        reportRuntimeError("Undefined property '%s'", name->chars);
-        printErrorInCode(0);
-    }
-
-    ObjMethod *methodObj = createMethod(peek(0), AS_CLOSURE(method));
-
-    pop();
-    push(OBJ_VAL(methodObj));
 }
 
 static ObjUpvalue *captureUpvalue(Value *local) {
@@ -257,7 +244,7 @@ static inline double multiply(double a, double b) {
 static inline double divide(double a, double b) {
     if (b == 0) {
         reportRuntimeError("Division by zero");
-        printErrorInCode(0);
+        printErrorInCode();
     }
     return a / b;
 }
@@ -265,7 +252,7 @@ static inline double divide(double a, double b) {
 static inline double modulo(double a, double b) {
     if (b == 0) {
         reportRuntimeError("Division by zero");
-        printErrorInCode(0);
+        printErrorInCode();
     }
     return fmod(a, b);
 }
@@ -288,7 +275,6 @@ static void swapValues(Value *a, Value *b) {
     *b = *tmp;
 }
 
-
 static void repeatString() {
     ObjString* string;
     double number;
@@ -303,7 +289,7 @@ static void repeatString() {
 
     if (number != (int)number) {
         reportRuntimeError("Can't multiply string by non whole number");
-        printErrorInCode(0);
+        printErrorInCode();
     }
 
     size_t initLength = string->length;
@@ -335,7 +321,7 @@ static void repeatArray() {
 
     if (number != (int)number) {
         reportRuntimeError("Can't multiply array by non whole number");
-        printErrorInCode(0);
+        printErrorInCode();
     }
 
     size_t initSize = array->values.size;
@@ -436,19 +422,19 @@ static void getAt(bool popValues) {
 
     if (!IS_OBJ(object)) {
         reportRuntimeError("%s is not subscripable", decodeValueType(object));
-        printErrorInCode(0);
+        printErrorInCode();
     }
 
     switch (AS_OBJ(object)->type) {
         case OBJ_ARRAY: {
             if (!IS_NUMBER(key)) {
                 reportRuntimeError("Index must be a number");
-                printErrorInCode(0);
+                printErrorInCode();
             }
             float fi = AS_NUMBER(key);
             if (fi != (int)fi) {
                 reportRuntimeError("Index must be a whole number");
-                printErrorInCode(0);
+                printErrorInCode();
             }
             
             int i = (int)fi;
@@ -456,7 +442,7 @@ static void getAt(bool popValues) {
             int size = AS_ARRAY(object)->values.size;
             if (i >= size || i < -size) {
                 reportRuntimeError("Index is out of range");
-                printErrorInCode(0);
+                printErrorInCode();
             }
             if (i < 0)
                 i += size;
@@ -467,19 +453,19 @@ static void getAt(bool popValues) {
         case OBJ_STRING: {
             if (!IS_NUMBER(key)) {
                 reportRuntimeError("Index must be a number");
-                printErrorInCode(0);
+                printErrorInCode();
             }
             float fi = AS_NUMBER(key);
             if (fi != (int)fi) {
                 reportRuntimeError("Index must be a whole number");
-                printErrorInCode(0);
+                printErrorInCode();
             }
             int i = (int)fi;
 
             int length = AS_STRING(object)->length; 
             if (i >= length || i < -length) {
                 reportRuntimeError("Index is out of range");
-                printErrorInCode(0);
+                printErrorInCode();
             }
             if (i < 0)
                 i += length;
@@ -491,7 +477,7 @@ static void getAt(bool popValues) {
         }
         default:
             reportRuntimeError("%s is not subscripable", decodeObjType(object));
-            printErrorInCode(0);
+            printErrorInCode();
     }
 }
 
@@ -502,26 +488,26 @@ static void setAt() {
 
     if (!IS_OBJ(object)) {
         reportRuntimeError("%s is not subscripable", decodeValueType(object));
-        printErrorInCode(0);
+        printErrorInCode();
     }
 
     switch (AS_OBJ(object)->type) {
         case OBJ_ARRAY: {
             if (!IS_NUMBER(key)) {
                 reportRuntimeError("Index must be a number");
-                printErrorInCode(0);
+                printErrorInCode();
             }
             float fi = AS_NUMBER(key);
             if (fi != (int)fi) {
                 reportRuntimeError("Index must be a whole number");
-                printErrorInCode(0);
+                printErrorInCode();
             }
             int i = (int)fi;
 
             int size = AS_ARRAY(object)->values.size;
             if (i >= size || i < -size) {
                 reportRuntimeError("Index is out of range");
-                printErrorInCode(0);
+                printErrorInCode();
             }
             if (i < 0)
                 i += size;
@@ -531,10 +517,12 @@ static void setAt() {
         }
         case OBJ_STRING:
             reportRuntimeError("Strings are immutable");
-            printErrorInCode(0);
+            printErrorInCode();
+            break;
         default:
             reportRuntimeError("%s is not subscripable", decodeObjType(value));
-            printErrorInCode(0);
+            printErrorInCode();
+            break;
     }
 
 }
@@ -584,7 +572,7 @@ static bool getProperty(Value obj, ObjString *name, Value *value) {
 static void setProperty() {
     if (!IS_INSTANCE(peek(1))) {
         reportRuntimeError("Only instances have fields");
-        printErrorInCode(0);
+        printErrorInCode();
     }
     ObjInstance *instance = AS_INSTANCE(peek(1));
     tableSet(&instance->fields, READ_STRING(), peek(0));
@@ -641,7 +629,7 @@ static void arithmetic(char *name, double (*function)(double, double), ObjString
         return;
 
     reportRuntimeError("Unsupported operator '%s' for %s and %s", name, decodeValueType(peek(1)), decodeValueType(peek(0)));
-    printErrorInCode(0);
+    printErrorInCode();
 }
 
 static inline void unary(char *name, double (*function)(double), ObjString *method) {
@@ -655,7 +643,7 @@ static inline void unary(char *name, double (*function)(double), ObjString *meth
         return;
 
     reportRuntimeError("Unsupported operator '%s' for %s", name, decodeValueType(peek(0)));
-    printErrorInCode(0);
+    printErrorInCode();
 }
 
 static void inequality(char *name, bool (*function)(double, double), ObjString *method) {
@@ -670,10 +658,10 @@ static void inequality(char *name, bool (*function)(double, double), ObjString *
         return;
 
     reportRuntimeError("Unsupported operator '%s' for %s and %s", name, decodeValueType(peek(1)), decodeValueType(peek(0)));
-    printErrorInCode(0);
+    printErrorInCode();
 }
 
-static void equality(char *name, bool inverse, ObjString *method) {
+static void equality(bool inverse, ObjString *method) {
     if (callBinaryMethod(method, NULL, NULL))
         return;
     
@@ -683,8 +671,9 @@ static void equality(char *name, bool inverse, ObjString *method) {
     push(BOOL_VAL(compareValues(a, b) ^ inverse));
 }
 
-static InterpretResult run() {
+static Value run() {
     frame = &vm.frames[vm.frameSize - 1];
+    int startFrame = vm.frameSize - 1;
     while (true) {
 
         #ifdef DEBUG_TRACE_EXECUTION
@@ -709,7 +698,7 @@ static InterpretResult run() {
                 Value value;
                 if (!tableGet(&vm.globals, name, &value)) {
                     reportRuntimeError("Undefined variable '%s'", name->chars);
-                    printErrorInCode(0);
+                    printErrorInCode();
                 }
                 push(value);
                 break;
@@ -764,10 +753,10 @@ static InterpretResult run() {
                 push(BOOL_VAL(true));
                 break;
             case OP_EQUAL:
-                equality("!=", false, vm.magicStrings.eq);
+                equality(false, vm.magicStrings.eq);
                 break;
             case OP_NOT_EQUAL:
-                equality("!=", true, vm.magicStrings.ne);
+                equality(true, vm.magicStrings.ne);
                 break;
             case OP_GREATER:
                 inequality(">", greater, vm.magicStrings.gt);
@@ -860,7 +849,7 @@ static InterpretResult run() {
             case OP_CALL: {
                 int argc = READ_BYTE();
                 if (!callValue(peek(argc), argc))
-                    return INTERPRET_RUNTIME_ERROR;
+                    return NIL_VAL;
                 break;
             }
             case OP_CLOSURE: {
@@ -897,7 +886,7 @@ static InterpretResult run() {
                     push(value);
                 } else {
                     reportRuntimeError("Object of %s does not have property %s", decodeValueType(obj), name->chars);
-                    printErrorInCode(0);
+                    printErrorInCode();
                 }
                 break;
             case OP_SET_PROPERTY:
@@ -907,9 +896,9 @@ static InterpretResult run() {
                 Value result = pop();
                 closeUpvalues(frame->slots);
                 vm.frameSize--;
-                if (vm.frameSize == 0) {
+                if (vm.frameSize == startFrame) {
                     pop();
-                    return INTERPRET_OK;
+                    return result;
                 }
 
                 vm.top = frame->slots;
@@ -919,6 +908,20 @@ static InterpretResult run() {
             }
         }
     }
+}
+
+Value callNovaValue(Value callee, int argc) {
+    callValue(callee, argc);
+    return run();
+}
+
+bool callNovaMethod(Value obj, ObjString *methodName, int argc, Value *value) {
+    Value method;
+    if (getProperty(obj, methodName, &method)) {
+        *value = callNovaValue(method, 0);
+        return true;
+    }
+    return false;
 }
 
 void initMagicStrings() {
@@ -991,5 +994,6 @@ InterpretResult interpret(const char *source) {
     #endif
 
     vm.source = source;
-    return run();
+    run();
+    return INTERPRET_OK;
 }

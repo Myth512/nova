@@ -75,16 +75,21 @@ typedef enum {
 } InterpretResult;
 
 extern VM vm;
+extern CallFrame *frame;
 
 void push(Value value);
 
 Value pop();
 
+void printErrorInCode();
+
+Value callNovaValue(Value callee, int argc);
+
+bool callNovaMethod(Value obj, ObjString *methodName, int argc, Value *value);
+
 void initVM();
 
 void freeVM();
-
-void printInstanse(Value value);
 
 InterpretResult interpret(const char *source);
 
