@@ -4,6 +4,7 @@
 
 #include "value.h"
 #include "object.h"
+#include "object_utils.h"
 #include "memory.h"
 
 void initValueVec(ValueVec *vec) {

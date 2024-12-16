@@ -6,6 +6,7 @@
 #include "native.h"
 #include "value.h"
 #include "object.h"
+#include "object_string.h"
 #include "error.h"
 
 Value clockNative(int argc, Value *argv) {
@@ -66,8 +67,6 @@ Value lenNative(int argc, Value *argv) {
         reportRuntimeError("%s does not have len", decodeValueType(value));
     }
     switch (AS_OBJ(value)->type) {
-        case OBJ_ARRAY:
-            return NUMBER_VAL(AS_ARRAY(value)->values.size);
         case OBJ_STRING:
             return NUMBER_VAL(AS_STRING(value)->length);
         default:

@@ -6,12 +6,14 @@
 #include "vm.h"
 #include "debug.h"
 #include "object.h"
+#include "object_string.h"
+#include "object_array.h"
 #include "memory.h"
 #include "compiler.h"
 #include "native.h"
 #include "error.h"
-#include "arrayMethods.h"
-#include "stringMethods.h"
+#include "array_methods.h"
+#include "string_methods.h"
 
 #define READ_BYTE()     (*frame->ip++)
 #define READ_CONSTANT() (frame->closure->function->code.constants.values[READ_BYTE()]) 
@@ -423,7 +425,7 @@ static void getAt(bool popValues) {
             break;
         }
         default:
-            reportRuntimeError("%s is not subscripable", decodeObjType(object));
+            reportRuntimeError("%s is not subscripable", decodeValueType(object));
             printErrorInCode();
     }
 }
@@ -467,7 +469,7 @@ static void setAt() {
             printErrorInCode();
             break;
         default:
-            reportRuntimeError("%s is not subscripable", decodeObjType(value));
+            reportRuntimeError("%s is not subscripable", decodeValueType(value));
             printErrorInCode();
             break;
     }

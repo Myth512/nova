@@ -32,7 +32,7 @@
 #line 1 "gperf/stringMethods.txt"
 
 #include <string.h>
-#include "novaString.h"
+#include "nova_string.h"
 #line 6 "gperf/stringMethods.txt"
 struct StringMethod {
 	const char *name;

@@ -1,6 +1,6 @@
 %{
 #include <string.h>
-#include "novaArray.h"
+#include "nova_array.h"
 %}
 
 struct ArrayMethod {

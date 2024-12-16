@@ -1,7 +1,8 @@
 #include <string.h>
 
-#include "novaString.h"
+#include "nova_string.h"
 #include "object.h"
+#include "object_string.h"
 #include "vm.h"
 #include "error.h"
 
@@ -23,6 +24,8 @@ Value stringEqual(int argc, Value *argv) {
 
     ObjString *a = AS_STRING(argv[0]);
     ObjString *b = AS_STRING(argv[1]);
+
+    ObjString *c;
 
     if (a->isInterned && b->isInterned)
         return BOOL_VAL(a == b);
@@ -132,19 +135,13 @@ Value stringAdd(int argc, Value *argv) {
 
     int length = a->length + b->length;
 
-    int size = sizeof(ObjString) + length + 1;
+    ObjString *result = allocateString(length);
 
-    ObjString *res = (ObjString*)allocateObject(size, OBJ_STRING);
+    memcpy(result->chars, a->chars, a->length);
+    memcpy(result->chars + a->length, b->chars, b->length);
+    result->chars[length] = '\0';
 
-    memcpy(res->chars, a->chars, a->length);
-    memcpy(res->chars + a->length, b->chars, b->length);
-    res->chars[length] = '\0';
-
-    res->length = length;
-    res->isHashed = false;
-    res->isInterned = false;
-
-    return OBJ_VAL(res);
+    return OBJ_VAL(result);
 }
 
 Value stringMultiply(int argc, Value *argv) {
@@ -178,7 +175,11 @@ Value stringGetAt(int argc, Value *argv) {
 }
 
 Value stringLen(int argc, Value *argv) {
-
+    if (argc != 0) {
+        reportArityError(0, argc);
+        printErrorInCode();
+    }
+    return NUMBER_VAL(AS_STRING(argv[0])->length);
 }
 
 Value stringHash(int argc, Value *argv) {

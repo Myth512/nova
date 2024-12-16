@@ -1,5 +1,5 @@
-#ifndef STRING_H
-#define STRING_H
+#ifndef NOVA_STRING_H
+#define NOVA_STRING_H
 
 #include "value.h"
 

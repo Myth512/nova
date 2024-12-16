@@ -4,6 +4,7 @@
 
 #include "table.h"
 #include "memory.h"
+#include "object_string.h"
 
 #define TABLE_MAX_LOAD 0.75
 
@@ -19,7 +20,7 @@ void freeTable(Table *table) {
 }
 
 static Entry* findEntry(Entry *entries, int capacity, ObjString *key) {
-    uint32_t index = getHash(key) % capacity; 
+    uint32_t index = getStringHash(key) % capacity; 
     Entry *tombstone = NULL;
 
     while (true) {
@@ -132,19 +133,6 @@ void tableAddAll(Table *source, Table *destination) {
 //         index = (index + 1) % table->capacity;
 //     }
 // }
-#include <stdio.h>
-
-void printTable(Table *table) {
-    for (int i = 0; i < table->capacity; i++) {
-        Entry *entry = &table->entries[i];
-        if (entry->key != NULL) {
-            printObject(OBJ_VAL((Obj*)entry->key));
-            printf(" : ");
-            printValue(entry->value);
-            printf("\n");
-        }
-    }
-}
 
 void markTable(Table *table) {
     for (int i = 0; i < table->capacity; i++) {

@@ -12,8 +12,6 @@
 #define IS_CLOSURE(value)       isObjType(value, OBJ_CLOSURE)
 #define IS_FUNCTION(value)      isObjType(value, OBJ_FUNCTION)
 #define IS_NATIVE(value)        isObjType(value, OBJ_NATIVE)
-#define IS_STRING(value)        isObjType(value, OBJ_STRING)
-#define IS_ARRAY(value)         isObjType(value, OBJ_ARRAY)
 #define IS_CLASS(value)         isObjType(value, OBJ_CLASS)
 #define IS_INSTANCE(value)      isObjType(value, OBJ_INSTANCE)
 #define IS_METHOD(value)        isObjType(value, OBJ_METHOD)
@@ -22,10 +20,6 @@
 #define AS_CLOSURE(value)       ((ObjClosure*)AS_OBJ(value))
 #define AS_FUNCTION(value)      ((ObjFunction*)AS_OBJ(value))
 #define AS_NATIVE(value)        ((ObjNative*)AS_OBJ(value))
-#define AS_STRING(value)        ((ObjString*)AS_OBJ(value))
-#define AS_CSTRING(value)       (((ObjString*)AS_OBJ(value))->chars)
-#define AS_RAW_STRING(value)    ((ObjRawString*)AS_OBJ(value))
-#define AS_ARRAY(value)         ((ObjArray*)AS_OBJ(value))
 #define AS_UPVALUE(value)       ((ObjUpvalue*)AS_OBJ(value))
 #define AS_CLASS(value)         ((ObjClass*)AS_OBJ(value))
 #define AS_INSTANCE(value)      ((ObjInstance*)AS_OBJ(value))
@@ -61,21 +55,6 @@ struct Obj {
     struct Obj *next;
 };
 
-struct ObjString {
-    Obj obj;
-    int length;
-    uint32_t hash;
-    bool isHashed;
-    bool isInterned;
-    char chars[];
-};
-
-struct ObjRawString {
-    Obj obj;
-    int length;
-    const char *chars;
-};
-
 typedef struct ObjUpvalue {
     Obj obj;
     Value *location;
@@ -108,11 +87,6 @@ typedef struct {
 
 typedef struct {
     Obj obj;
-    ValueVec values;
-} ObjArray;
-
-typedef struct {
-    Obj obj;
     ObjString *name;
     Table methods;
 } ObjClass;
@@ -142,8 +116,6 @@ static inline bool isObjType(Value value, ObjType type) {
 
 Obj* allocateObject(size_t size, ObjType type);
 
-ObjRawString* createRawString(const char *chars, int length);
-
 ObjUpvalue *createUpvalue(Value *slot);
 
 ObjFunction* createFunction();
@@ -159,33 +131,5 @@ ObjInstance *createInstance(ObjClass *class);
 ObjMethod *createMethod(Value reciever, ObjClosure *method);
 
 ObjNativeMethod *createNativeMethod(Value reciever, NativeFn function, const char *name);
-
-ObjString *allocateString(size_t length);
-
-ObjString *copyString(const char *chars, size_t length);
-
-ObjString *copyEscapedString(const char *chars, size_t length);
-
-bool compareObjects(Value a, Value b);
-
-bool stringsEqual(ObjString *a, ObjString *b);
-
-bool compareStrings(ObjString *a, ObjString *b, CompareOperator op);
-
-uint32_t getHash(ObjString *string);
-
-ObjArray* allocateArray(int size);
-
-int resolveEscapeSequence(const char *source, int sourceLength, char *destination);
-
-void printObject(Value value);
-
-int writeObject(Value value, char *buffer, const size_t maxSize);
-
-const char* decodeObjType(Value value);
-
-const char *decodeObjTypeClean(Value value);
-
-uint64_t hashObject(Value value);
 
 #endif

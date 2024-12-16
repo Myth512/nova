@@ -1,6 +1,6 @@
 %{
 #include <string.h>
-#include "novaString.h"
+#include "nova_string.h"
 %}
 
 struct StringMethod {

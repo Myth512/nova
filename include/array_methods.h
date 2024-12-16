@@ -32,7 +32,7 @@
 #line 1 "gperf/arrayMethods.txt"
 
 #include <string.h>
-#include "novaArray.h"
+#include "nova_array.h"
 #line 6 "gperf/arrayMethods.txt"
 struct ArrayMethod {
 	const char *name;

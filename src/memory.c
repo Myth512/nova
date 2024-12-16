@@ -3,6 +3,7 @@
 #include "memory.h"
 #include "common.h"
 #include "compiler.h"
+#include "object_string.h"
 #include "vm.h"
 
 #define GC_HEAP_GROW_FACTOR 2

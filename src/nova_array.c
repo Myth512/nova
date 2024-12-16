@@ -1,5 +1,6 @@
-#include "novaArray.h"
+#include "nova_array.h"
 #include "object.h"
+#include "object_array.h"
 #include "error.h"
 #include "vm.h"
 

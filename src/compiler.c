@@ -8,6 +8,7 @@
 #include "debug.h"
 #include "common.h"
 #include "object.h"
+#include "object_string.h"
 #include "error.h"
 
 #define NO_ARG -1
