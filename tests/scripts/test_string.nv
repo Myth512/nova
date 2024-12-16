@@ -23,3 +23,12 @@ print("value of a is {a} post")
 
 // Case 8, expected: true
 print("boolean algebra {true or false} {true and false}")
+
+// Case 9, expected: 
+print("Hi" * 5)
+
+// Case 10, expected:
+print(3 * "{2 * 2 + 3}")
+
+// Case 11
+print("Hello\nWorld")

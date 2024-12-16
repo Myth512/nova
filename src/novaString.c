@@ -148,7 +148,29 @@ Value stringAdd(int argc, Value *argv) {
 }
 
 Value stringMultiply(int argc, Value *argv) {
+    if (argc != 1) {
+        reportArityError(1, argc);
+        printErrorInCode();
+    }
 
+    if (!isInt(argv[1])) {
+        reportRuntimeError("Multiplier must be whole number");
+        printErrorInCode();
+    }
+
+    ObjString *string = AS_STRING(argv[0]);
+    int multiplier = asInt(argv[1]);
+
+    size_t oldLength = string->length;
+    size_t newLength = oldLength * multiplier;
+
+    ObjString *result = allocateString(newLength);
+
+    for (int i = 0; i < multiplier; i++) {
+        memcpy(result->chars + i * oldLength, string->chars, oldLength);
+    }
+
+    return OBJ_VAL(result);
 }
 
 Value stringGetAt(int argc, Value *argv) {

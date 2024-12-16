@@ -59,6 +59,10 @@ void insertValue(ValueVec *vec, int index, Value value);
 
 void reverseValueVec(ValueVec *vec);
 
+bool isInt(Value value);
+
+int asInt(Value value);
+
 void printValue(Value value);
 
 int writeValue(Value value, char *buffer, const size_t maxSize);

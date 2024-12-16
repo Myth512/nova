@@ -56,6 +56,17 @@ Value popValue(ValueVec *vec) {
     return vec->values[--vec->size];
 }
 
+bool isInt(Value value) {
+    if (!IS_NUMBER(value))
+        return false;
+    double f = AS_NUMBER(value);
+    return f == (int)f;
+}
+
+int asInt(Value value) {
+    return (int)AS_NUMBER(value);
+}
+
 void printValue(Value value) {
     switch (value.type) {
         case VAL_BOOL:

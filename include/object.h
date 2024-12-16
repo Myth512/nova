@@ -160,15 +160,17 @@ ObjMethod *createMethod(Value reciever, ObjClosure *method);
 
 ObjNativeMethod *createNativeMethod(Value reciever, NativeFn function, const char *name);
 
-ObjString* copyString(const char *chars, int length);
+ObjString *allocateString(size_t length);
 
-ObjString* allocateString(const char *chars, int length);
+ObjString *copyString(const char *chars, size_t length);
 
-ObjString* takeString(char *chars, int length);
-
-bool compareStrings(ObjString *a, ObjString *b);
+ObjString *copyEscapedString(const char *chars, size_t length);
 
 bool compareObjects(Value a, Value b);
+
+bool stringsEqual(ObjString *a, ObjString *b);
+
+bool compareStrings(ObjString *a, ObjString *b, CompareOperator op);
 
 uint32_t getHash(ObjString *string);
 

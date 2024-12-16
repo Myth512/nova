@@ -406,7 +406,7 @@ static void number(bool canAssign) {
 static void string(bool canAssign) {
     (void)canAssign;
 
-    emitConstant(OBJ_VAL(copyString(parser.current.start, parser.current.length)));
+    emitConstant(OBJ_VAL(copyEscapedString(parser.current.start, parser.current.length)));
     advance(false);
 }
 

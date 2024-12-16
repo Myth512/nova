@@ -254,38 +254,6 @@ static void swapValues(Value *a, Value *b) {
     *b = *tmp;
 }
 
-static void repeatString() {
-    ObjString* string;
-    double number;
-
-    if (IS_STRING(peek(0))) {
-        string = AS_STRING(pop());
-        number = AS_NUMBER(pop());
-    } else {
-        number = AS_NUMBER(pop());
-        string = AS_STRING(pop());
-    }
-
-    if (number != (int)number) {
-        reportRuntimeError("Can't multiply string by non whole number");
-        printErrorInCode();
-    }
-
-    size_t initLength = string->length;
-    size_t newLength = initLength * number;
-
-    ObjString *result = (ObjString*)allocateObject(sizeof(ObjString) + newLength, OBJ_STRING);
-    result->isHashed = false;
-    result->isInterned = false;
-    result->length = newLength;
-
-    for (int i = 0; i < number; i++) {
-        memcpy(result->chars + i * initLength, string->chars, initLength);
-    }
-
-    push(OBJ_VAL(result));
-}
-
 static void repeatArray() {
     ObjArray *array;
     double number;
@@ -449,8 +417,8 @@ static void getAt(bool popValues) {
             if (i < 0)
                 i += length;
             
-            char chr = AS_STRING(object)->chars[i];
-            ObjString *string = allocateString(&chr, 1);
+            const char chr = AS_STRING(object)->chars[i];
+            ObjString *string = copyString(&chr, 1);
             push(OBJ_VAL(string));
             break;
         }

@@ -53,7 +53,7 @@ Value maxNative(int argc, Value *argv) {
 Value typeNative(int argc, Value *argv) {
     const char *type = decodeValueTypeClean(argv[0]);
     size_t len = strlen(type);
-    ObjString *string = allocateString(type, len);
+    ObjString *string = copyString(type, len);
     return OBJ_VAL(string);
 }
 

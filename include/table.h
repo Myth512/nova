@@ -26,8 +26,6 @@ bool tableDelete(Table *table, ObjString *key);
 
 void tableAddAll(Table *source, Table *destination);
 
-ObjString* tableFindString(Table *table, const char *chars, int length, uint32_t hash);
-
 void markTable(Table *table);
 
 void printTable(Table *table);

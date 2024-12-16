@@ -57,16 +57,13 @@ int resolveEscapeSequence(const char *source, int sourceLength, char *destinatio
     while (sourceChar < endChar) {
         if (*sourceChar != '\\') {
             *destinationChar = *sourceChar;
-            sourceChar++;
-            destinationChar++;
-            destinationLength++;
         } else {
             sourceChar++;
             *destinationChar = convertToEscapeChar(*sourceChar);
-            sourceChar++;
-            destinationChar++;
-            destinationLength++;
         }
+        sourceChar++;
+        destinationChar++;
+        destinationLength++;
     }
     *destinationChar = '\0';
     return destinationLength;
@@ -89,33 +86,26 @@ uint32_t getHash(ObjString *string) {
     return string->hash;
 }
 
-ObjString* allocateString(const char *chars, int length) {
-    int size = sizeof(ObjString) + length + 1;
-    ObjString *string = (ObjString*)allocateObject(size, OBJ_STRING); 
+ObjString *allocateString(size_t length) {
+    size_t size = sizeof(ObjString) + length + 1;
+    ObjString *string = (ObjString*)allocateObject(size, OBJ_STRING);
     string->isInterned = false;
     string->isHashed = false;
-
-    string->length = resolveEscapeSequence(chars, length, string->chars);
-    int newSize = size - (length - string->length);
-    reallocate(string, size, newSize);
-
+    string->length = length;
     return string;
 }
 
-ObjString* copyString(const char *chars, int length) {
-    return allocateString(chars, length);
+ObjString *copyString(const char *chars, size_t length) {
+    ObjString *string = allocateString(length);
+    memcpy(string->chars, chars, length);
+    string->chars[string->length] = '\0';
+    return string;
 }
 
-ObjString* takeString(char *chars, int length) {
-    // uint32_t hash = hashString(chars, length);
-    // ObjString *interned = tableFindString(&vm.strings, chars, length, hash);
-
-    // if (interned != NULL) {
-    //     FREE_VEC(char, chars, length + 1);
-    //     return interned;
-    // }
-
-    return allocateString(chars, length);
+ObjString *copyEscapedString(const char *chars, size_t length) {
+    ObjString *string = allocateString(length);
+    string->length = resolveEscapeSequence(chars, length, string->chars);
+    return string;
 }
 
 ObjArray* allocateArray(int size) {
@@ -341,6 +331,31 @@ uint64_t hashObject(Value value) {
     }
 }
 
+bool stringsEqual(ObjString *a, ObjString *b) {
+    if (a->length != b->length)
+        return false;
+    if (a->isInterned && b->isInterned)
+        return a == b;
+    return strcmp(a->chars, b->chars) == 0;
+}
+
+bool compareStrings(ObjString *a, ObjString *b, CompareOperator op) {
+    switch (op) {
+        case CMP_EQ:
+            return stringsEqual(a, b);
+        case CMP_NE:
+            return !stringsEqual(a, b);
+        case CMP_GT:
+            return strcmp(a->chars, b->chars) > 0;
+        case CMP_GE:
+            return strcmp(a->chars, b->chars) >= 0;
+        case CMP_LT:
+            return strcmp(a->chars, b->chars) < 0;
+        case CMP_LE:
+            return strcmp(a->chars, b->chars) <= 0;
+    }
+}
+
 bool compareObjects(Value a, Value b) {
     switch (OBJ_TYPE(a)) {
         case OBJ_NATIVE:
@@ -348,6 +363,6 @@ bool compareObjects(Value a, Value b) {
         case OBJ_CLOSURE:
             return AS_CLOSURE(a)->function == AS_CLOSURE(b)->function;
         case OBJ_STRING:
-            return compareStrings(AS_STRING(a), AS_STRING(b));
+            return compareStrings(AS_STRING(a), AS_STRING(b), CMP_EQ);
     }
 }
