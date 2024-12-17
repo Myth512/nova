@@ -81,7 +81,11 @@ void push(Value value);
 
 Value pop();
 
-void printErrorInCode();
+void reportRuntimeError(const char *format, ...);
+
+void reportArityError(int expected, int got);
+
+void reportTypeError(char *operator, Value a, Value b);
 
 Value callNovaValue(Value callee, int argc);
 

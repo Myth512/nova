@@ -40,15 +40,6 @@ typedef enum {
     OBJ_ARRAY
 } ObjType;
 
-typedef enum {
-    CMP_GT,
-    CMP_GE,
-    CMP_LT,
-    CMP_LE,
-    CMP_EQ,
-    CMP_NE
-} CompareOperator;
-
 struct Obj {
     ObjType type;
     bool isMarked;
@@ -85,31 +76,6 @@ typedef struct {
     NativeFn function;
 } ObjNative;
 
-typedef struct {
-    Obj obj;
-    ObjString *name;
-    Table methods;
-} ObjClass;
-
-typedef struct {
-    Obj obj;
-    ObjClass *class;
-    Table fields;
-} ObjInstance;
-
-typedef struct {
-    Obj obj;
-    Value reciever;
-    ObjClosure *method;
-} ObjMethod;
-
-typedef struct {
-    Obj obj;
-    Value reciever;
-    char *name;
-    NativeFn method;
-} ObjNativeMethod;
-
 static inline bool isObjType(Value value, ObjType type) {
     return IS_OBJ(value) && AS_OBJ(value)->type == type;
 }
@@ -123,13 +89,5 @@ ObjFunction* createFunction();
 ObjClosure* createClosure(ObjFunction *function);
 
 ObjNative* createNative(NativeFn function, const char *name);
-
-ObjClass *createClass(ObjString *name);
-
-ObjInstance *createInstance(ObjClass *class);
-
-ObjMethod *createMethod(Value reciever, ObjClosure *method);
-
-ObjNativeMethod *createNativeMethod(Value reciever, NativeFn function, const char *name);
 
 #endif

@@ -1,61 +1,14 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 
 #include "value.h"
 #include "object.h"
 #include "object_utils.h"
 #include "memory.h"
-
-void initValueVec(ValueVec *vec) {
-    vec->size = 0;
-    vec->capacity = 0;
-    vec->values = NULL;
-}
-
-void freeValueVec(ValueVec *vec) {
-    FREE_VEC(Value, vec->values, vec->capacity);
-    initValueVec(vec);
-}
-
-void growValueVec(ValueVec *vec) {
-    int oldCapacity = vec->capacity;
-    vec->capacity = GROW_CAPACITY(oldCapacity);
-    vec->values = GROW_VEC(Value, vec->values, oldCapacity, vec->capacity);
-}
-
-void pushValue(ValueVec *vec, Value value) {
-    if (vec->size + 1 >= vec->capacity) {
-        growValueVec(vec);
-    }
-
-    vec->values[vec->size++] = value;
-}
-
-void insertValue(ValueVec *vec, int index, Value value) {
-    if (vec->size + 1 >= vec->capacity) {
-        growValueVec(vec);
-    }
-
-    for (int i = vec->size; i > index; i--) {
-        vec->values[i] = vec->values[i-1];
-    }
-    vec->values[index] = value;
-    vec->size++;
-}
-
-void reverseValueVec(ValueVec *vec) {
-    int size = vec->size;
-    for (int i = 0; i < size / 2; i++) {
-        Value tmp = vec->values[i];
-        vec->values[i] = vec->values[size - i - 1];
-        vec->values[size - i - 1] = tmp;
-    }
-}
-
-Value popValue(ValueVec *vec) {
-    return vec->values[--vec->size];
-}
+#include "error.h"
+#include "vm.h"
 
 bool isInt(Value value) {
     if (!IS_NUMBER(value))
@@ -101,7 +54,28 @@ int writeValue(Value value, char *buffer, const size_t maxSize) {
     return -1; // unreachable
 }
 
-bool compareValues(Value a, Value b) {
+bool fequal(double a, double b) {
+    double epsilon = 1e-10;
+    return fabs(a - b) < epsilon;
+}
+
+bool greater(double a, double b) {
+    return a > b;
+}
+
+bool greaterEqual(double a, double b) {
+    return a >= b;
+}
+
+bool less(double a, double b) {
+    return a < b;
+}
+
+bool lessEqual(double a, double b) {
+    return a <= b;
+}
+
+bool valueEqual(Value a, Value b) {
     if (a.type != b.type)
         return false;
 
@@ -111,12 +85,44 @@ bool compareValues(Value a, Value b) {
         case VAL_NIL:
             return true;
         case VAL_NUMBER:
-            return AS_NUMBER(a) == AS_NUMBER(b);
+            return fequal(AS_NUMBER(a), AS_NUMBER(b));
         case VAL_OBJ:
-            return compareObjects(a, b);
-        default:
-            return false;
+            return objectEqual(a, b);
     }
+}
+
+bool valueNotEqual(Value a, Value b) {
+    return !valueEqual(a, b);
+}
+
+static bool equality(Value a, Value b, char *name, bool (*numFunc)(double, double), bool (*objFunc)(Value, Value)) {
+    if (a.type != b.type)
+        reportTypeError(name, a, b);
+
+    switch (OBJ_TYPE(a)) {
+        case VAL_NUMBER:
+            return numFunc(AS_NUMBER(a), AS_NUMBER(b));
+        case VAL_OBJ:
+            return objFunc(a, b);
+        default:
+            reportTypeError(name, a, b);
+    }
+}
+
+bool valueGreater(Value a, Value b) {
+    return equality(a, b, ">", greater, valueGreater);
+}
+
+bool valueGreaterEqual(Value a, Value b) {
+    return equality(a, b, ">=", greaterEqual, valueGreaterEqual);
+}
+
+bool valueLess(Value a, Value b) {
+    return equality(a, b, "<", less, valueLess);
+}
+
+bool valueLessEqual(Value a, Value b) {
+    return equality(a, b, "<=", lessEqual, valueLessEqual);
 }
 
 const char* decodeValueType(Value value) {

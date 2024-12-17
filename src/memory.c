@@ -4,6 +4,7 @@
 #include "common.h"
 #include "compiler.h"
 #include "object_string.h"
+#include "object_class.h"
 #include "vm.h"
 
 #define GC_HEAP_GROW_FACTOR 2

@@ -4,17 +4,6 @@
 #include "error.h"
 #include "token.h"
 
-void reportRuntimeError(const char *format, ...) {
-    va_list args;
-    va_start(args, format);
-    fprintf(stderr, "\033[31mRuntime Error\033[0m: ");
-    vprintf(format, args);
-    printf("\n");
-}
-
-void reportArityError(int expected, int got) {
-    reportRuntimeError("Expect %d arguments, but got %d", expected, got);
-}
 
 const char* getCodeLine(const char *source, int line) {
     int curLine = 1;

@@ -32,9 +32,17 @@ ObjString *copyEscapedString(const char *chars, size_t length);
 
 ObjRawString* createRawString(const char *chars, int length);
 
-bool stringsEqual(ObjString *a, ObjString *b);
+bool stringEqual(ObjString *a, ObjString *b);
 
-bool compareStrings(ObjString *a, ObjString *b, CompareOperator op);
+bool stringNotEqual(ObjString *a, ObjString *b);
+
+bool stringGreater(ObjString *a, ObjString *b);
+
+bool stringGreaterEqual(ObjString *a, ObjString *b);
+
+bool stringLess(ObjString *a, ObjString *b);
+
+bool stringLessEqual(ObjString *a, ObjString *b);
 
 int writeRawstring(char *buffer, ObjRawString *string);
 

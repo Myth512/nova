@@ -6,15 +6,15 @@
 #include "vm.h"
 #include "error.h"
 
-Value stringReverse(int argc, Value *argv) {
+Value novaStringReverse(int argc, Value *argv) {
 
 }
 
-Value stringReplace(int argc, Value *argv) {
+Value novaStringReplace(int argc, Value *argv) {
 
 }
 
-Value stringEqual(int argc, Value *argv) {
+Value novaStringEqual(int argc, Value *argv) {
     if (argc != 1) {
         reportArityError(1, argc);
         printErrorInCode();
@@ -36,8 +36,8 @@ Value stringEqual(int argc, Value *argv) {
     return BOOL_VAL(memcmp(a->chars, b->chars, a->length) == 0);
 }
 
-Value stringNotEqual(int argc, Value *argv) {
-    if (argc != 1) {
+Value novaStringNotEqual(int argc, Value *argv) {
+        if (argc != 1) {
         reportArityError(1, argc);
         printErrorInCode();
     }
@@ -113,7 +113,6 @@ Value stringLessEqual(int argc, Value *argv) {
         reportRuntimeError("Unsupported operator '<=' for %s and %s", decodeValueType(argv[0]), decodeValueType(argv[1]));
         printErrorInCode();
     }
-
     ObjString *a = AS_STRING(argv[0]);
     ObjString *b = AS_STRING(argv[1]);
 

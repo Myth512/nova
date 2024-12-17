@@ -39,26 +39,6 @@ typedef struct {
 #define AS_NUMBER(value)    ((value).as.number)
 #define AS_OBJ(value)       ((value).as.obj)
 
-typedef struct {
-    int size;
-    int capacity;
-    Value *values;
-} ValueVec;
-
-void initValueVec(ValueVec *values);
-
-void freeValueVec(ValueVec *values);
-
-void growValueVec(ValueVec *vec);
-
-void pushValue(ValueVec *values, Value value);
-
-Value popValue(ValueVec *vec);
-
-void insertValue(ValueVec *vec, int index, Value value);
-
-void reverseValueVec(ValueVec *vec);
-
 bool isInt(Value value);
 
 int asInt(Value value);
@@ -67,7 +47,25 @@ void printValue(Value value);
 
 int writeValue(Value value, char *buffer, const size_t maxSize);
 
-bool compareValues(Value a, Value b);
+bool greater(double a, double b);
+
+bool greaterEqual(double a, double b);
+
+bool less(double a, double b);
+
+bool lessEqual(double a, double b);
+
+bool valueEqual(Value a, Value b);
+
+bool valueNotEqual(Value a, Value b);
+
+bool valueGreater(Value a, Value b);
+
+bool valueGreaterEqual(Value a, Value b);
+
+bool valueLess(Value a, Value b);
+
+bool valueLessEqual(Value a, Value b);
 
 const char* decodeValueType(Value value);
 

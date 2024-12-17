@@ -3,6 +3,8 @@
 #include "object_utils.h"
 #include "object_string.h"
 #include "object_array.h"
+#include "object_class.h"
+#include "vm.h"
 
 static void printFunction(ObjFunction *function) {
     if (function->name == NULL) {
@@ -135,6 +137,64 @@ bool compareObjects(Value a, Value b) {
         case OBJ_CLOSURE:
             return AS_CLOSURE(a)->function == AS_CLOSURE(b)->function;
         case OBJ_STRING:
-            return compareStrings(AS_STRING(a), AS_STRING(b), CMP_EQ);
+            return compareStrings(AS_STRING(a), AS_STRING(b));
     }
+}
+
+static bool equality(Value a, Value b, char *name, bool (*instanceFunc)(Value, Value), bool (*stringFunc)(ObjString*, ObjString*), bool (*arrayFunc)(ObjArray*, ObjArray*)) {
+    if (IS_INSTANCE(a) || IS_INSTANCE(b))
+        return instanceFunc(a, b);
+    
+    if (OBJ_TYPE(a) != OBJ_TYPE(b))
+        return *name == '!';
+
+    switch (OBJ_TYPE(a)) {
+        case OBJ_STRING:
+            return stringFunc(AS_STRING(a), AS_STRING(b));
+        case OBJ_ARRAY:
+            return arrayFunc(AS_ARRAY(a), AS_ARRAY(b));
+        default:
+            reportTypeError(name, a, b);
+    }
+}
+
+bool objectEqual(Value a, Value b) {
+    return equality(a, b, "==", instanceEqual, stringEqual, arrayEqual);
+}
+
+bool objectNotEqual(Value a, Value b) {
+    return equality(a, b, "!=", instanceNotEqual, stringNotEqual, arrayNotEqual);
+}
+
+static bool inequality(Value a, Value b, char *name, bool (*instanceFunc)(Value, Value), bool (*stringFunc)(ObjString*, ObjString*), bool (*arrayFunc)(ObjArray*, ObjArray*)) {
+    if (IS_INSTANCE(a) || IS_INSTANCE(b))
+        return instanceFunc(a, b);
+    
+    if (OBJ_TYPE(a) != OBJ_TYPE(b))
+        reportTypeError(name, a, b);
+
+    switch (OBJ_TYPE(a)) {
+        case OBJ_STRING:
+            return stringFunc(AS_STRING(a), AS_STRING(b));
+        case OBJ_ARRAY:
+            return arrayFunc(AS_ARRAY(a), AS_ARRAY(b));
+        default:
+            reportTypeError(name, a, b);
+    }
+}
+
+bool objectGreater(Value a, Value b) {
+    return inequality(a, b, ">", instanceGreater, stringGreater, arrayGreater);
+}
+
+bool objectGreaterEqual(Value a, Value b) {
+    return inequality(a, b, ">=", instanceGreaterEqual, stringGreaterEqual, arrayGreaterEqual);
+}
+
+bool objectLess(Value a, Value b) {
+    return inequality(a, b, "<", instanceLess, stringLess, arrayLess);
+}
+
+bool objectLessEqual(Value a, Value b) {
+    return inequality(a, b, "<=", instanceLessEqual, stringLessEqual, arrayLessEqual);
 }

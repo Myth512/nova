@@ -97,7 +97,7 @@ uint32_t getStringHash(ObjString *string) {
     return string->hash;
 }
 
-bool stringsEqual(ObjString *a, ObjString *b) {
+bool stringEqual(ObjString *a, ObjString *b) {
     if (a->length != b->length)
         return false;
     if (a->isInterned && b->isInterned)
@@ -105,19 +105,22 @@ bool stringsEqual(ObjString *a, ObjString *b) {
     return strcmp(a->chars, b->chars) == 0;
 }
 
-bool compareStrings(ObjString *a, ObjString *b, CompareOperator op) {
-    switch (op) {
-        case CMP_EQ:
-            return stringsEqual(a, b);
-        case CMP_NE:
-            return !stringsEqual(a, b);
-        case CMP_GT:
-            return strcmp(a->chars, b->chars) > 0;
-        case CMP_GE:
-            return strcmp(a->chars, b->chars) >= 0;
-        case CMP_LT:
-            return strcmp(a->chars, b->chars) < 0;
-        case CMP_LE:
-            return strcmp(a->chars, b->chars) <= 0;
-    }
+bool stringNotEqual(ObjString *a, ObjString *b) {
+    return !stringsEqual(a, b);
+}
+
+bool stringGreater(ObjString *a, ObjString *b) {
+    return strcmp(a->chars, b->chars) > 0;
+}
+
+bool stringGreaterEqual(ObjString *a, ObjString *b) {
+    return strcmp(a->chars, b->chars) >= 0;
+}
+
+bool stringLess(ObjString *a, ObjString *b) {
+    return strcmp(a->chars, b->chars) < 0;
+}
+
+bool stringLessEqual(ObjString *a, ObjString *b) {
+    return strcmp(a->chars, b->chars) <= 0;
 }

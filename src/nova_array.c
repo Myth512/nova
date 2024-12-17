@@ -6,29 +6,29 @@
 
 Value arrayPush(int argc, Value *argv) {
     ObjArray *array = AS_ARRAY(argv[0]);
-    pushValue(&array->values, argv[1]);
+    pushValue(&array->vec, argv[1]);
     return NIL_VAL;
 }
 
 Value arrayPop(int argc, Value *argv) {
     ObjArray *array = AS_ARRAY(argv[0]);
-    if (array->values.size == 0) {
+    if (array->vec.size == 0) {
         reportRuntimeError("Can't pop from empty array");
         printErrorInCode();
     }
-    return popValue(&array->values);
+    return popValue(&array->vec);
 }
 
 Value arrayInsert(int argc, Value *argv) {
     ObjArray *array = AS_ARRAY(argv[0]);
     int index = AS_NUMBER(argv[1]);
-    insertValue(&array->values, index, argv[2]);
+    insertValue(&array->vec, index, argv[2]);
     return NIL_VAL;
 }
 
 Value arrayReverse(int argc, Value *argv) {
     ObjArray *array = AS_ARRAY(argv[0]);
-    reverseValueVec(&array->values);
+    reverseValueVec(&array->vec);
     return NIL_VAL;
 }
 
