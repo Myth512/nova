@@ -55,17 +55,37 @@ bool less(double a, double b);
 
 bool lessEqual(double a, double b);
 
-bool valueEqual(Value a, Value b);
+Value valueEqual(Value a, Value b);
 
-bool valueNotEqual(Value a, Value b);
+Value valueNotEqual(Value a, Value b);
 
-bool valueGreater(Value a, Value b);
+Value valueGreater(Value a, Value b);
 
-bool valueGreaterEqual(Value a, Value b);
+Value valueGreaterEqual(Value a, Value b);
 
-bool valueLess(Value a, Value b);
+Value valueLess(Value a, Value b);
 
-bool valueLessEqual(Value a, Value b);
+Value valueLessEqual(Value a, Value b);
+
+Value valueNot(Value a);
+
+Value valueAdd(Value a, Value b);
+
+Value valueSubtract(Value a, Value b);
+
+Value valueMultiply(Value a, Value b);
+
+Value valueDivide(Value a, Value b);
+
+Value valueModulo(Value a, Value b);
+
+Value valuePower(Value a, Value b);
+
+Value valueNegate(Value a);
+
+Value valueIncrement(Value a);
+
+Value valueDecrement(Value a);
 
 const char* decodeValueType(Value value);
 
@@ -73,6 +93,8 @@ const char *decodeValueTypeClean(Value value);
 
 uint64_t hashLong(long value);
 
-uint64_t hashValue(Value value);
+uint64_t valueHash(Value value);
+
+uint64_t valueAddr(Value value);
 
 #endif

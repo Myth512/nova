@@ -87,9 +87,13 @@ void reportArityError(int expected, int got);
 
 void reportTypeError(char *operator, Value a, Value b);
 
+void reportTypeError1op(char *operator, Value a);
+
 Value callNovaValue(Value callee, int argc);
 
 bool callNovaMethod(Value obj, ObjString *methodName, int argc, Value *value);
+
+bool callNovaMethod1arg(Value obj, ObjString *methodName, Value arg, Value *value);
 
 void initVM();
 

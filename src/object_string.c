@@ -106,7 +106,7 @@ bool stringEqual(ObjString *a, ObjString *b) {
 }
 
 bool stringNotEqual(ObjString *a, ObjString *b) {
-    return !stringsEqual(a, b);
+    return !stringEqual(a, b);
 }
 
 bool stringGreater(ObjString *a, ObjString *b) {
@@ -123,4 +123,28 @@ bool stringLess(ObjString *a, ObjString *b) {
 
 bool stringLessEqual(ObjString *a, ObjString *b) {
     return strcmp(a->chars, b->chars) <= 0;
+}
+
+ObjString *stringAdd(ObjString *a, ObjString *b) {
+    int length = a->length + b->length;
+
+    ObjString *result = allocateString(length);
+
+    memcpy(result->chars, a->chars, a->length);
+    memcpy(result->chars + a->length, b->chars, b->length);
+    result->chars[length] = '\0';
+
+    return result;
+}
+
+ObjString *stringMultiply(ObjString *string, int scalar) {
+    size_t oldLength = string->length;
+    size_t newLength = oldLength * scalar;
+
+    ObjString *result = allocateString(newLength);
+
+    for (int i = 0; i < scalar; i++)
+        memcpy(result->chars + i * oldLength, string->chars, oldLength);
+
+    return result;
 }

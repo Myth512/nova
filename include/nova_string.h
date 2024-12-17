@@ -3,30 +3,30 @@
 
 #include "value.h"
 
-Value stringReverse(int argc, Value *argv);
+Value novaStringReverse(int argc, Value *argv);
 
-Value stringReplace(int argc, Value *argv);
+Value novaStringReplace(int argc, Value *argv);
 
-Value stringEqual(int argc, Value *argv);
+Value novaStringEqual(int argc, Value *argv);
 
-Value stringNotEqual(int argc, Value *argv);
+Value novaStringNotEqual(int argc, Value *argv);
 
-Value stringGreater(int argc, Value *argv);
+Value novaStringGreater(int argc, Value *argv);
 
-Value stringGreaterEqual(int argc, Value *argv);
+Value novaStringGreaterEqual(int argc, Value *argv);
 
-Value stringLess(int argc, Value *argv);
+Value novaStringLess(int argc, Value *argv);
 
-Value stringLessEqual(int argc, Value *argv);
+Value novaStringLessEqual(int argc, Value *argv);
 
-Value stringAdd(int argc, Value *argv);
+Value novaStringAdd(int argc, Value *argv);
 
-Value stringMultiply(int argc, Value *argv);
+Value novaStringMultiply(int argc, Value *argv);
 
-Value stringGetAt(int argc, Value *argv);
+Value novaStringGetAt(int argc, Value *argv);
 
-Value stringLen(int argc, Value *argv);
+Value novaStringLen(int argc, Value *argv);
 
-Value stringHash(int argc, Value *argv);
+Value novaStringHash(int argc, Value *argv);
 
 #endif

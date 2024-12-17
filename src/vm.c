@@ -55,6 +55,12 @@ void reportTypeError(char *operator, Value a, Value b) {
     exit(1);
 }
 
+void reportTypeError1op(char *operator, Value a) {
+    reportRuntimeError("Operator '%s' is not supported for %s", operator, decodeValueType(a));
+    printErrorInCode();
+    exit(1);
+}
+
 static void printStack() {
     printf("stack: ");
     for (Value *slot = vm.stack; slot < vm.top; slot++) {
@@ -117,6 +123,7 @@ static void defineNatives() {
     defineNative("type", typeNative);
     defineNative("len", lenNative);
     defineNative("hash", hashNative);
+    defineNative("addr", novaAddr);
 }
 
 static bool callValueInternal(Value callee, int argc) {
@@ -208,94 +215,10 @@ static void defineMethod(ObjString* name) {
     pop();
 }
 
-static void concatenateArrays() {
-    ObjArray *a = AS_ARRAY(pop());
-    ObjArray *b = AS_ARRAY(pop());
-
-    size_t aSize = a->vec.size;
-    size_t bSize = b->vec.size;
-
-    size_t size = aSize + bSize; 
-
-    ObjArray *result = allocateArray(size);
-
-    for (int i = 0; i < aSize; i++) {
-        result->vec.values[i] = a->vec.values[i];
-    }
-    for (int i = 0; i < bSize; i++) {
-        result->vec.values[aSize + i] = b->vec.values[i];
-    }
-
-    push(OBJ_VAL(result));
-}
-
-static inline double add(double a, double b) {
-    return a + b; 
-}
-
-static inline double subtract(double a, double b) {
-    return a - b;
-}
-
-static inline double multiply(double a, double b) {
-    return a * b; 
-}
-
-static inline double divide(double a, double b) {
-    if (b == 0)
-        reportRuntimeError("Division by zero");
-    return a / b;
-}
-
-static inline double modulo(double a, double b) {
-    if (b == 0)
-        reportRuntimeError("Division by zero");
-    return fmod(a, b);
-}
-
-static inline double increment(double a) {
-    return a + 1;
-}
-
-static inline double decrement(double a) {
-    return a - 1;
-}
-
-static inline double negation(double a) {
-    return -a;
-}
-
 static void swapValues(Value *a, Value *b) {
     Value *tmp = a;
     *a = *b;
     *b = *tmp;
-}
-
-static void repeatArray() {
-    ObjArray *array;
-    double number;
-
-    if (IS_ARRAY(peek(0))) {
-        array = AS_ARRAY(pop());
-        number = AS_NUMBER(pop());
-    } else {
-        number = AS_NUMBER(pop());
-        array = AS_ARRAY(pop());
-    }
-
-    if (number != (int)number)
-        reportRuntimeError("Can't multiply array by non whole number");
-
-    size_t initSize = array->vec.size;
-    size_t newSize = initSize * number;
-
-    ObjArray *result = allocateArray(newSize);
-
-    for (int i = 0; i < newSize; i++) {
-        result->vec.values[i] = array->vec.values[i % initSize];
-    }
-
-    push(OBJ_VAL(result));
 }
 
 static bool isFalsey(Value value) {
@@ -497,76 +420,15 @@ static void setProperty() {
     tableSet(&instance->fields, READ_STRING(), peek(0));
 }
 
-static bool callBinaryMethod(ObjString *universal, ObjString *left, ObjString *right) {
-    Value method;
-
-    if (left && getProperty(peek(1), left, &method)) {
-        callValue(method, 1);
-        return true;
-    }
-
-    if (universal && getProperty(peek(1), universal, &method)) {
-        callValue(method, 1);
-        return true;
-    }
-
-    if (right && getProperty(peek(0), right, &method)) {
-        swapValues(vm.top - 1, vm.top - 2);
-        callValue(method, 1);
-        return true;
-    }
-
-    if (universal && getProperty(peek(0), universal, &method)) {
-        swapValues(vm.top - 1, vm.top - 2);
-        callValue(method, 1);
-        return true;
-    }
-
-    return false;
-}
-
-static bool callUnaryMethod(ObjString *universal) {
-    Value method;
-
-    if (getProperty(peek(0), universal, &method)) {
-        callValue(method, 0);
-        return true;
-    }
-
-    return false;
-}
-
-static void arithmetic(char *name, double (*function)(double, double), ObjString *universal, ObjString *left, ObjString *right) {
-    if (IS_NUMBER(peek(0)) && IS_NUMBER(peek(1))) {
-        double b = AS_NUMBER(pop());
-        double a = AS_NUMBER(pop());
-        push(NUMBER_VAL(function(a, b)));
-        return;
-    }
-
-    if (callBinaryMethod(universal, left, right))
-        return;
-
-    reportRuntimeError("Unsupported operator '%s' for %s and %s", name, decodeValueType(peek(1)), decodeValueType(peek(0)));
-}
-
-static inline void unary(char *name, double (*function)(double), ObjString *method) {
-    if (IS_NUMBER(peek(0))) {
-        double a = AS_NUMBER(pop());
-        push(NUMBER_VAL(function(a)));
-        return;
-    }
-
-    if (callUnaryMethod(method))
-        return;
-
-    reportRuntimeError("Unsupported operator '%s' for %s", name, decodeValueType(peek(0)));
-}
-
-static comparison(bool (*func)(Value, Value)) {
+static void binary(Value (*func)(Value, Value)) {
     Value b = pop();
     Value a = pop();
-    push(BOOL_VAL(func(a, b)));
+    push(func(a, b));
+}
+
+static void unary(Value (*func)(Value)) {
+    Value a = pop();
+    push(func(a));
 }
 
 static Value run() {
@@ -649,52 +511,52 @@ static Value run() {
                 push(BOOL_VAL(true));
                 break;
             case OP_EQUAL:
-                comparison(valueEqual);
+                binary(valueEqual);
                 break;
             case OP_NOT_EQUAL:
-                comparison(valueNotEqual);
+                binary(valueNotEqual);
                 break;
             case OP_GREATER:
-                comparison(valueGreater);
+                binary(valueGreater);
                 break;
             case OP_GREATER_EQUAL:
-                comparison(valueGreaterEqual);
+                binary(valueGreaterEqual);
                 break;
             case OP_LESS:
-                comparison(valueLess);
+                binary(valueLess);
                 break;
             case OP_LESS_EQUAL:
-                comparison(valueLessEqual);
+                binary(valueLessEqual);
                 break;
             case OP_INCREMENT:
-                unary("++", increment, vm.magicStrings.inc);
+                unary(valueIncrement);
                 break; 
             case OP_DECREMENT:
-                unary("--", decrement, vm.magicStrings.dec);
+                unary(valueDecrement);
                 break;
             case OP_ADD:
-                arithmetic("+", add, vm.magicStrings.add, vm.magicStrings.ladd, vm.magicStrings.radd);
+                binary(valueAdd); 
                 break;
             case OP_SUBTRUCT:
-                arithmetic("-", subtract, vm.magicStrings.sub, vm.magicStrings.lsub, vm.magicStrings.rsub);
+                binary(valueSubtract);
                 break;
             case OP_MULTIPLY:
-                arithmetic("*", multiply, vm.magicStrings.mul, vm.magicStrings.lmul, vm.magicStrings.rmul);
+                binary(valueMultiply);
                 break;
             case OP_DIVIDE:
-                arithmetic("/", divide, vm.magicStrings.div, vm.magicStrings.ldiv, vm.magicStrings.rdiv);
+                binary(valueDivide);
                 break;
             case OP_MOD:
-                arithmetic("%%", modulo, vm.magicStrings.mod, vm.magicStrings.lmod, vm.magicStrings.rmod);
+                binary(valueModulo);
                 break;
             case OP_POWER:
-                arithmetic("^", pow, vm.magicStrings.pow, vm.magicStrings.lpow, vm.magicStrings.rpow);
+                binary(valuePower);
                 break;
             case OP_NOT:
-                push(BOOL_VAL(isFalsey(pop())));
+                unary(valueNot);
                 break;
             case OP_NEGATE:
-                unary("-", negation, vm.magicStrings.neg);
+                unary(valueNegation);
                 break;
             case OP_BUILD_FSTRING:
                 buildFormattedString();
@@ -813,7 +675,17 @@ Value callNovaValue(Value callee, int argc) {
 bool callNovaMethod(Value obj, ObjString *methodName, int argc, Value *value) {
     Value method;
     if (getProperty(obj, methodName, &method)) {
-        *value = callNovaValue(method, 0);
+        *value = callNovaValue(method, argc);
+        return true;
+    }
+    return false;
+}
+
+bool callNovaMethod1arg(Value obj, ObjString *methodName, Value arg, Value *value) {
+    Value method;
+    if (getProperty(obj, methodName, &method)) {
+        push(arg);
+        *value = callNovaValue(method, 1);
         return true;
     }
     return false;

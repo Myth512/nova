@@ -19,4 +19,6 @@ Value lenNative(int argc, Value *argv);
 
 Value hashNative(int argc, Value *argv);
 
+Value novaAddr(int argc, Value *argv);
+
 #endif

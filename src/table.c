@@ -32,7 +32,7 @@ static Entry* findEntry(Entry *entries, int capacity, ObjString *key) {
                 if (tombstone == NULL)
                     tombstone = entry;
             }
-        } else if (stringsEqual(key, entry->key)) {
+        } else if (stringEqual(key, entry->key)) {
             return entry;
         }
         

@@ -6,6 +6,7 @@
 #include "value.h"
 #include "object.h"
 #include "object_utils.h"
+#include "object_class.h"
 #include "memory.h"
 #include "error.h"
 #include "vm.h"
@@ -59,6 +60,18 @@ bool fequal(double a, double b) {
     return fabs(a - b) < epsilon;
 }
 
+bool fnotEqual(double a, double b) {
+    return !fequal(a, b);
+}
+
+bool equal(bool a, bool b) {
+    return a == b;
+}
+
+bool notEqual(bool a, bool b) {
+    return a != b;
+}
+
 bool greater(double a, double b) {
     return a > b;
 }
@@ -75,33 +88,90 @@ bool lessEqual(double a, double b) {
     return a <= b;
 }
 
-bool valueEqual(Value a, Value b) {
+double add(double a, double b) {
+    return a + b; 
+}
+
+double subtract(double a, double b) {
+    return a - b;
+}
+
+double multiply(double a, double b) {
+    return a * b; 
+}
+
+double divide(double a, double b) {
+    if (b == 0)
+        reportRuntimeError("Division by zero");
+    return a / b;
+}
+
+double modulo(double a, double b) {
+    if (b == 0)
+        reportRuntimeError("Division by zero");
+    return fmod(a, b);
+}
+
+double increment(double a) {
+    return a + 1;
+}
+
+double decrement(double a) {
+    return a - 1;
+}
+
+double negate(double a) {
+    return -a;
+}
+
+Value equality(Value a, Value b, bool typeMismatchValue, bool (*boolFunc)(bool, bool), bool (*numFunc)(double, double), Value (*objFunc)(Value, Value)) {
+    if (IS_INSTANCE(a) || IS_INSTANCE(b))
+        return objFunc(a, b);
+
     if (a.type != b.type)
-        return false;
+        return BOOL_VAL(typeMismatchValue);
 
     switch (a.type) {
         case VAL_BOOL:
-            return AS_BOOL(a) == AS_BOOL(b);
+            return BOOL_VAL(boolFunc(AS_BOOL(a), AS_BOOL(b)));
         case VAL_NIL:
-            return true;
+            return BOOL_VAL(!typeMismatchValue);
         case VAL_NUMBER:
-            return fequal(AS_NUMBER(a), AS_NUMBER(b));
+            return BOOL_VAL(numFunc(AS_NUMBER(a), AS_NUMBER(b)));
         case VAL_OBJ:
-            return objectEqual(a, b);
+            return objFunc(a, b);
     }
 }
 
-bool valueNotEqual(Value a, Value b) {
-    return !valueEqual(a, b);
+Value valueEqual(Value a, Value b) {
+    return equality(a, b, false, equal, fequal, objectEqual);
 }
 
-static bool equality(Value a, Value b, char *name, bool (*numFunc)(double, double), bool (*objFunc)(Value, Value)) {
+Value valueNotEqual(Value a, Value b) {
+    return equality(a, b, true, notEqual, fnotEqual, objectNotEqual);
+}
+
+static Value unary(Value a, char *name, double (*numFunc)(double), Value (*objFunc)(Value)) {
+    switch (a.type) {
+        case VAL_NUMBER:
+            return NUMBER_VAL(numFunc(AS_NUMBER(a)));
+        case VAL_OBJ:
+            return objFunc(a);
+        default:
+            reportTypeError1op(name, a);
+    }
+}
+
+static Value binary(Value a, Value b, char *name, double (*numFunc)(double, double), Value (*objFunc)(Value, Value)) {
+    if (IS_INSTANCE(a) || IS_INSTANCE(b))
+        return objFunc(a, b);
+
     if (a.type != b.type)
         reportTypeError(name, a, b);
 
-    switch (OBJ_TYPE(a)) {
+    switch (a.type) {
         case VAL_NUMBER:
-            return numFunc(AS_NUMBER(a), AS_NUMBER(b));
+            return NUMBER_VAL(numFunc(AS_NUMBER(a), AS_NUMBER(b)));
         case VAL_OBJ:
             return objFunc(a, b);
         default:
@@ -109,20 +179,73 @@ static bool equality(Value a, Value b, char *name, bool (*numFunc)(double, doubl
     }
 }
 
-bool valueGreater(Value a, Value b) {
-    return equality(a, b, ">", greater, valueGreater);
+Value valueGreater(Value a, Value b) {
+    return binary(a, b, ">", greater, valueGreater);
 }
 
-bool valueGreaterEqual(Value a, Value b) {
-    return equality(a, b, ">=", greaterEqual, valueGreaterEqual);
+Value valueGreaterEqual(Value a, Value b) {
+    return binary(a, b, ">=", greaterEqual, valueGreaterEqual);
 }
 
-bool valueLess(Value a, Value b) {
-    return equality(a, b, "<", less, valueLess);
+Value valueLess(Value a, Value b) {
+    return binary(a, b, "<", less, valueLess);
 }
 
-bool valueLessEqual(Value a, Value b) {
-    return equality(a, b, "<=", lessEqual, valueLessEqual);
+Value valueLessEqual(Value a, Value b) {
+    return binary(a, b, "<=", lessEqual, valueLessEqual);
+}
+
+Value valueNot(Value a) {
+    switch (a.type) {
+        case VAL_BOOL:
+            return BOOL_VAL(!AS_BOOL(a));
+        case VAL_NUMBER:
+            return BOOL_VAL(!AS_NUMBER(a));
+        case VAL_OBJ:
+            return objectNot(a);
+        default:
+            reportTypeError1op("not", a);
+    }
+}
+
+Value valueAdd(Value a, Value b) {
+    return binary(a, b, "+", add, objectAdd);
+}
+
+Value valueSubtract(Value a, Value b) {
+    return binary(a, b, "-", subtract, objectSubtract);
+}
+
+Value valueMultiply(Value a, Value b) {
+    return binary(a, b, "*", multiply, objectMultiply);
+}
+
+Value valueDivide(Value a, Value b) {
+    return binary(a, b, "/", divide, objectDivide);
+}
+
+Value valueModulo(Value a, Value b) {
+    return binary(a, b, "%%", modulo, objectModulo);
+}
+
+Value valuePower(Value a, Value b) {
+    return binary(a, b, "^", pow, objectPower);
+}
+
+Value valueNegate(Value a) {
+    return unary(a, "-", negate, objectNegate);
+}
+
+Value valueIncrement(Value a) {
+    return unary(a, "++", increment, objectIncrement);
+}
+
+Value valueDecrement(Value a) {
+    return unary(a, "--", decrement, objectDecrement);
+}
+
+uint64_t valueAddr(Value value) {
+    return (uint64_t)&value;
 }
 
 const char* decodeValueType(Value value) {
@@ -192,7 +315,7 @@ uint64_t hashNil() {
     return hashLong(-1);
 }
 
-uint64_t hashValue(Value value) {
+uint64_t valueHash(Value value) {
     switch (value.type) {
         case VAL_BOOL:
             return hashBool(AS_BOOL(value));

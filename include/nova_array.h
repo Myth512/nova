@@ -3,37 +3,36 @@
 
 #include "value.h"
 
-Value arrayPush(int argc, Value *argv);
+Value novaArrayPush(int argc, Value *argv);
 
-Value arrayPop(int argc, Value *argv);
+Value novaArrayPop(int argc, Value *argv);
 
-Value arrayInsert(int argc, Value *argv);
+Value novaArrayInsert(int argc, Value *argv);
 
-Value arrayReverse(int argc, Value *argv);
+Value novaArrayReverse(int argc, Value *argv);
 
-Value arraySort(int argc, Value *argv);
+Value novaArraySort(int argc, Value *argv);
 
-Value arrayEqual(int argc, Value *argv);
+Value novaArrayEqual(int argc, Value *argv);
 
-Value arrayNotEqual(int argc, Value *argv);
+Value novaArrayNotEqual(int argc, Value *argv);
 
-Value arrayGreater(int argc, Value *argv);
+Value novaArrayGreater(int argc, Value *argv);
 
-Value arrayGreaterEqual(int argc, Value *argv);
+Value novaArrayGreaterEqual(int argc, Value *argv);
 
-Value arrayLess(int argc, Value *argv);
+Value novaArrayLess(int argc, Value *argv);
 
-Value arrayLessEqual(int argc, Value *argv);
+Value novaArrayLessEqual(int argc, Value *argv);
 
-Value arrayAdd(int argc, Value *argv);
+Value novaArrayAdd(int argc, Value *argv);
 
-Value arrayMultiply(int argc, Value *argv);
+Value novaArrayMultiply(int argc, Value *argv);
 
-Value arrayGetAt(int argc, Value *argv);
+Value novaArrayGetAt(int argc, Value *argv);
 
-Value arraySetAt(int argc, Value *argv);
+Value novaArraySetAt(int argc, Value *argv);
 
-Value arrayLen(int argc, Value *argv);
-
+Value novaArrayLen(int argc, Value *argv);
 
 #endif

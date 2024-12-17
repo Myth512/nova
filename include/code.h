@@ -4,6 +4,7 @@
 #include <stdint.h>
 
 #include "value.h"
+#include "value_vector.h"
 
 typedef enum {
     OP_CONSTANT,

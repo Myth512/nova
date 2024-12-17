@@ -4,35 +4,33 @@
 #include "error.h"
 #include "vm.h"
 
-Value arrayPush(int argc, Value *argv) {
+Value novaArrayPush(int argc, Value *argv) {
     ObjArray *array = AS_ARRAY(argv[0]);
     pushValue(&array->vec, argv[1]);
     return NIL_VAL;
 }
 
-Value arrayPop(int argc, Value *argv) {
+Value novaArrayPop(int argc, Value *argv) {
     ObjArray *array = AS_ARRAY(argv[0]);
-    if (array->vec.size == 0) {
+    if (array->vec.size == 0)
         reportRuntimeError("Can't pop from empty array");
-        printErrorInCode();
-    }
     return popValue(&array->vec);
 }
 
-Value arrayInsert(int argc, Value *argv) {
+Value novaArrayInsert(int argc, Value *argv) {
     ObjArray *array = AS_ARRAY(argv[0]);
     int index = AS_NUMBER(argv[1]);
     insertValue(&array->vec, index, argv[2]);
     return NIL_VAL;
 }
 
-Value arrayReverse(int argc, Value *argv) {
+Value novaArrayReverse(int argc, Value *argv) {
     ObjArray *array = AS_ARRAY(argv[0]);
     reverseValueVec(&array->vec);
     return NIL_VAL;
 }
 
-Value arraySort(int argc, Value *argv) {
+Value novaArraySort(int argc, Value *argv) {
 
 }
 
@@ -46,50 +44,50 @@ Value arraySort(int argc, Value *argv) {
 //     return true;
 // }
 
-Value arrayEqual(int argc, Value *argv) {
+Value novaArrayEqual(int argc, Value *argv) {
     // ObjArray *a = AS_ARRAY(argv[0]);
     // ObjArray *b = AS_ARRAY(argv[1]);
     // return BOOL_VAL(compareArrays(a, b));
 }
 
-Value arrayNotEqual(int argc, Value *argv) {
+Value novaArrayNotEqual(int argc, Value *argv) {
     // ObjArray *a = AS_ARRAY(argv[0]);
     // ObjArray *b = AS_ARRAY(argv[1]);
     // return BOOL_VAL(!compareArrays(a, b));
 }
 
-Value arrayGreater(int argc, Value *argv) {
+Value novaArrayGreater(int argc, Value *argv) {
 
 }
 
-Value arrayGreaterEqual(int argc, Value *argv) {
+Value novaArrayGreaterEqual(int argc, Value *argv) {
 
 }
 
-Value arrayLess(int argc, Value *argv) {
+Value novaArrayLess(int argc, Value *argv) {
 
 }
 
-Value arrayLessEqual(int argc, Value *argv) {
+Value novaArrayLessEqual(int argc, Value *argv) {
 
 }
 
-Value arrayAdd(int argc, Value *argv) {
+Value novaArrayAdd(int argc, Value *argv) {
 
 }
 
-Value arrayMultiply(int argc, Value *argv) {
+Value novaArrayMultiply(int argc, Value *argv) {
 
 }
 
-Value arrayGetAt(int argc, Value *argv) {
+Value novaArrayGetAt(int argc, Value *argv) {
 
 }
 
-Value arraySetAt(int argc, Value *argv) {
+Value novaArraySetAt(int argc, Value *argv) {
 
 }
 
-Value arrayLen(int argc, Value *argv) {
+Value novaArrayLen(int argc, Value *argv) {
 
 }

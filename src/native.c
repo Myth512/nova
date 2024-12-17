@@ -7,7 +7,7 @@
 #include "value.h"
 #include "object.h"
 #include "object_string.h"
-#include "error.h"
+#include "vm.h"
 
 Value clockNative(int argc, Value *argv) {
     return NUMBER_VAL((double)clock() / CLOCKS_PER_SEC);
@@ -79,4 +79,11 @@ Value hashNative(int argc, Value *argv) {
         reportRuntimeError("Expect 1 argument but got %d\n", argc);
     }
     return NUMBER_VAL(hashValue(argv[0]));
+}
+
+
+Value novaAddr(int argc, Value *argv) {
+    if (argc != 1)
+        reportArityError(1, argc);
+    return NUMBER_VAL(getValueAddr(argv[0]));
 }

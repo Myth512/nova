@@ -12,19 +12,11 @@
 #define IS_CLOSURE(value)       isObjType(value, OBJ_CLOSURE)
 #define IS_FUNCTION(value)      isObjType(value, OBJ_FUNCTION)
 #define IS_NATIVE(value)        isObjType(value, OBJ_NATIVE)
-#define IS_CLASS(value)         isObjType(value, OBJ_CLASS)
-#define IS_INSTANCE(value)      isObjType(value, OBJ_INSTANCE)
-#define IS_METHOD(value)        isObjType(value, OBJ_METHOD)
-#define IS_NATIVE_METHOD(value) isObjType(value, OBJ_NATIVE_METHOD)
 
 #define AS_CLOSURE(value)       ((ObjClosure*)AS_OBJ(value))
 #define AS_FUNCTION(value)      ((ObjFunction*)AS_OBJ(value))
 #define AS_NATIVE(value)        ((ObjNative*)AS_OBJ(value))
 #define AS_UPVALUE(value)       ((ObjUpvalue*)AS_OBJ(value))
-#define AS_CLASS(value)         ((ObjClass*)AS_OBJ(value))
-#define AS_INSTANCE(value)      ((ObjInstance*)AS_OBJ(value))
-#define AS_METHOD(value)        ((ObjMethod*)AS_OBJ(value))
-#define AS_NATIVE_METHOD(value) ((ObjNativeMethod*)AS_OBJ(value))
 
 typedef enum {
     OBJ_CLASS,

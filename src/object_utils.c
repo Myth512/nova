@@ -130,43 +130,32 @@ uint64_t hashObject(Value value) {
     }
 }
 
-bool compareObjects(Value a, Value b) {
-    switch (OBJ_TYPE(a)) {
-        case OBJ_NATIVE:
-            return AS_NATIVE(a)->function == AS_NATIVE(b)->function;
-        case OBJ_CLOSURE:
-            return AS_CLOSURE(a)->function == AS_CLOSURE(b)->function;
-        case OBJ_STRING:
-            return compareStrings(AS_STRING(a), AS_STRING(b));
-    }
-}
-
-static bool equality(Value a, Value b, char *name, bool (*instanceFunc)(Value, Value), bool (*stringFunc)(ObjString*, ObjString*), bool (*arrayFunc)(ObjArray*, ObjArray*)) {
+static Value equality(Value a, Value b, bool typeMismatchValue, Value (*instanceFunc)(Value, Value), bool (*stringFunc)(ObjString*, ObjString*), bool (*arrayFunc)(ObjArray*, ObjArray*)) {
     if (IS_INSTANCE(a) || IS_INSTANCE(b))
         return instanceFunc(a, b);
     
     if (OBJ_TYPE(a) != OBJ_TYPE(b))
-        return *name == '!';
+        return BOOL_VAL(typeMismatchValue);
 
     switch (OBJ_TYPE(a)) {
         case OBJ_STRING:
-            return stringFunc(AS_STRING(a), AS_STRING(b));
+            return BOOL_VAL(stringFunc(AS_STRING(a), AS_STRING(b)));
         case OBJ_ARRAY:
-            return arrayFunc(AS_ARRAY(a), AS_ARRAY(b));
+            return BOOL_VAL(arrayFunc(AS_ARRAY(a), AS_ARRAY(b)));
         default:
-            reportTypeError(name, a, b);
+            reportTypeError("==", a, b);
     }
 }
 
-bool objectEqual(Value a, Value b) {
-    return equality(a, b, "==", instanceEqual, stringEqual, arrayEqual);
+Value objectEqual(Value a, Value b) {
+    return equality(a, b, false, instanceEqual, stringEqual, arrayEqual);
 }
 
-bool objectNotEqual(Value a, Value b) {
-    return equality(a, b, "!=", instanceNotEqual, stringNotEqual, arrayNotEqual);
+Value objectNotEqual(Value a, Value b) {
+    return equality(a, b, true, instanceNotEqual, stringNotEqual, arrayNotEqual);
 }
 
-static bool inequality(Value a, Value b, char *name, bool (*instanceFunc)(Value, Value), bool (*stringFunc)(ObjString*, ObjString*), bool (*arrayFunc)(ObjArray*, ObjArray*)) {
+static Value binary(Value a, Value b, char *name, Value (*instanceFunc)(Value, Value), Value (*stringFunc)(ObjString*, ObjString*), bool (*arrayFunc)(ObjArray*, ObjArray*)) {
     if (IS_INSTANCE(a) || IS_INSTANCE(b))
         return instanceFunc(a, b);
     
@@ -175,26 +164,70 @@ static bool inequality(Value a, Value b, char *name, bool (*instanceFunc)(Value,
 
     switch (OBJ_TYPE(a)) {
         case OBJ_STRING:
-            return stringFunc(AS_STRING(a), AS_STRING(b));
+            if (!stringFunc)
+                reportTypeError(name, a, b);
+            return BOOL_VAL(stringFunc(AS_STRING(a), AS_STRING(b)));
         case OBJ_ARRAY:
-            return arrayFunc(AS_ARRAY(a), AS_ARRAY(b));
+            if (!arrayFunc)
+                reportTypeError(name, a, b);
+            return BOOL_VAL(arrayFunc(AS_ARRAY(a), AS_ARRAY(b)));
         default:
             reportTypeError(name, a, b);
     }
 }
 
-bool objectGreater(Value a, Value b) {
-    return inequality(a, b, ">", instanceGreater, stringGreater, arrayGreater);
+Value objectGreater(Value a, Value b) {
+    return binary(a, b, ">", instanceGreater, stringGreater, arrayGreater);
 }
 
-bool objectGreaterEqual(Value a, Value b) {
-    return inequality(a, b, ">=", instanceGreaterEqual, stringGreaterEqual, arrayGreaterEqual);
+Value objectGreaterEqual(Value a, Value b) {
+    return binary(a, b, ">=", instanceGreaterEqual, stringGreaterEqual, arrayGreaterEqual);
 }
 
-bool objectLess(Value a, Value b) {
-    return inequality(a, b, "<", instanceLess, stringLess, arrayLess);
+Value objectLess(Value a, Value b) {
+    return binary(a, b, "<", instanceLess, stringLess, arrayLess);
 }
 
-bool objectLessEqual(Value a, Value b) {
-    return inequality(a, b, "<=", instanceLessEqual, stringLessEqual, arrayLessEqual);
+Value objectLessEqual(Value a, Value b) {
+    return binary(a, b, "<=", instanceLessEqual, stringLessEqual, arrayLessEqual);
+}
+
+Value objectNot(Value a) {
+
+}
+
+Value objectAdd(Value a, Value b) {
+    return binary(a, b, "+", instanceAdd, strin)
+}
+
+Value objectSubtract(Value a, Value b) {
+
+}
+
+Value objectMultiply(Value a, Value b) {
+
+}
+
+Value objectDivide(Value a, Value b) {
+
+}
+
+Value objectModulo(Value a, Value b) {
+
+}
+
+Value objectPower(Value a, Value b) {
+
+}
+
+Value objectNegate(Value a) {
+
+}
+
+Value objectIncrement(Value a) {
+
+}
+
+Value objectDecrement(Value a) {
+
 }
