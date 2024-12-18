@@ -25,6 +25,11 @@ typedef struct {
     } as;
 } Value;
 
+typedef struct {
+    bool hasValue;
+    Value value;
+} OptValue;
+
 #define BOOL_VAL(value)     ((Value){VAL_BOOL, {.boolean = value}})
 #define NIL_VAL             ((Value){VAL_NIL, {.number = 0}})
 #define NUMBER_VAL(value)   ((Value){VAL_NUMBER, {.number = value}}) 

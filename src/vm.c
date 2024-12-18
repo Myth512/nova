@@ -214,12 +214,6 @@ static void defineMethod(ObjString* name) {
     pop();
 }
 
-static void swapValues(Value *a, Value *b) {
-    Value *tmp = a;
-    *a = *b;
-    *b = *tmp;
-}
-
 static bool isFalsey(Value value) {
     return IS_NIL(value) || (IS_BOOL(value) && !AS_BOOL(value)) || (IS_NUMBER(value) && AS_NUMBER(value) == 0);
 }
@@ -671,23 +665,29 @@ Value callNovaValue(Value callee, int argc) {
     return run();
 }
 
-bool callNovaMethod(Value obj, ObjString *methodName, int argc, Value *value) {
+OptValue callNovaMethod(Value obj, ObjString *methodName, int argc) {
     Value method;
+    OptValue result;
     if (getProperty(obj, methodName, &method)) {
-        *value = callNovaValue(method, argc);
-        return true;
+        result.value = callNovaValue(method, argc);
+        result.hasValue = true;
+        return result;
     }
-    return false;
+    result.hasValue = false;
+    return result;
 }
 
-bool callNovaMethod1arg(Value obj, ObjString *methodName, Value arg, Value *value) {
+OptValue callNovaMethod1arg(Value obj, ObjString *methodName, Value arg) {
     Value method;
+    OptValue result;
     if (getProperty(obj, methodName, &method)) {
         push(arg);
-        *value = callNovaValue(method, 1);
-        return true;
+        result.value = callNovaValue(method, 1);
+        result.hasValue = true;
+        return result;
     }
-    return false;
+    result.hasValue = false;
+    return result;
 }
 
 void initMagicStrings() {
@@ -724,6 +724,7 @@ void initMagicStrings() {
     vm.magicStrings.setat = copyString("_setat_", 7);
     vm.magicStrings.len = copyString("_len_", 5);
     vm.magicStrings.str = copyString("_str_", 5);
+    vm.magicStrings.unsupported = copyString("unsupported", 12);
 }
 
 void initVM() {

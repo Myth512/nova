@@ -1,4 +1,5 @@
 #include "object_class.h"
+#include "object_string.h"
 #include "vm.h"
 
 ObjClass *createClass(ObjString *name) {
@@ -30,113 +31,121 @@ ObjNativeMethod *createNativeMethod(Value reciever, NativeFn function, const cha
     return native;
 }
 
-// static bool callBinaryMethod(ObjString *universal, ObjString *left, ObjString *right) {
-//     Value method;
-
-//     if (left && getProperty(peek(1), left, &method)) {
-//         callValue(method, 1);
-//         return true;
-//     }
-
-//     if (universal && getProperty(peek(1), universal, &method)) {
-//         callValue(method, 1);
-//         return true;
-//     }
-
-//     if (right && getProperty(peek(0), right, &method)) {
-//         swapValues(vm.top - 1, vm.top - 2);
-//         callValue(method, 1);
-//         return true;
-//     }
-
-//     if (universal && getProperty(peek(0), universal, &method)) {
-//         swapValues(vm.top - 1, vm.top - 2);
-//         callValue(method, 1);
-//         return true;
-//     }
-
-//     return false;
-// }
-
-// static bool callUnaryMethod(ObjString *universal) {
-//     Value method;
-
-//     if (getProperty(peek(0), universal, &method)) {
-//         callValue(method, 0);
-//         return true;
-//     }
-
-//     return false;
-// }
-
 Value instanceEqual(Value a, Value b) {
-    Value result;
-    bool success = callNovaMethod1arg(a, vm.magicStrings.eq, b, &result);
-    if (success) {
-        return result;
-    }
+    OptValue result = callNovaMethod1arg(a, vm.magicStrings.eq, b);
+    if (result.hasValue)
+        return result.value;
+    return BOOL_VAL(&a == &b);
 }
 
 Value instanceNotEqual(Value a, Value b) {
+    OptValue result = callNovaMethod1arg(a, vm.magicStrings.ne, b);
+    if (result.hasValue)
+        return result.value;
+    return BOOL_VAL(&a != &b);
+}
 
+static Value unary(Value a, char *operator, ObjString *methodName) {
+    OptValue result = callNovaMethod(a, methodName, 0);
+    if (result.hasValue)
+        return result.value;
+    reportTypeError1op(operator, a);
+}
+
+static Value binary(Value a, Value b, char *operator, ObjString *methodName) {
+    OptValue result = callNovaMethod1arg(a, methodName, b);
+    if (result.hasValue)
+        return result.value;
+    reportTypeError(operator, a, b);
+}
+
+static bool isUnsupported(Value value) {
+    if (!IS_STRING(value))
+        return false;
+    return stringEqual(vm.magicStrings.unsupported, AS_STRING(value));
+}
+
+static Value arithmetic(Value a, Value b, char *operator, ObjString *universal, ObjString *left, ObjString *right) {
+    OptValue result = callNovaMethod1arg(a, left, b);
+    if (result.hasValue && !isUnsupported(result.value))
+        return result.value;
+    
+    result = callNovaMethod1arg(a, universal, b);
+    if (result.hasValue && !isUnsupported(result.value))
+        return result.value;
+
+    result = callNovaMethod1arg(b, right, a);
+    if (result.hasValue && !isUnsupported(result.value))
+        return result.value;
+
+    result = callNovaMethod1arg(b, universal, a);
+    if (result.hasValue && !isUnsupported(result.value))
+        return result.value;
+    
+    reportTypeError(operator, a, b);
 }
 
 Value instanceGreater(Value a, Value b) {
-
+    return binary(a, b, ">", vm.magicStrings.gt);
 }
 
 Value instanceGreaterEqual(Value a, Value b) {
-
+    return binary(a, b, ">=", vm.magicStrings.ge);
 }
 
 Value instanceLess(Value a, Value b) {
-
+    return binary(a, b, "<", vm.magicStrings.lt);
 }
 
 Value instanceLessEqual(Value a, Value b) {
-
+    return binary(a, b, "<=", vm.magicStrings.le);
 }
 
 Value instanceNot(Value a) {
-
+    reportTypeError1op("not", a);
 }
 
 Value instanceAdd(Value a, Value b) {
-
+    return arithmetic(a, b, "+", vm.magicStrings.add, vm.magicStrings.ladd, vm.magicStrings.radd);
 }
 
 Value instanceSubtract(Value a, Value b) {
-
+    return arithmetic(a, b, "-", vm.magicStrings.sub, vm.magicStrings.lsub, vm.magicStrings.rsub);
 }
 
 Value instanceMultiply(Value a, Value b) {
-
+    return arithmetic(a, b, "*", vm.magicStrings.mul, vm.magicStrings.lmul, vm.magicStrings.rmul);
 }
 
 Value instanceDivide(Value a, Value b) {
-
+    return arithmetic(a, b, "/", vm.magicStrings.div, vm.magicStrings.ldiv, vm.magicStrings.rdiv);
 }
 
 Value instanceModulo(Value a, Value b) {
-
+    return arithmetic(a, b, "%%", vm.magicStrings.mod, vm.magicStrings.lmod, vm.magicStrings.rmod);
 }
 
 Value instancePower(Value a, Value b) {
-
+    return arithmetic(a, b, "^", vm.magicStrings.pow, vm.magicStrings.lpow, vm.magicStrings.rpow);
 }
 
 Value instanceNegate(Value a) {
-
+    return unary(a, "-", vm.magicStrings.neg);
 }
 
 Value instanceIncrement(Value a) {
-
+    return unary(a, "++", vm.magicStrings.inc);
 }
 
 Value instanceDecrement(Value a) {
-
+    return unary(a, "--", vm.magicStrings.dec);
 }
 
 void instancePrint(Value instance) {
-
+    OptValue result = callNovaMethod(instance, vm.magicStrings.str, 0);
+    if (result.hasValue) {
+        printValue(result.value);
+    } else {
+        printf("instance of %s", decodeValueType(instance));
+    }
 }

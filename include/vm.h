@@ -49,6 +49,7 @@ typedef struct {
     ObjString *setat;
     ObjString *len;
     ObjString *str;
+    ObjString *unsupported;
 } MagicStrings;
 
 typedef struct {
@@ -91,9 +92,9 @@ void reportTypeError1op(char *operator, Value a);
 
 Value callNovaValue(Value callee, int argc);
 
-bool callNovaMethod(Value obj, ObjString *methodName, int argc, Value *value);
+OptValue callNovaMethod(Value obj, ObjString *methodName, int argc);
 
-bool callNovaMethod1arg(Value obj, ObjString *methodName, Value arg, Value *value);
+OptValue callNovaMethod1arg(Value obj, ObjString *methodName, Value arg);
 
 void initVM();
 
