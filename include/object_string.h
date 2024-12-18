@@ -48,6 +48,14 @@ ObjString *stringAdd(ObjString *a, ObjString *b);
 
 ObjString *stringMultiply(ObjString *string, int scalar);
 
+int stringLen(ObjString *string);
+
+bool stringToBool(ObjString *string);
+
+int stringToInt(ObjString *string);
+
+double stringToFloat(ObjString *string);
+
 int writeRawstring(char *buffer, ObjRawString *string);
 
 uint32_t getStringHash(ObjString *string);

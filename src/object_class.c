@@ -31,32 +31,41 @@ ObjNativeMethod *createNativeMethod(Value reciever, NativeFn function, const cha
     return native;
 }
 
-Value instanceEqual(Value a, Value b) {
+bool instanceEqual(Value a, Value b) {
     OptValue result = callNovaMethod1arg(a, vm.magicStrings.eq, b);
-    if (result.hasValue)
-        return result.value;
-    return BOOL_VAL(&a == &b);
+    if (result.hasValue) {
+        if (IS_BOOL(result.value))
+            return AS_BOOL(result.value);
+        reportRuntimeError("Return type must be <type bool>");
+    }
+    return &a == &b;
 }
 
-Value instanceNotEqual(Value a, Value b) {
+bool instanceNotEqual(Value a, Value b) {
     OptValue result = callNovaMethod1arg(a, vm.magicStrings.ne, b);
-    if (result.hasValue)
-        return result.value;
-    return BOOL_VAL(&a != &b);
+    if (result.hasValue) {
+        if (IS_BOOL(result.value))
+            return AS_BOOL(result.value);
+        reportRuntimeError("Return type must be <type bool>");
+    }
+    return &a != &b;
 }
 
 static Value unary(Value a, char *operator, ObjString *methodName) {
     OptValue result = callNovaMethod(a, methodName, 0);
     if (result.hasValue)
         return result.value;
-    reportTypeError1op(operator, a);
+    operatorNotImplementedUnary(operator, a);
 }
 
-static Value binary(Value a, Value b, char *operator, ObjString *methodName) {
+static bool binary(Value a, Value b, char *operator, ObjString *methodName) {
     OptValue result = callNovaMethod1arg(a, methodName, b);
-    if (result.hasValue)
-        return result.value;
-    reportTypeError(operator, a, b);
+    if (result.hasValue) {
+        if (IS_BOOL(result.value))
+            return AS_BOOL(result.value);
+        reportRuntimeError("Return type must be <type bool>");
+    }
+    operatorNotImplemented(operator, a, b);
 }
 
 static bool isUnsupported(Value value) {
@@ -82,27 +91,27 @@ static Value arithmetic(Value a, Value b, char *operator, ObjString *universal, 
     if (result.hasValue && !isUnsupported(result.value))
         return result.value;
     
-    reportTypeError(operator, a, b);
+    operatorNotImplemented(operator, a, b);
 }
 
-Value instanceGreater(Value a, Value b) {
+bool instanceGreater(Value a, Value b) {
     return binary(a, b, ">", vm.magicStrings.gt);
 }
 
-Value instanceGreaterEqual(Value a, Value b) {
+bool instanceGreaterEqual(Value a, Value b) {
     return binary(a, b, ">=", vm.magicStrings.ge);
 }
 
-Value instanceLess(Value a, Value b) {
+bool instanceLess(Value a, Value b) {
     return binary(a, b, "<", vm.magicStrings.lt);
 }
 
-Value instanceLessEqual(Value a, Value b) {
+bool instanceLessEqual(Value a, Value b) {
     return binary(a, b, "<=", vm.magicStrings.le);
 }
 
 Value instanceNot(Value a) {
-    reportTypeError1op("not", a);
+    operatorNotImplementedUnary("not", a);
 }
 
 Value instanceAdd(Value a, Value b) {
@@ -141,10 +150,50 @@ Value instanceDecrement(Value a) {
     return unary(a, "--", vm.magicStrings.dec);
 }
 
+int instanceLen(Value value) {
+    OptValue result = callNovaMethod(value, vm.magicStrings.len, 0);
+    if (result.hasValue) {
+        if (isInt(result.value))
+            return asInt(result.value);
+        reportRuntimeError("Return type must be <type int>");
+    }
+    functionNotImplemented("len", value);
+}
+
+bool instanceToBool(Value value) {
+    OptValue result = callNovaMethod(value, vm.magicStrings.bool_, 0);
+    if (result.hasValue) {
+        if (IS_BOOL(result.value))
+            return AS_BOOL(result.value);
+        reportRuntimeError("Return type must be <type bool>");
+    }
+    functionNotImplemented("bool", value);
+}
+
+int instanceToInt(Value value) {
+    OptValue result = callNovaMethod(value, vm.magicStrings.int_, 0);
+    if (result.hasValue) {
+        if (isInt(result.value))
+            return asInt(result.value);
+        reportRuntimeError("Return type must be <type int>");
+    }
+    functionNotImplemented("int", value);
+}
+
+double instanceToFloat(Value value) {
+    OptValue result = callNovaMethod(value, vm.magicStrings.float_, 0);
+    if (result.hasValue) {
+        if (IS_NUMBER(result.value))
+            return AS_NUMBER(result.value);
+        reportRuntimeError("Return type must be <type number>");
+    }
+    functionNotImplemented("float", value);
+}
+
 void instancePrint(Value instance) {
     OptValue result = callNovaMethod(instance, vm.magicStrings.str, 0);
     if (result.hasValue) {
-        printValue(result.value);
+        valuePrint(result.value);
     } else {
         printf("instance of %s", decodeValueType(instance));
     }

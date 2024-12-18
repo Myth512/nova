@@ -1,4 +1,5 @@
 #include <string.h>
+#include <stdlib.h>
 
 #include "object_string.h"
 
@@ -147,4 +148,20 @@ ObjString *stringMultiply(ObjString *string, int scalar) {
         memcpy(result->chars + i * oldLength, string->chars, oldLength);
 
     return result;
+}
+
+int stringLen(ObjString *string) {
+    return string->length;
+}
+
+bool stringToBool(ObjString *string) {
+    return (bool)stringLen(string);
+}
+
+int stringToInt(ObjString *string) {
+    return atoi(string->chars);
+}
+
+double stringToFloat(ObjString *string) {
+    return atof(string->chars);
 }

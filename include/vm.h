@@ -48,7 +48,10 @@ typedef struct {
     ObjString *getat;
     ObjString *setat;
     ObjString *len;
+    ObjString *bool_;
     ObjString *str;
+    ObjString *int_;
+    ObjString *float_;
     ObjString *unsupported;
 } MagicStrings;
 
@@ -86,9 +89,11 @@ void reportRuntimeError(const char *format, ...);
 
 void reportArityError(int expected, int got);
 
-void reportTypeError(char *operator, Value a, Value b);
+void operatorNotImplemented(char *operator, Value a, Value b);
 
-void reportTypeError1op(char *operator, Value a);
+void operatorNotImplementedUnary(char *operator, Value a);
+
+void functionNotImplemented(char *function, Value a);
 
 Value callNovaValue(Value callee, int argc);
 

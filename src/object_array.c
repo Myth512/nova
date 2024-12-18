@@ -19,7 +19,7 @@ bool arrayEqual(ObjArray *a, ObjArray *b) {
     if (a->vec.size != b->vec.size)
         return false;
     for (int i = 0; i < a->vec.size; i++) {
-        if (!AS_BOOL(valueEqual(a->vec.values[i], b->vec.values[i])))
+        if (!valueEqual(a->vec.values[i], b->vec.values[i]))
             return false;
     }
     return true;
@@ -29,12 +29,12 @@ bool arrayNotEqual(ObjArray *a, ObjArray *b) {
     return !arrayEqual(a, b);
 }
 
-static bool inequality(ObjArray *a, ObjArray *b, bool (*numFunc)(double, double), Value (*valFunc)(Value, Value)) {
+static bool inequality(ObjArray *a, ObjArray *b, bool (*numFunc)(double, double), bool (*valFunc)(Value, Value)) {
     int minLength = min(a->vec.size, b->vec.size);
     for (int i = 0; i < minLength; i++) {
-        if (AS_BOOL(valueEqual(a->vec.values[i], b->vec.values[i])))
+        if (valueEqual(a->vec.values[i], b->vec.values[i]))
             continue;
-        return AS_BOOL(valFunc(a->vec.values[i], b->vec.values[i]));
+        return valFunc(a->vec.values[i], b->vec.values[i]);
     }
     return numFunc(a->vec.size, b->vec.size);
 }
@@ -81,11 +81,19 @@ ObjArray *arrayMultiply(ObjArray *array, int scalar) {
     return result;
 }
 
+int arrayLen(ObjArray *array) {
+    return array->vec.size;
+}
+
+bool arrayToBool(ObjArray *array) {
+    return (bool)arrayLen(array);
+}
+
 void arrayPrint(ObjArray *array) {
     printf("[");
     size_t size = array->vec.size;
     for (int i = 0; i < size; i++) {
-        printValue(array->vec.values[i]);
+        valuePrint(array->vec.values[i]);
         if (i + 1 != size) {
             printf(", ");
         }

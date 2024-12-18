@@ -23,7 +23,7 @@ int asInt(Value value) {
     return (int)AS_NUMBER(value);
 }
 
-void printValue(Value value) {
+void valuePrint(Value value) {
     switch (value.type) {
         case VAL_BOOL:
             printf(AS_BOOL(value) ? "true" : "false");
@@ -125,31 +125,23 @@ double negate(double a) {
     return -a;
 }
 
-Value equality(Value a, Value b, bool typeMismatchValue, bool (*boolFunc)(bool, bool), bool (*numFunc)(double, double), Value (*objFunc)(Value, Value)) {
+static bool equality(Value a, Value b, bool typeMismatchValue, bool (*boolFunc)(bool, bool), bool (*numFunc)(double, double), bool (*objFunc)(Value, Value)) {
     if (IS_INSTANCE(a) || IS_INSTANCE(b))
         return objFunc(a, b);
 
     if (a.type != b.type)
-        return BOOL_VAL(typeMismatchValue);
+        return typeMismatchValue;
 
     switch (a.type) {
         case VAL_BOOL:
-            return BOOL_VAL(boolFunc(AS_BOOL(a), AS_BOOL(b)));
+            return boolFunc(AS_BOOL(a), AS_BOOL(b));
         case VAL_NIL:
-            return BOOL_VAL(!typeMismatchValue);
+            return !typeMismatchValue;
         case VAL_NUMBER:
-            return BOOL_VAL(numFunc(AS_NUMBER(a), AS_NUMBER(b)));
+            return numFunc(AS_NUMBER(a), AS_NUMBER(b));
         case VAL_OBJ:
             return objFunc(a, b);
     }
-}
-
-Value valueEqual(Value a, Value b) {
-    return equality(a, b, false, equal, fequal, objectEqual);
-}
-
-Value valueNotEqual(Value a, Value b) {
-    return equality(a, b, true, notEqual, fnotEqual, objectNotEqual);
 }
 
 static Value unary(Value a, char *name, double (*numFunc)(double), Value (*objFunc)(Value)) {
@@ -159,24 +151,24 @@ static Value unary(Value a, char *name, double (*numFunc)(double), Value (*objFu
         case VAL_OBJ:
             return objFunc(a);
         default:
-            reportTypeError1op(name, a);
+            operatorNotImplementedUnary(name, a);
     }
 }
 
-static Value inequality(Value a, Value b, char *name, bool (*numFunc)(double, double), Value (*objFunc)(Value, Value)) {
+static bool inequality(Value a, Value b, char *name, bool (*numFunc)(double, double), bool (*objFunc)(Value, Value)) {
     if (IS_INSTANCE(a) || IS_INSTANCE(b))
         return objFunc(a, b);
 
     if (a.type != b.type)
-        reportTypeError(name, a, b);
+        operatorNotImplemented(name, a, b);
 
     switch (a.type) {
         case VAL_NUMBER:
-            return BOOL_VAL(numFunc(AS_NUMBER(a), AS_NUMBER(b)));
+            return numFunc(AS_NUMBER(a), AS_NUMBER(b));
         case VAL_OBJ:
             return objFunc(a, b);
         default:
-            reportTypeError(name, a, b);
+            operatorNotImplemented(name, a, b);
     }
 }
 
@@ -193,37 +185,32 @@ static Value arithmetic(Value a, Value b, char *name, double (*numFunc)(double, 
         case VAL_OBJ:
             return objFunc(a, b);
         default:
-            reportTypeError(name, a, b);
+            operatorNotImplemented(name, a, b);
     }
 }
 
-Value valueGreater(Value a, Value b) {
-    return inequality(a, b, ">", greater, valueGreater);
+bool valueEqual(Value a, Value b) {
+    return equality(a, b, false, equal, fequal, objectEqual);
 }
 
-Value valueGreaterEqual(Value a, Value b) {
+bool valueNotEqual(Value a, Value b) {
+    return equality(a, b, true, notEqual, fnotEqual, objectNotEqual);
+}
+
+bool valueGreater(Value a, Value b) {
+    return inequality(a, b, ">", greater, objectGreater);
+}
+
+bool valueGreaterEqual(Value a, Value b) {
     return inequality(a, b, ">=", greaterEqual, valueGreaterEqual);
 }
 
-Value valueLess(Value a, Value b) {
+bool valueLess(Value a, Value b) {
     return inequality(a, b, "<", less, valueLess);
 }
 
-Value valueLessEqual(Value a, Value b) {
+bool valueLessEqual(Value a, Value b) {
     return inequality(a, b, "<=", lessEqual, valueLessEqual);
-}
-
-Value valueNot(Value a) {
-    switch (a.type) {
-        case VAL_BOOL:
-            return BOOL_VAL(!AS_BOOL(a));
-        case VAL_NIL:
-            return BOOL_VAL(true);
-        case VAL_NUMBER:
-            return BOOL_VAL(!AS_NUMBER(a));
-        case VAL_OBJ:
-            return objectNot(a);
-    }
 }
 
 Value valueAdd(Value a, Value b) {
@@ -264,6 +251,54 @@ Value valueDecrement(Value a) {
 
 uint64_t valueAddr(Value value) {
     return (uint64_t)&value;
+}
+
+int valueLen(Value value) {
+    switch (value.type) {
+        case VAL_OBJ:
+            return objectLen(value);
+        default:
+            functionNotImplemented("len", value);
+    }
+}
+
+bool valueToBool(Value value) {
+    switch (value.type) {
+        case VAL_BOOL:
+            return AS_BOOL(value);
+        case VAL_NIL:
+            return false;
+        case VAL_NUMBER:
+            return AS_NUMBER(value) != 0;
+        case VAL_OBJ:
+            return objectToBool(value);
+    }
+}
+
+int valueToInt(Value value) {
+    switch (value.type) {
+        case VAL_BOOL:
+            return (int)AS_BOOL(value);
+        case VAL_NIL:
+            return 0;
+        case VAL_NUMBER:
+            return (int)AS_NUMBER(value);
+        case VAL_OBJ:
+            return objectToInt(value);
+    }
+}
+
+double valueToFloat(Value value) {
+    switch(value.type) {
+        case VAL_BOOL:
+            return (double)AS_BOOL(value);
+        case VAL_NIL:
+            return 0.0f;
+        case VAL_NUMBER:
+            return AS_NUMBER(value);
+        case VAL_OBJ:
+            return objectToFloat(value);
+    }
 }
 
 const char* decodeValueType(Value value) {

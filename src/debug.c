@@ -24,7 +24,7 @@ static int constantInstruction(const char *name, CodeVec *vec, int offset) {
     uint8_t id = vec->code[offset + 1];
     Value value = vec->constants.values[id];
     printf("%-10s %s %4d '", name, decodeValueType(value), id);
-    printValue(value);
+    valuePrint(value);
     printf("'\n");
     return offset + 2;
 }
@@ -33,7 +33,7 @@ static int varInstruction(const char *name, CodeVec *vec, int offset) {
     uint8_t id = vec->code[offset + 1];
     Value value = vec->constants.values[id];
     printf("%-10s %4d '", name, id);
-    printValue(value);
+    valuePrint(value);
     printf("'\n");
     return offset + 2;
 }
@@ -56,7 +56,7 @@ void printCodeVec(CodeVec *vec, const char *title) {
 void printValueVec(ValueVec *vec) {
     for (int i = 0; i < vec->size; i++) {
         putchar('"');
-        printValue(vec->values[i]);
+        valuePrint(vec->values[i]);
         putchar('"');
         printf(" ");
     }
@@ -160,7 +160,7 @@ int printInstruction(CodeVec *vec, int offset) {
             offset++;
             uint8_t constant = vec->code[offset++];
             printf("%-16s %4d ", "CLOSURE", constant);
-            printValue(vec->constants.values[constant]);
+            valuePrint(vec->constants.values[constant]);
             printf("\n");
 
             ObjFunction *function = AS_FUNCTION(vec->constants.values[constant]);

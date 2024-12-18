@@ -31,6 +31,10 @@ ObjArray *arrayAdd(ObjArray *a, ObjArray *b);
  
 ObjArray *arrayMultiply(ObjArray *array, int scalar);
 
+int arrayLen(ObjArray *array);
+
+bool arrayToBool(ObjArray *array);
+
 void arrayPrint(ObjArray *array);
 
 #endif

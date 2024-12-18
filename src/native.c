@@ -15,7 +15,7 @@ Value clockNative(int argc, Value *argv) {
 
 Value printNative(int argc, Value *argv) {
     for (int i = 0; i < argc; i++) {
-        printValue(argv[i]);
+        valuePrint(argv[i]);
         putchar(i < argc - 1 ? ' ' : '\n');
     }
     return NIL_VAL;

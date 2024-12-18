@@ -45,7 +45,7 @@ static Value inequality(int argc, Value *argv, char *name, bool (*func)(ObjStrin
         reportArityError(1, argc);
 
     if (!IS_STRING(argv[1]))
-        reportTypeError(name, argv[0], argv[1]);
+        operatorNotImplemented(name, argv[0], argv[1]);
 
     ObjString *a = AS_STRING(argv[0]);
     ObjString *b = AS_STRING(argv[1]);
@@ -74,7 +74,7 @@ Value novaStringAdd(int argc, Value *argv) {
         reportArityError(1, argc);
 
     if (!IS_STRING(argv[1]))
-        reportTypeError("+", argv[0], argv[1]);
+        operatorNotImplemented("+", argv[0], argv[1]);
 
     ObjString *a = AS_STRING(argv[0]);
     ObjString *b = AS_STRING(argv[1]);
@@ -87,7 +87,7 @@ Value novaStringMultiply(int argc, Value *argv) {
         reportArityError(1, argc);
 
     if (!isInt(argv[1]))
-        reportTypeError("*", argv[0], argv[1]);
+        operatorNotImplemented("*", argv[0], argv[1]);
     
     ObjString *string = AS_STRING(argv[0]);
     int scalar = asInt(argv[1]);

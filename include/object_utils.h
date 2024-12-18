@@ -12,19 +12,17 @@ const char* decodeObjType(Value value);
 
 const char *decodeObjTypeClean(Value value);
 
-Value objectEqual(Value a, Value b);
+bool objectEqual(Value a, Value b);
 
-Value objectNotEqual(Value a, Value b);
+bool objectNotEqual(Value a, Value b);
 
-Value objectGreater(Value a, Value b);
+bool objectGreater(Value a, Value b);
 
-Value objectGreaterEqual(Value a, Value b);
+bool objectGreaterEqual(Value a, Value b);
 
-Value objectLess(Value a, Value b);
+bool objectLess(Value a, Value b);
 
-Value objectLessEqual(Value a, Value b);
-
-Value objectNot(Value a);
+bool objectLessEqual(Value a, Value b);
 
 Value objectAdd(Value a, Value b);
 
@@ -45,5 +43,13 @@ Value objectIncrement(Value a);
 Value objectDecrement(Value a);
 
 uint64_t objectHash(Value a);
+
+int objectLen(Value value);
+
+bool objectToBool(Value value);
+
+int objectToInt(Value value);
+
+double objectToFloat(Value value);
 
 #endif

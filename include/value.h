@@ -48,7 +48,7 @@ bool isInt(Value value);
 
 int asInt(Value value);
 
-void printValue(Value value);
+void valuePrint(Value value);
 
 int writeValue(Value value, char *buffer, const size_t maxSize);
 
@@ -60,19 +60,17 @@ bool less(double a, double b);
 
 bool lessEqual(double a, double b);
 
-Value valueEqual(Value a, Value b);
+bool valueEqual(Value a, Value b);
 
-Value valueNotEqual(Value a, Value b);
+bool valueNotEqual(Value a, Value b);
 
-Value valueGreater(Value a, Value b);
+bool valueGreater(Value a, Value b);
 
-Value valueGreaterEqual(Value a, Value b);
+bool valueGreaterEqual(Value a, Value b);
 
-Value valueLess(Value a, Value b);
+bool valueLess(Value a, Value b);
 
-Value valueLessEqual(Value a, Value b);
-
-Value valueNot(Value a);
+bool valueLessEqual(Value a, Value b);
 
 Value valueAdd(Value a, Value b);
 
@@ -92,14 +90,22 @@ Value valueIncrement(Value a);
 
 Value valueDecrement(Value a);
 
-const char* decodeValueType(Value value);
-
-const char *decodeValueTypeClean(Value value);
-
 uint64_t hashLong(long value);
 
 uint64_t valueHash(Value value);
 
 uint64_t valueAddr(Value value);
+
+int valueLen(Value value);
+
+bool valueToBool(Value value);
+
+int valueToInt(Value value);
+
+double valueToFloat(Value value);
+
+const char* decodeValueType(Value value);
+
+const char *decodeValueTypeClean(Value value);
 
 #endif

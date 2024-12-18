@@ -46,19 +46,17 @@ ObjMethod *createMethod(Value reciever, ObjClosure *method);
 
 ObjNativeMethod *createNativeMethod(Value reciever, NativeFn function, const char *name);
 
-Value instanceEqual(Value a, Value b);
+bool instanceEqual(Value a, Value b);
 
-Value instanceNotEqual(Value a, Value b);
+bool instanceNotEqual(Value a, Value b);
 
-Value instanceGreater(Value a, Value b);
+bool instanceGreater(Value a, Value b);
 
-Value instanceGreaterEqual(Value a, Value b);
+bool instanceGreaterEqual(Value a, Value b);
 
-Value instanceLess(Value a, Value b);
+bool instanceLess(Value a, Value b);
 
-Value instanceLessEqual(Value a, Value b);
-
-Value instanceNot(Value a);
+bool instanceLessEqual(Value a, Value b);
 
 Value instanceAdd(Value a, Value b);
 
@@ -77,6 +75,14 @@ Value instanceNegate(Value a);
 Value instanceIncrement(Value a);
 
 Value instanceDecrement(Value a);
+
+int instanceLen(Value value);
+
+bool instanceToBool(Value value);
+
+int instanceToInt(Value value);
+
+double instanceToFloat(Value value);
 
 void instancePrint(Value instance);
 

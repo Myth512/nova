@@ -49,14 +49,20 @@ void reportArityError(int expected, int got) {
     exit(1);
 }
 
-void reportTypeError(char *operator, Value a, Value b) {
-    reportRuntimeError("Operator '%s' is not supported for %s and %s", operator, decodeValueType(a), decodeValueType(b));
+void operatorNotImplemented(char *operator, Value a, Value b) {
+    reportRuntimeError("Operator '%s' is not implemented for %s and %s", operator, decodeValueType(a), decodeValueType(b));
     printErrorInCode();
     exit(1);
 }
 
-void reportTypeError1op(char *operator, Value a) {
-    reportRuntimeError("Operator '%s' is not supported for %s", operator, decodeValueType(a));
+void operatorNotImplementedUnary(char *operator, Value a) {
+    reportRuntimeError("Operator '%s' is not implemented for %s", operator, decodeValueType(a));
+    printErrorInCode();
+    exit(1);
+}
+
+void functionNotImplemented(char *function, Value a) {
+    reportRuntimeError("Function '%s' is not implemented for %s", function, decodeValueType(a));
     printErrorInCode();
     exit(1);
 }
@@ -65,7 +71,7 @@ static void printStack() {
     printf("stack: ");
     for (Value *slot = vm.stack; slot < vm.top; slot++) {
         printf("[ ");
-        printValue(*slot);
+        valuePrint(*slot);
         printf(" ]");
     }
     printf("\n");
@@ -212,10 +218,6 @@ static void defineMethod(ObjString* name) {
     ObjClass *class = AS_CLASS(peek(1));
     tableSet(&class->methods, name, method);
     pop();
-}
-
-static bool isFalsey(Value value) {
-    return IS_NIL(value) || (IS_BOOL(value) && !AS_BOOL(value)) || (IS_NUMBER(value) && AS_NUMBER(value) == 0);
 }
 
 static void buildFormattedString() {
@@ -413,10 +415,16 @@ static void setProperty() {
     tableSet(&instance->fields, READ_STRING(), peek(0));
 }
 
-static void binary(Value (*func)(Value, Value)) {
+static void arithmetic(Value (*func)(Value, Value)) {
     Value b = pop();
     Value a = pop();
     push(func(a, b));
+}
+
+static void equality(bool (*func)(Value, Value)) {
+    Value b = pop();
+    Value a = pop();
+    push(BOOL_VAL(func(a, b)));
 }
 
 static void unary(Value (*func)(Value)) {
@@ -504,22 +512,22 @@ static Value run() {
                 push(BOOL_VAL(true));
                 break;
             case OP_EQUAL:
-                binary(valueEqual);
+                equality(valueEqual);
                 break;
             case OP_NOT_EQUAL:
-                binary(valueNotEqual);
+                equality(valueNotEqual);
                 break;
             case OP_GREATER:
-                binary(valueGreater);
+                equality(valueGreater);
                 break;
             case OP_GREATER_EQUAL:
-                binary(valueGreaterEqual);
+                equality(valueGreaterEqual);
                 break;
             case OP_LESS:
-                binary(valueLess);
+                equality(valueLess);
                 break;
             case OP_LESS_EQUAL:
-                binary(valueLessEqual);
+                equality(valueLessEqual);
                 break;
             case OP_INCREMENT:
                 unary(valueIncrement);
@@ -528,25 +536,25 @@ static Value run() {
                 unary(valueDecrement);
                 break;
             case OP_ADD:
-                binary(valueAdd); 
+                arithmetic(valueAdd); 
                 break;
             case OP_SUBTRUCT:
-                binary(valueSubtract);
+                arithmetic(valueSubtract);
                 break;
             case OP_MULTIPLY:
-                binary(valueMultiply);
+                arithmetic(valueMultiply);
                 break;
             case OP_DIVIDE:
-                binary(valueDivide);
+                arithmetic(valueDivide);
                 break;
             case OP_MOD:
-                binary(valueModulo);
+                arithmetic(valueModulo);
                 break;
             case OP_POWER:
-                binary(valuePower);
+                arithmetic(valuePower);
                 break;
             case OP_NOT:
-                unary(valueNot);
+                push(BOOL_VAL(!valueToBool(pop())));
                 break;
             case OP_NEGATE:
                 unary(valueNegate);
@@ -564,25 +572,25 @@ static Value run() {
             }
             case OP_JUMP_TRUE: {
                 uint16_t offset = READ_SHORT();
-                if (!isFalsey(peek(0))) 
+                if (valueToBool(peek(0)))
                     frame->ip += offset;
                 break;
             }
             case OP_JUMP_TRUE_POP: {
                 uint16_t offset = READ_SHORT();
-                if (isFalsey(pop())) 
+                if (!valueToBool(pop())) 
                     frame->ip += offset;
                 break;
             }
             case OP_JUMP_FALSE: {
                 uint16_t offset = READ_SHORT();
-                if (isFalsey(peek(0))) 
+                if (!valueToBool(peek(0))) 
                     frame->ip += offset;
                 break;
             }
             case OP_JUMP_FALSE_POP: {
                 uint16_t offset = READ_SHORT();
-                if (isFalsey(pop())) 
+                if (!valueToBool(pop())) 
                     frame->ip += offset;
                 break;
             }
@@ -593,7 +601,7 @@ static Value run() {
             }
             case OP_LOOP_TRUE_POP: {
                 uint16_t offset = READ_SHORT();
-                if (!isFalsey(pop()))
+                if (valueToBool(pop()))
                     frame->ip -= offset;
                 break;
             }
@@ -723,6 +731,9 @@ void initMagicStrings() {
     vm.magicStrings.getat = copyString("_getat_", 7);
     vm.magicStrings.setat = copyString("_setat_", 7);
     vm.magicStrings.len = copyString("_len_", 5);
+    vm.magicStrings.bool_ = copyString("_bool_", 6);
+    vm.magicStrings.int_ = copyString("_int_", 5);
+    vm.magicStrings.float_ = copyString("_float_", 7);
     vm.magicStrings.str = copyString("_str_", 5);
     vm.magicStrings.unsupported = copyString("unsupported", 12);
 }
