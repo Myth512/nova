@@ -44,6 +44,10 @@ bool stringLess(ObjString *a, ObjString *b);
 
 bool stringLessEqual(ObjString *a, ObjString *b);
 
+ObjString *stringAdd(ObjString *a, ObjString *b);
+
+ObjString *stringMultiply(ObjString *string, int scalar);
+
 int writeRawstring(char *buffer, ObjRawString *string);
 
 uint32_t getStringHash(ObjString *string);

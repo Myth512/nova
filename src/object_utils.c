@@ -40,19 +40,13 @@ void printObject(Value value) {
             printValue(*(((ObjUpvalue*)AS_OBJ(value))->location));
             break;
         case OBJ_ARRAY:
-            printArray(AS_ARRAY(value));
+            arrayPrint(AS_ARRAY(value));
             break;
         case OBJ_CLASS:
             printf("%s", AS_CLASS(value)->name->chars);
             break;
         case OBJ_INSTANCE:
-            // Value res;
-            // // bool success = callNovaMethod(value, vm.magicStrings.str, 0, &res);
-            // if (success) {
-            //     printValue(res);
-            // } else {
-            //     printf("Instanse of '%s'", AS_INSTANCE(value)->class->name->chars);
-            // }
+            instancePrint(value);
             break;
         case OBJ_METHOD:
             printFunction(AS_METHOD(value)->method->function);
@@ -155,7 +149,16 @@ Value objectNotEqual(Value a, Value b) {
     return equality(a, b, true, instanceNotEqual, stringNotEqual, arrayNotEqual);
 }
 
-static Value binary(Value a, Value b, char *name, Value (*instanceFunc)(Value, Value), Value (*stringFunc)(ObjString*, ObjString*), bool (*arrayFunc)(ObjArray*, ObjArray*)) {
+static Value unary(Value a, char *name, Value (*instanceFunc)(Value)) {
+    switch (OBJ_TYPE(a)) {
+        case OBJ_INSTANCE:
+            return instanceFunc(a);
+        default:
+            reportTypeError1op(name, a);
+    }
+}
+
+static Value binary(Value a, Value b, char *name, Value (*instanceFunc)(Value, Value), bool (*stringFunc)(ObjString*, ObjString*), bool (*arrayFunc)(ObjArray*, ObjArray*)) {
     if (IS_INSTANCE(a) || IS_INSTANCE(b))
         return instanceFunc(a, b);
     
@@ -193,41 +196,51 @@ Value objectLessEqual(Value a, Value b) {
 }
 
 Value objectNot(Value a) {
-
+    return unary(a, "not", instanceNot);
 }
 
 Value objectAdd(Value a, Value b) {
-    return binary(a, b, "+", instanceAdd, strin)
+    if (IS_STRING(a) && IS_STRING(b))
+        return OBJ_VAL(stringAdd(AS_STRING(a), AS_STRING(b)));
+    return binary(a, b, "+", instanceAdd, NULL, NULL);
 }
 
 Value objectSubtract(Value a, Value b) {
-
+    return binary(a, b, "-", instanceSubtract, NULL, NULL);
 }
 
 Value objectMultiply(Value a, Value b) {
-
+    if (IS_STRING(a) && isInt(b))
+        return OBJ_VAL(stringMultiply(AS_STRING(a), asInt(b)));
+    if (isInt(a) && IS_STRING(b))
+        return OBJ_VAL(stringMultiply(AS_STRING(b), asInt(a)));
+    return binary(a, b, "*", instanceMultiply, NULL, NULL);
 }
 
 Value objectDivide(Value a, Value b) {
-
+    return binary(a, b, "/", instanceDivide, NULL, NULL);
 }
 
 Value objectModulo(Value a, Value b) {
-
+    return binary(a, b, "%%", instanceModulo, NULL, NULL);
 }
 
 Value objectPower(Value a, Value b) {
-
+    return binary(a, b, "^", instancePower, NULL, NULL);
 }
 
 Value objectNegate(Value a) {
-
+    return unary(a, "-", instanceNegate);
 }
 
 Value objectIncrement(Value a) {
-
+    return unary(a, "++", instanceIncrement);
 }
 
 Value objectDecrement(Value a) {
+    return unary(a, "--", instanceDecrement);
+}
+
+uint64_t objectHash(Value a) {
 
 }

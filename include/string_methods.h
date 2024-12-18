@@ -1,5 +1,5 @@
 /* ANSI-C code produced by gperf version 3.1 */
-/* Command-line: gperf -t -N in_string_set -H string_hash gperf/stringMethods.txt  */
+/* Command-line: gperf -t -N in_string_set -H string_hash gperf/string_methods.txt  */
 /* Computed positions: -k'2-3' */
 
 #if !((' ' == 32) && ('!' == 33) && ('"' == 34) && ('#' == 35) \
@@ -29,11 +29,11 @@
 #error "gperf generated tables don't work with this execution character set. Please report a bug to <bug-gperf@gnu.org>."
 #endif
 
-#line 1 "gperf/stringMethods.txt"
+#line 1 "gperf/string_methods.txt"
 
 #include <string.h>
 #include "nova_string.h"
-#line 6 "gperf/stringMethods.txt"
+#line 6 "gperf/string_methods.txt"
 struct StringMethod {
 	const char *name;
 	Value (*method)(int, Value*);	
@@ -94,40 +94,40 @@ in_string_set (register const char *str, register size_t len)
   static struct StringMethod wordlist[] =
     {
       {""}, {""}, {""}, {""},
-#line 18 "gperf/stringMethods.txt"
-      {"_lt_", stringLess},
-#line 21 "gperf/stringMethods.txt"
-      {"_mul_", stringMultiply},
-#line 24 "gperf/stringMethods.txt"
-      {"_hash_", stringHash},
+#line 18 "gperf/string_methods.txt"
+      {"_lt_", novaStringLess},
+#line 21 "gperf/string_methods.txt"
+      {"_mul_", novaStringMultiply},
+#line 24 "gperf/string_methods.txt"
+      {"_hash_", novaStringHash},
       {""}, {""},
-#line 16 "gperf/stringMethods.txt"
-      {"_gt_", stringGreater},
-#line 20 "gperf/stringMethods.txt"
-      {"_add_", stringAdd},
+#line 16 "gperf/string_methods.txt"
+      {"_gt_", novaStringGreater},
+#line 20 "gperf/string_methods.txt"
+      {"_add_", novaStringAdd},
       {""}, {""}, {""},
-#line 19 "gperf/stringMethods.txt"
-      {"_le_", stringLessEqual},
-#line 23 "gperf/stringMethods.txt"
-      {"_len_", stringLen},
+#line 19 "gperf/string_methods.txt"
+      {"_le_", novaStringLessEqual},
+#line 23 "gperf/string_methods.txt"
+      {"_len_", novaStringLen},
       {""},
-#line 12 "gperf/stringMethods.txt"
-      {"reverse", stringReverse},
+#line 12 "gperf/string_methods.txt"
+      {"reverse", novaStringReverse},
       {""},
-#line 17 "gperf/stringMethods.txt"
-      {"_ge_", stringGreaterEqual},
+#line 17 "gperf/string_methods.txt"
+      {"_ge_", novaStringGreaterEqual},
       {""}, {""},
-#line 22 "gperf/stringMethods.txt"
-      {"_getat_", stringGetAt},
+#line 22 "gperf/string_methods.txt"
+      {"_getat_", novaStringGetAt},
       {""},
-#line 14 "gperf/stringMethods.txt"
-      {"_eq_", stringEqual},
+#line 14 "gperf/string_methods.txt"
+      {"_eq_", novaStringEqual},
       {""}, {""},
-#line 13 "gperf/stringMethods.txt"
-      {"replace", stringReplace},
+#line 13 "gperf/string_methods.txt"
+      {"replace", novaStringReplace},
       {""},
-#line 15 "gperf/stringMethods.txt"
-      {"_ne_", stringNotEqual}
+#line 15 "gperf/string_methods.txt"
+      {"_ne_", novaStringNotEqual}
     };
 
   if (len <= MAX_WORD_LENGTH && len >= MIN_WORD_LENGTH)
@@ -144,5 +144,5 @@ in_string_set (register const char *str, register size_t len)
     }
   return 0;
 }
-#line 25 "gperf/stringMethods.txt"
+#line 25 "gperf/string_methods.txt"
 

@@ -15,82 +15,11 @@ ObjArray* allocateArray(int size) {
     return array;
 }
 
-// bool compareArrays(ObjArray *a, ObjArray *b) {
-//     if (a->vec.size != b->vec.size)
-//         return false;
-//     for (int i = 0; i < a->vec.size; i++) {
-//         if (!compareValues(a->vec.values[i], b->vec.values[i]))
-//             return false;
-//     }
-//     return true;
-// }
-
-// void printArray(ObjArray *array) {
-//     printf("[");
-//     size_t size = array->vec.size;
-//     for (int i = 0; i < size; i++) {
-//         printValue(array->vec.values[i]);
-//         if (i + 1 != size) {
-//             printf(", ");
-//         }
-//     }
-//     printf("]");
-// }
-
-
-// static void repeatArray() {
-//     ObjArray *array;
-//     double number;
-
-//     if (IS_ARRAY(peek(0))) {
-//         array = AS_ARRAY(pop());
-//         number = AS_NUMBER(pop());
-//     } else {
-//         number = AS_NUMBER(pop());
-//         array = AS_ARRAY(pop());
-//     }
-
-//     if (number != (int)number)
-//         reportRuntimeError("Can't multiply array by non whole number");
-
-//     size_t initSize = array->vec.size;
-//     size_t newSize = initSize * number;
-
-//     ObjArray *result = allocateArray(newSize);
-
-//     for (int i = 0; i < newSize; i++) {
-//         result->vec.values[i] = array->vec.values[i % initSize];
-//     }
-
-//     push(OBJ_VAL(result));
-// }
-
-// static void concatenateArrays() {
-//     ObjArray *a = AS_ARRAY(pop());
-//     ObjArray *b = AS_ARRAY(pop());
-
-//     size_t aSize = a->vec.size;
-//     size_t bSize = b->vec.size;
-
-//     size_t size = aSize + bSize; 
-
-//     ObjArray *result = allocateArray(size);
-
-//     for (int i = 0; i < aSize; i++) {
-//         result->vec.values[i] = a->vec.values[i];
-//     }
-//     for (int i = 0; i < bSize; i++) {
-//         result->vec.values[aSize + i] = b->vec.values[i];
-//     }
-
-//     push(OBJ_VAL(result));
-// }
-
 bool arrayEqual(ObjArray *a, ObjArray *b) {
     if (a->vec.size != b->vec.size)
         return false;
     for (int i = 0; i < a->vec.size; i++) {
-        if (!valueEqual(a->vec.values[i], b->vec.values[i]))
+        if (!AS_BOOL(valueEqual(a->vec.values[i], b->vec.values[i])))
             return false;
     }
     return true;
@@ -100,12 +29,12 @@ bool arrayNotEqual(ObjArray *a, ObjArray *b) {
     return !arrayEqual(a, b);
 }
 
-static bool inequality(ObjArray *a, ObjArray *b, bool (*numFunc)(double, double), bool (*valFunc)(Value, Value)) {
+static bool inequality(ObjArray *a, ObjArray *b, bool (*numFunc)(double, double), Value (*valFunc)(Value, Value)) {
     int minLength = min(a->vec.size, b->vec.size);
     for (int i = 0; i < minLength; i++) {
-        if (valueEqual(a->vec.values[i], b->vec.values[i]))
+        if (AS_BOOL(valueEqual(a->vec.values[i], b->vec.values[i])))
             continue;
-        return valFunc(a->vec.values[i], b->vec.values[i]);
+        return AS_BOOL(valFunc(a->vec.values[i], b->vec.values[i]));
     }
     return numFunc(a->vec.size, b->vec.size);
 }
@@ -124,4 +53,42 @@ bool arrayLess(ObjArray *a, ObjArray *b) {
 
 bool arrayLessEqual(ObjArray *a, ObjArray *b) {
     return inequality(a, b, lessEqual, valueLessEqual);
+}
+
+ObjArray *arrayAdd(ObjArray *a, ObjArray *b) {
+    size_t size = a->vec.size + b->vec.size; 
+
+    ObjArray *result = allocateArray(size);
+
+    for (int i = 0; i < a->vec.size; i++)
+        result->vec.values[i] = a->vec.values[i];
+
+    for (int i = 0; i < b->vec.size; i++)
+        result->vec.values[a->vec.size + i] = b->vec.values[i];
+
+    return result;
+}
+
+ObjArray *arrayMultiply(ObjArray *array, int scalar) {
+    size_t oldSize = array->vec.size;
+    size_t newSize = oldSize * scalar;
+
+    ObjArray *result = allocateArray(newSize);
+
+    for (int i = 0; i < newSize; i++)
+        result->vec.values[i] = array->vec.values[i % oldSize];
+
+    return result;
+}
+
+void arrayPrint(ObjArray *array) {
+    printf("[");
+    size_t size = array->vec.size;
+    for (int i = 0; i < size; i++) {
+        printValue(array->vec.values[i]);
+        if (i + 1 != size) {
+            printf(", ");
+        }
+    }
+    printf("]");
 }

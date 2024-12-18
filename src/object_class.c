@@ -136,3 +136,7 @@ Value instanceIncrement(Value a) {
 Value instanceDecrement(Value a) {
 
 }
+
+void instancePrint(Value instance) {
+
+}

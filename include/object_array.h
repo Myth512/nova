@@ -15,8 +15,6 @@ typedef struct {
 
 ObjArray* allocateArray(int size);
 
-void printArray(ObjArray *array);
-
 bool arrayEqual(ObjArray *a, ObjArray *b);
 
 bool arrayNotEqual(ObjArray *a, ObjArray *b);
@@ -28,5 +26,11 @@ bool arrayGreaterEqual(ObjArray *a, ObjArray *b);
 bool arrayLess(ObjArray *a, ObjArray *b);
 
 bool arrayLessEqual(ObjArray *a, ObjArray *b);
+
+ObjArray *arrayAdd(ObjArray *a, ObjArray *b);
+ 
+ObjArray *arrayMultiply(ObjArray *array, int scalar);
+
+void arrayPrint(ObjArray *array);
 
 #endif

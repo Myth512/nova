@@ -6,6 +6,7 @@
 #include "value.h"
 #include "object.h"
 #include "object_utils.h"
+#include "object_string.h"
 #include "object_class.h"
 #include "memory.h"
 #include "error.h"
@@ -162,12 +163,29 @@ static Value unary(Value a, char *name, double (*numFunc)(double), Value (*objFu
     }
 }
 
-static Value binary(Value a, Value b, char *name, double (*numFunc)(double, double), Value (*objFunc)(Value, Value)) {
+static Value inequality(Value a, Value b, char *name, bool (*numFunc)(double, double), Value (*objFunc)(Value, Value)) {
     if (IS_INSTANCE(a) || IS_INSTANCE(b))
         return objFunc(a, b);
 
     if (a.type != b.type)
         reportTypeError(name, a, b);
+
+    switch (a.type) {
+        case VAL_NUMBER:
+            return BOOL_VAL(numFunc(AS_NUMBER(a), AS_NUMBER(b)));
+        case VAL_OBJ:
+            return objFunc(a, b);
+        default:
+            reportTypeError(name, a, b);
+    }
+}
+
+static Value arithmetic(Value a, Value b, char *name, double (*numFunc)(double, double), Value (*objFunc)(Value, Value)) {
+    if (IS_INSTANCE(a) || IS_INSTANCE(b))
+        return objFunc(a, b);
+    
+    if (IS_STRING(a) || IS_STRING(b))
+        return objFunc(a, b);
 
     switch (a.type) {
         case VAL_NUMBER:
@@ -180,56 +198,56 @@ static Value binary(Value a, Value b, char *name, double (*numFunc)(double, doub
 }
 
 Value valueGreater(Value a, Value b) {
-    return binary(a, b, ">", greater, valueGreater);
+    return inequality(a, b, ">", greater, valueGreater);
 }
 
 Value valueGreaterEqual(Value a, Value b) {
-    return binary(a, b, ">=", greaterEqual, valueGreaterEqual);
+    return inequality(a, b, ">=", greaterEqual, valueGreaterEqual);
 }
 
 Value valueLess(Value a, Value b) {
-    return binary(a, b, "<", less, valueLess);
+    return inequality(a, b, "<", less, valueLess);
 }
 
 Value valueLessEqual(Value a, Value b) {
-    return binary(a, b, "<=", lessEqual, valueLessEqual);
+    return inequality(a, b, "<=", lessEqual, valueLessEqual);
 }
 
 Value valueNot(Value a) {
     switch (a.type) {
         case VAL_BOOL:
             return BOOL_VAL(!AS_BOOL(a));
+        case VAL_NIL:
+            return BOOL_VAL(true);
         case VAL_NUMBER:
             return BOOL_VAL(!AS_NUMBER(a));
         case VAL_OBJ:
             return objectNot(a);
-        default:
-            reportTypeError1op("not", a);
     }
 }
 
 Value valueAdd(Value a, Value b) {
-    return binary(a, b, "+", add, objectAdd);
+    return arithmetic(a, b, "+", add, objectAdd);
 }
 
 Value valueSubtract(Value a, Value b) {
-    return binary(a, b, "-", subtract, objectSubtract);
+    return arithmetic(a, b, "-", subtract, objectSubtract);
 }
 
 Value valueMultiply(Value a, Value b) {
-    return binary(a, b, "*", multiply, objectMultiply);
+    return arithmetic(a, b, "*", multiply, objectMultiply);
 }
 
 Value valueDivide(Value a, Value b) {
-    return binary(a, b, "/", divide, objectDivide);
+    return arithmetic(a, b, "/", divide, objectDivide);
 }
 
 Value valueModulo(Value a, Value b) {
-    return binary(a, b, "%%", modulo, objectModulo);
+    return arithmetic(a, b, "%%", modulo, objectModulo);
 }
 
 Value valuePower(Value a, Value b) {
-    return binary(a, b, "^", pow, objectPower);
+    return arithmetic(a, b, "^", pow, objectPower);
 }
 
 Value valueNegate(Value a) {
@@ -324,6 +342,6 @@ uint64_t valueHash(Value value) {
         case VAL_NUMBER:
             return hashNumber(AS_NUMBER(value));
         case VAL_OBJ:
-            return hashObject(value);
+            return objectHash(value);
     }
 }

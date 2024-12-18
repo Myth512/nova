@@ -122,7 +122,6 @@ static void defineNatives() {
     defineNative("max", maxNative);
     defineNative("type", typeNative);
     defineNative("len", lenNative);
-    defineNative("hash", hashNative);
     defineNative("addr", novaAddr);
 }
 
@@ -556,7 +555,7 @@ static Value run() {
                 unary(valueNot);
                 break;
             case OP_NEGATE:
-                unary(valueNegation);
+                unary(valueNegate);
                 break;
             case OP_BUILD_FSTRING:
                 buildFormattedString();

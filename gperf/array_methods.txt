@@ -9,20 +9,20 @@ struct ArrayMethod {
 }
 
 %%
-push, arrayPush
-pop, arrayPop
-insert, arrayInsert
-reverse, arrayReverse
-sort, arraySort
-_eq_, arrayEqual
-_ne_, arrayNotEqual
-_gt_, arrayGreater
-_ge_, arrayGreaterEqual
-_lt_, arrayLess
-_le_, arrayLessEqual
-_add_, arrayAdd
-_mul_, arrayMultiply
-_getat_, arrayGetAt
-_setat_, arraySetAt
-_len_, arrayLen
+push, novaArrayPush
+pop, novaArrayPop
+insert, novaArrayInsert
+reverse, novaArrayReverse
+sort, novaArraySort
+_eq_, novaArrayEqual
+_ne_, novaArrayNotEqual
+_gt_, novaArrayGreater
+_ge_, novaArrayGreaterEqual
+_lt_, novaArrayLess
+_le_, novaArrayLessEqual
+_add_, novaArrayAdd
+_mul_, novaArrayMultiply
+_getat_, novaArrayGetAt
+_setat_, novaArraySetAt
+_len_, novaArrayLen
 %%

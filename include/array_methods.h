@@ -1,5 +1,5 @@
 /* ANSI-C code produced by gperf version 3.1 */
-/* Command-line: gperf -t -N in_array_set -H array_hash gperf/arrayMethods.txt  */
+/* Command-line: gperf -t -N in_array_set -H array_hash gperf/array_methods.txt  */
 /* Computed positions: -k'2-3' */
 
 #if !((' ' == 32) && ('!' == 33) && ('"' == 34) && ('#' == 35) \
@@ -29,11 +29,11 @@
 #error "gperf generated tables don't work with this execution character set. Please report a bug to <bug-gperf@gnu.org>."
 #endif
 
-#line 1 "gperf/arrayMethods.txt"
+#line 1 "gperf/array_methods.txt"
 
 #include <string.h>
 #include "nova_array.h"
-#line 6 "gperf/arrayMethods.txt"
+#line 6 "gperf/array_methods.txt"
 struct ArrayMethod {
 	const char *name;
 	Value (*method)(int, Value*);	
@@ -94,46 +94,46 @@ in_array_set (register const char *str, register size_t len)
   static struct ArrayMethod wordlist[] =
     {
       {""}, {""}, {""}, {""},
-#line 21 "gperf/arrayMethods.txt"
-      {"_lt_", arrayLess},
-#line 23 "gperf/arrayMethods.txt"
-      {"_add_", arrayAdd},
+#line 21 "gperf/array_methods.txt"
+      {"_lt_", novaArrayLess},
+#line 23 "gperf/array_methods.txt"
+      {"_add_", novaArrayAdd},
       {""}, {""}, {""},
-#line 19 "gperf/arrayMethods.txt"
-      {"_gt_", arrayGreater},
+#line 19 "gperf/array_methods.txt"
+      {"_gt_", novaArrayGreater},
       {""}, {""}, {""}, {""},
-#line 22 "gperf/arrayMethods.txt"
-      {"_le_", arrayLessEqual},
-#line 27 "gperf/arrayMethods.txt"
-      {"_len_", arrayLen},
-#line 14 "gperf/arrayMethods.txt"
-      {"insert", arrayInsert},
-#line 26 "gperf/arrayMethods.txt"
-      {"_setat_", arraySetAt},
+#line 22 "gperf/array_methods.txt"
+      {"_le_", novaArrayLessEqual},
+#line 27 "gperf/array_methods.txt"
+      {"_len_", novaArrayLen},
+#line 14 "gperf/array_methods.txt"
+      {"insert", novaArrayInsert},
+#line 26 "gperf/array_methods.txt"
+      {"_setat_", novaArraySetAt},
       {""},
-#line 20 "gperf/arrayMethods.txt"
-      {"_ge_", arrayGreaterEqual},
+#line 20 "gperf/array_methods.txt"
+      {"_ge_", novaArrayGreaterEqual},
       {""}, {""},
-#line 25 "gperf/arrayMethods.txt"
-      {"_getat_", arrayGetAt},
-#line 13 "gperf/arrayMethods.txt"
-      {"pop", arrayPop},
-#line 18 "gperf/arrayMethods.txt"
-      {"_ne_", arrayNotEqual},
+#line 25 "gperf/array_methods.txt"
+      {"_getat_", novaArrayGetAt},
+#line 13 "gperf/array_methods.txt"
+      {"pop", novaArrayPop},
+#line 18 "gperf/array_methods.txt"
+      {"_ne_", novaArrayNotEqual},
       {""}, {""},
-#line 15 "gperf/arrayMethods.txt"
-      {"reverse", arrayReverse},
+#line 15 "gperf/array_methods.txt"
+      {"reverse", novaArrayReverse},
       {""},
-#line 12 "gperf/arrayMethods.txt"
-      {"push", arrayPush},
-#line 24 "gperf/arrayMethods.txt"
-      {"_mul_", arrayMultiply},
+#line 12 "gperf/array_methods.txt"
+      {"push", novaArrayPush},
+#line 24 "gperf/array_methods.txt"
+      {"_mul_", novaArrayMultiply},
       {""}, {""}, {""},
-#line 17 "gperf/arrayMethods.txt"
-      {"_eq_", arrayEqual},
+#line 17 "gperf/array_methods.txt"
+      {"_eq_", novaArrayEqual},
       {""}, {""}, {""}, {""},
-#line 16 "gperf/arrayMethods.txt"
-      {"sort", arraySort}
+#line 16 "gperf/array_methods.txt"
+      {"sort", novaArraySort}
     };
 
   if (len <= MAX_WORD_LENGTH && len >= MIN_WORD_LENGTH)
@@ -150,5 +150,5 @@ in_array_set (register const char *str, register size_t len)
     }
   return 0;
 }
-#line 28 "gperf/arrayMethods.txt"
+#line 28 "gperf/array_methods.txt"
 

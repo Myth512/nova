@@ -44,4 +44,6 @@ Value objectIncrement(Value a);
 
 Value objectDecrement(Value a);
 
+uint64_t objectHash(Value a);
+
 #endif

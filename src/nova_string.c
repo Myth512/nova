@@ -24,15 +24,7 @@ Value novaStringEqual(int argc, Value *argv) {
     ObjString *a = AS_STRING(argv[0]);
     ObjString *b = AS_STRING(argv[1]);
 
-    ObjString *c;
-
-    if (a->isInterned && b->isInterned)
-        return BOOL_VAL(a == b);
-
-    if (a->length != b->length) 
-        return BOOL_VAL(false);
-
-    return BOOL_VAL(memcmp(a->chars, b->chars, a->length) == 0);
+    return BOOL_VAL(stringEqual(a, b));
 }
 
 Value novaStringNotEqual(int argc, Value *argv) {
@@ -45,65 +37,36 @@ Value novaStringNotEqual(int argc, Value *argv) {
     ObjString *a = AS_STRING(argv[0]);
     ObjString *b = AS_STRING(argv[1]);
 
-    if (a->isInterned && b->isInterned)
-        return BOOL_VAL(a != b);
+    return BOOL_VAL(stringNotEqual(a, b));
+}
 
-    if (a->length != b->length) 
-        return BOOL_VAL(true);
+static Value inequality(int argc, Value *argv, char *name, bool (*func)(ObjString*, ObjString*)) {
+    if (argc != 1)
+        reportArityError(1, argc);
 
-    return BOOL_VAL(memcmp(a->chars, b->chars, a->length) != 0);
+    if (!IS_STRING(argv[1]))
+        reportTypeError(name, argv[0], argv[1]);
+
+    ObjString *a = AS_STRING(argv[0]);
+    ObjString *b = AS_STRING(argv[1]);
+    
+    return BOOL_VAL(func(a, b));
 }
 
 Value novaStringGreater(int argc, Value *argv) {
-    if (argc != 1)
-        reportArityError(1, argc);
-
-    if (!IS_STRING(argv[1]))
-        reportRuntimeError("Unsupported operator '>' for %s and %s", decodeValueType(argv[0]), decodeValueType(argv[1]));
-
-    ObjString *a = AS_STRING(argv[0]);
-    ObjString *b = AS_STRING(argv[1]);
-
-    return BOOL_VAL(memcmp(a->chars, b->chars, a->length) > 0);
+    return inequality(argc, argv, ">", stringGreater);
 }
 
 Value novaStringGreaterEqual(int argc, Value *argv) {
-    if (argc != 1)
-        reportArityError(1, argc);
-
-    if (!IS_STRING(argv[1]))
-        reportRuntimeError("Unsupported operator '>=' for %s and %s", decodeValueType(argv[0]), decodeValueType(argv[1]));
-
-    ObjString *a = AS_STRING(argv[0]);
-    ObjString *b = AS_STRING(argv[1]);
-
-    return BOOL_VAL(memcmp(a->chars, b->chars, a->length) >= 0);
+    return inequality(argc, argv, ">=", stringGreaterEqual);
 }
 
 Value novaStringLess(int argc, Value *argv) {
-    if (argc != 1)
-        reportArityError(1, argc);
-
-    if (!IS_STRING(argv[1]))
-        reportRuntimeError("Unsupported operator '<' for %s and %s", decodeValueType(argv[0]), decodeValueType(argv[1]));
-
-    ObjString *a = AS_STRING(argv[0]);
-    ObjString *b = AS_STRING(argv[1]);
-
-    return BOOL_VAL(memcmp(a->chars, b->chars, a->length) < 0);
+    return inequality(argc, argv, "<", stringLess);
 }
 
 Value novaStringLessEqual(int argc, Value *argv) {
-    if (argc != 1)
-        reportArityError(1, argc);
-
-    if (!IS_STRING(argv[1]))
-        reportRuntimeError("Unsupported operator '<=' for %s and %s", decodeValueType(argv[0]), decodeValueType(argv[1]));
-
-    ObjString *a = AS_STRING(argv[0]);
-    ObjString *b = AS_STRING(argv[1]);
-
-    return BOOL_VAL(memcmp(a->chars, b->chars, a->length) <= 0);
+    return inequality(argc, argv, "<=", stringLessEqual);
 }
 
 Value novaStringAdd(int argc, Value *argv) {
@@ -111,13 +74,12 @@ Value novaStringAdd(int argc, Value *argv) {
         reportArityError(1, argc);
 
     if (!IS_STRING(argv[1]))
-        reportRuntimeError("Unsupported operator '+' for %s and %s", decodeValueType(argv[0]), decodeValueType(argv[1]));
+        reportTypeError("+", argv[0], argv[1]);
 
     ObjString *a = AS_STRING(argv[0]);
     ObjString *b = AS_STRING(argv[1]);
 
-
-    return OBJ_VAL(result);
+    return OBJ_VAL(stringAdd(a, b));
 }
 
 Value novaStringMultiply(int argc, Value *argv) {
@@ -125,13 +87,12 @@ Value novaStringMultiply(int argc, Value *argv) {
         reportArityError(1, argc);
 
     if (!isInt(argv[1]))
-        reportRuntimeError("Multiplier must be whole number");
-
+        reportTypeError("*", argv[0], argv[1]);
+    
     ObjString *string = AS_STRING(argv[0]);
-    int multiplier = asInt(argv[1]);
+    int scalar = asInt(argv[1]);
 
-
-    return OBJ_VAL(result);
+    return OBJ_VAL(stringMultiply(string, scalar));
 }
 
 Value novaStringGetAt(int argc, Value *argv) {
