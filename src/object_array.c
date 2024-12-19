@@ -122,7 +122,7 @@ OptValue arrayGetField(Value array, ObjString *name) {
 }
 
 Value arrayGetAt(ObjArray *array, Value index) {
-    if (isInt(index))
+    if (!isInt(index))
         reportRuntimeError("Index must be integer number");
     
     int i = asInt(index);
@@ -137,7 +137,7 @@ Value arrayGetAt(ObjArray *array, Value index) {
 }
 
 void arraySetAt(ObjArray *array, Value index, Value value) {
-    if (isInt(index))
+    if (!isInt(index))
         reportRuntimeError("Index must be integer number");
     
     int i = asInt(index);

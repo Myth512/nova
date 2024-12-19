@@ -256,7 +256,7 @@ static bool consume(TokenType type, bool skipLineBreak) {
 }
 
 static bool consumeEOS() {
-    return consume(TOKEN_LINE_BREAK, false) || consume(TOKEN_SEMICOLON, false);
+    return consume(TOKEN_LINE_BREAK, false) || consume(TOKEN_SEMICOLON, false) || consume(TOKEN_EOF, false);
 }
 
 static void emitByte(uint8_t byte, Token token) {

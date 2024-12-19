@@ -163,7 +163,7 @@ OptValue stringGetField(Value string, ObjString *name) {
 }
 
 Value stringGetAt(ObjString *string, Value index) {
-    if (isInt(index))
+    if (!isInt(index))
         reportRuntimeError("Index must be integer number");
     
     int i = asInt(index);

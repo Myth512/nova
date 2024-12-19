@@ -179,6 +179,8 @@ bool objectLessEqual(Value a, Value b) {
 Value objectAdd(Value a, Value b) {
     if (IS_STRING(a) && IS_STRING(b))
         return OBJ_VAL(stringAdd(AS_STRING(a), AS_STRING(b)));
+    if (IS_ARRAY(a) && IS_ARRAY(b))
+        return OBJ_VAL(arrayAdd(AS_ARRAY(a), AS_ARRAY(b)));
     return arithmetic(a, b, "+", instanceAdd);
 }
 
@@ -191,6 +193,10 @@ Value objectMultiply(Value a, Value b) {
         return OBJ_VAL(stringMultiply(AS_STRING(a), asInt(b)));
     if (isInt(a) && IS_STRING(b))
         return OBJ_VAL(stringMultiply(AS_STRING(b), asInt(a)));
+    if (IS_ARRAY(a) && isInt(b))
+        return OBJ_VAL(arrayMultiply(AS_ARRAY(a), asInt(b)));
+    if (isInt(a) && IS_ARRAY(b))
+        return OBJ_VAL(arrayMultiply(AS_ARRAY(b), asInt(a)));
     return arithmetic(a, b, "*", instanceMultiply);
 }
 
@@ -260,8 +266,10 @@ void objectSetAt(Value obj, Value key, Value value) {
     switch (OBJ_TYPE(obj)) {
         case OBJ_ARRAY:
             arraySetAt(AS_ARRAY(obj), key, value);
+            break;
         case OBJ_INSTANCE:
             instanceSetAt(obj, key, value);
+            break;
         case OBJ_STRING:
             reportRuntimeError("%s is immutable", decodeValueType(obj));
         default:

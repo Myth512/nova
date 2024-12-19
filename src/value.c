@@ -202,15 +202,15 @@ bool valueGreater(Value a, Value b) {
 }
 
 bool valueGreaterEqual(Value a, Value b) {
-    return inequality(a, b, ">=", greaterEqual, valueGreaterEqual);
+    return inequality(a, b, ">=", greaterEqual, objectGreaterEqual);
 }
 
 bool valueLess(Value a, Value b) {
-    return inequality(a, b, "<", less, valueLess);
+    return inequality(a, b, "<", less, objectLess);
 }
 
 bool valueLessEqual(Value a, Value b) {
-    return inequality(a, b, "<=", lessEqual, valueLessEqual);
+    return inequality(a, b, "<=", lessEqual, objectLessEqual);
 }
 
 Value valueAdd(Value a, Value b) {
@@ -262,13 +262,13 @@ void valueSetField(Value obj, ObjString *name, Value value) {
 }
 
 Value valueGetAt(Value obj, Value key) {
-    if (IS_OBJ(obj))
+    if (!IS_OBJ(obj))
         reportRuntimeError("%s is not subscriptalbe", decodeValueType(obj));
     return objectGetAt(obj, key);
 }
 
 void valueSetAt(Value obj, Value key, Value value) {
-    if (IS_OBJ(obj))
+    if (!IS_OBJ(obj))
         reportRuntimeError("%s does not support item assignement", decodeValueType(obj));
     objectSetAt(obj, key, value);
 }

@@ -33,4 +33,28 @@ print(3 * "{2 * 2 + 3}")
 // Case 11
 print("Hello\nWorld")
 
-print("a" > "b")
+string1 := "apple"
+string2 := "banana"
+string3 := "apple"
+string4 := "grape"
+
+print(string1 == string3)
+print(string1 == string2)
+
+print(string1 != string2)
+print(string1 != string3)
+
+print(string1 > string2)
+print(string2 > string1)
+
+print(string1 >= string3)
+print(string1 >= string2)
+
+print(string1 < string2)
+print(string2 < string1)
+
+print(string1 <= string3)
+print(string2 <= string1)
+
+print(string1[1])
+print(string2[-1])
