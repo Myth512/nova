@@ -31,6 +31,17 @@ ObjNativeMethod *createNativeMethod(Value reciever, NativeFn function, const cha
     return native;
 }
 
+int instanceWrite(Value instance, char *buffer, const size_t size) {
+    OptValue result = callNovaMethod(instance, vm.magicStrings.str, 0);
+    if (result.hasValue)
+        return valueWrite(result.value, buffer, size);
+    return writeToBuffer(buffer, size, "instance of %s", decodeValueType(instance));
+}
+
+int instancePrint(Value instance) {
+    return instanceWrite(instance, NULL, 0);
+}
+
 bool instanceEqual(Value a, Value b) {
     OptValue result = callNovaMethod1arg(a, vm.magicStrings.eq, b);
     if (result.hasValue) {
@@ -221,13 +232,4 @@ double instanceToFloat(Value value) {
         reportRuntimeError("Return type must be <type number>");
     }
     functionNotImplemented("float", value);
-}
-
-void instancePrint(Value instance) {
-    OptValue result = callNovaMethod(instance, vm.magicStrings.str, 0);
-    if (result.hasValue) {
-        valuePrint(result.value);
-    } else {
-        printf("instance of %s", decodeValueType(instance));
-    }
 }

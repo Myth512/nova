@@ -19,6 +19,33 @@ ObjArray* allocateArray(int size) {
     return array;
 }
 
+static int movePointer(char **buffer, int bytesWritten) {
+    if (*buffer != NULL) {
+        *buffer += bytesWritten;
+        return bytesWritten;
+    }
+    return 0;
+}
+
+int arrayWrite(ObjArray *array, char *buffer, size_t size) {
+    int bytesWritten = writeToBuffer(buffer, size, "[");
+    size -= movePointer(&buffer, bytesWritten);
+    size_t length = array->vec.size;
+    for (int i = 0; i < length; i++) {
+        bytesWritten = valueWrite(array->vec.values[i], buffer, size);
+        size -= movePointer(&buffer, bytesWritten);
+        if (i + 1 != length) {
+            bytesWritten = writeToBuffer(buffer, size, ", ");
+            size -= movePointer(&buffer, bytesWritten);
+        }
+    }
+    writeToBuffer(buffer, size, "]");
+}
+
+int arrayPrint(ObjArray *array) {
+    return arrayWrite(array, NULL, 0);
+}
+
 bool arrayEqual(ObjArray *a, ObjArray *b) {
     if (a->vec.size != b->vec.size)
         return false;
@@ -130,16 +157,4 @@ int arrayLen(ObjArray *array) {
 
 bool arrayToBool(ObjArray *array) {
     return (bool)arrayLen(array);
-}
-
-void arrayPrint(ObjArray *array) {
-    printf("[");
-    size_t size = array->vec.size;
-    for (int i = 0; i < size; i++) {
-        valuePrint(array->vec.values[i]);
-        if (i + 1 != size) {
-            printf(", ");
-        }
-    }
-    printf("]");
 }

@@ -4,7 +4,6 @@
 #include "error.h"
 #include "token.h"
 
-
 const char* getCodeLine(const char *source, int line) {
     int curLine = 1;
     const char *lineStart = source;

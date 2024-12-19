@@ -1,6 +1,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdarg.h>
 #include <math.h>
 
 #include "value.h"
@@ -23,37 +24,36 @@ int asInt(Value value) {
     return (int)AS_NUMBER(value);
 }
 
-void valuePrint(Value value) {
+int writeToBuffer(char *buffer, const size_t size, const char *format, ...) {
+    va_list args;
+    va_start(args, format);
+    int bytesWritten;
+
+    if (buffer == NULL)
+        bytesWritten = vprintf(format, args);
+    else
+        bytesWritten = vsnprintf(buffer, size, format, args);
+    
+    va_end(args);
+
+    return bytesWritten;
+}
+
+int valueWrite(Value value, char *buffer, const size_t size) {
     switch (value.type) {
         case VAL_BOOL:
-            printf(AS_BOOL(value) ? "true" : "false");
-            break;
+            return writeToBuffer(buffer, size, AS_BOOL(value) ? "true" : "false");
         case VAL_NIL:
-            printf("nil");
-            break;
+            return writeToBuffer(buffer, size, "nil");
         case VAL_NUMBER:
-            printf("%g", AS_NUMBER(value));
-            break;
+            return writeToBuffer(buffer, size, "%g", AS_NUMBER(value));
         case VAL_OBJ:
-            printObject(value);
-            break;
+            return objectWrite(value, buffer, size);
     }
 }
 
-int writeValue(Value value, char *buffer, const size_t maxSize) {
-    switch (value.type) {
-        case VAL_BOOL:
-            if (AS_BOOL(value))
-                return snprintf(buffer, 5, "true");
-            return snprintf(buffer, 6, "false");
-        case VAL_NIL:
-            return snprintf(buffer, 4, "nil");
-        case VAL_NUMBER:
-            return snprintf(buffer, maxSize, "%g", AS_NUMBER(value));
-        case VAL_OBJ:
-            return writeObject(value, buffer, maxSize);
-    }
-    return -1; // unreachable
+int valuePrint(Value value) {
+    return valueWrite(value, NULL, 0);
 }
 
 bool fequal(double a, double b) {
@@ -262,11 +262,15 @@ void valueSetField(Value obj, ObjString *name, Value value) {
 }
 
 Value valueGetAt(Value obj, Value key) {
-
+    if (IS_OBJ(obj))
+        reportRuntimeError("%s is not subscriptalbe", decodeValueType(obj));
+    return objectGetAt(obj, key);
 }
 
 void valueSetAt(Value obj, Value key, Value value) {
-
+    if (IS_OBJ(obj))
+        reportRuntimeError("%s does not support item assignement", decodeValueType(obj));
+    objectSetAt(obj, key, value);
 }
 
 uint64_t valueAddr(Value value) {
@@ -319,6 +323,14 @@ double valueToFloat(Value value) {
         case VAL_OBJ:
             return objectToFloat(value);
     }
+}
+
+ObjString *valueToStr(Value value) {
+    char buffer[128];
+    int length = valueWrite(value, buffer, sizeof(buffer));
+    ObjString *string = allocateString(length);
+    strcpy(string->chars, buffer);
+    return string;
 }
 
 const char* decodeValueType(Value value) {

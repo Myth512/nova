@@ -4,13 +4,13 @@
 #include "object.h"
 #include "value.h"
 
-void printObject(Value value);
-
-int writeObject(Value value, char *buffer, const size_t maxSize);
-
 const char* decodeObjType(Value value);
 
 const char *decodeObjTypeClean(Value value);
+
+int objectWrite(Value value, char *buffer, const size_t size);
+
+int objectPrint(Value value);
 
 bool objectEqual(Value a, Value b);
 

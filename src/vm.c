@@ -130,6 +130,7 @@ static void defineNatives() {
     defineNative("bool", novaBool);
     defineNative("int", novaInt);
     defineNative("float", novaFloat);
+    defineNative("str", novaStr);
 }
 
 static bool callValueInternal(Value callee, int argc) {
@@ -236,7 +237,7 @@ static void buildFormattedString() {
 
     for (int i = 0; i < partCount; i++) {
         Value part = peek(partCount - i - 1);
-        int bytesWritten = writeValue(part, buffer, spaceLeft);
+        int bytesWritten = valueWrite(part, buffer, spaceLeft);
         buffer += bytesWritten;
         stringSize += bytesWritten;
         spaceLeft -= bytesWritten;
@@ -653,6 +654,7 @@ void freeVM() {
 
 InterpretResult interpret(const char *source) {
     ObjFunction *function = compile(source);
+    function->name = copyString("script", 7);
     if (function == NULL)
         return INTERPRET_COMPILE_ERROR;
 

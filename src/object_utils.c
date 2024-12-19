@@ -6,67 +6,39 @@
 #include "object_class.h"
 #include "vm.h"
 
-static void printFunction(ObjFunction *function) {
-    if (function->name == NULL) {
-        printf("<script>");
-        return;
-    }
-    printf("<function %s>", function->name->chars);
-}
-
-void printObject(Value value) {
+int objectWrite(Value value, char *buffer, const size_t size) {
     switch (OBJ_TYPE(value)) {
         case OBJ_CLOSURE:
-            printFunction(AS_CLOSURE(value)->function);
-            break;
+            return writeToBuffer(buffer, size, "<function %s>", AS_CLOSURE(value)->function->name->chars);
         case OBJ_FUNCTION:
-            printFunction(AS_FUNCTION(value));
-            break;
+            return writeToBuffer(buffer, size, "<function %s>", AS_FUNCTION(value)->name->chars);
         case OBJ_NATIVE:
-            printf("<native function '%s'>", AS_NATIVE(value)->name);
-            break;
+            return writeToBuffer(buffer, size, "<native function '%s'>", AS_NATIVE(value)->name);
         case OBJ_NATIVE_METHOD:
-            printf("<native method '%s'>", AS_NATIVE_METHOD(value)->name);
-            break;
+            return writeToBuffer(buffer, size, "<native method '%s'>", AS_NATIVE_METHOD(value)->name);
         case OBJ_STRING:
-            printf("%s", AS_CSTRING(value));
-            break;
+            return writeToBuffer(buffer, size, "%s", AS_CSTRING(value));
         case OBJ_RAW_STRING: {
             ObjRawString *string = AS_RAW_STRING(value);
-            printf("%.*s\n", string->length, string->chars);
-            break;
+            return writeToBuffer(buffer, size, "%.*s", string->length, string->chars);
         }
-        case OBJ_UPVALUE:
-            valuePrint(*(((ObjUpvalue*)AS_OBJ(value))->location));
-            break;
+        case OBJ_UPVALUE: {
+            ObjUpvalue *upvalue = AS_UPVALUE(value);
+            return valueWrite(*upvalue->location, buffer, size);
+        }
         case OBJ_ARRAY:
-            arrayPrint(AS_ARRAY(value));
-            break;
+            return arrayWrite(AS_ARRAY(value), buffer, size);
         case OBJ_CLASS:
-            printf("%s", AS_CLASS(value)->name->chars);
-            break;
+            return writeToBuffer(buffer, size, "%s", AS_CLASS(value)->name->chars);
         case OBJ_INSTANCE:
-            instancePrint(value);
-            break;
+            return instanceWrite(value, buffer, size);
         case OBJ_METHOD:
-            printFunction(AS_METHOD(value)->method->function);
-            break;
+            return writeToBuffer(buffer, size, "<method %s>", AS_METHOD(value)->method->function->name->chars);
     }
 }
 
-int writeObject(Value value, char *buffer, const size_t maxSize) {
-    switch (OBJ_TYPE(value)) {
-        case OBJ_FUNCTION:
-            ObjFunction *function = AS_FUNCTION(value);
-            return snprintf(buffer, maxSize, "<function %s>", function->name->chars);
-        case OBJ_NATIVE:
-            return snprintf(buffer, maxSize, "<native function %s>", AS_NATIVE(value)->name);
-        case OBJ_STRING:
-            return snprintf(buffer, maxSize, "%s", AS_CSTRING(value));
-        case OBJ_RAW_STRING:
-            return writeRawstring(buffer, AS_RAW_STRING(value));
-    }
-    return -1; // unreachable
+int objectPrint(Value value) {
+    return objectWrite(value, NULL, 0);
 }
 
 const char* decodeObjType(Value value) {
@@ -293,7 +265,7 @@ void objectSetAt(Value obj, Value key, Value value) {
         case OBJ_STRING:
             reportRuntimeError("%s is immutable", decodeValueType(obj));
         default:
-            reportRuntimeError("%s is not subscriptable", decodeValueType(obj));
+            reportRuntimeError("%s does not support item assignment", decodeValueType(obj));
     }
 }
 

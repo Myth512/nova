@@ -46,6 +46,10 @@ ObjMethod *createMethod(Value reciever, ObjClosure *method);
 
 ObjNativeMethod *createNativeMethod(Value reciever, NativeFn function, const char *name);
 
+int instanceWrite(Value instance, char *buffer, const size_t size);
+
+int instancePrint(Value instance);
+
 bool instanceEqual(Value a, Value b);
 
 bool instanceNotEqual(Value a, Value b);
@@ -91,7 +95,5 @@ bool instanceToBool(Value value);
 int instanceToInt(Value value);
 
 double instanceToFloat(Value value);
-
-void instancePrint(Value instance);
 
 #endif

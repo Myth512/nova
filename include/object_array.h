@@ -15,6 +15,10 @@ typedef struct {
 
 ObjArray* allocateArray(int size);
 
+int arrayWrite(ObjArray *array, char *buffer, const size_t size);
+
+int arrayPrint(ObjArray *array);
+
 bool arrayEqual(ObjArray *a, ObjArray *b);
 
 bool arrayNotEqual(ObjArray *a, ObjArray *b);
@@ -40,7 +44,5 @@ void arraySetAt(ObjArray *array, Value index, Value value);
 int arrayLen(ObjArray *array);
 
 bool arrayToBool(ObjArray *array);
-
-void arrayPrint(ObjArray *array);
 
 #endif

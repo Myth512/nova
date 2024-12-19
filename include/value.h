@@ -48,9 +48,11 @@ bool isInt(Value value);
 
 int asInt(Value value);
 
-void valuePrint(Value value);
+int writeToBuffer(char *buffer, const size_t size, const char *format, ...);
 
-int writeValue(Value value, char *buffer, const size_t maxSize);
+int valueWrite(Value value, char *buffer, const size_t size);
+
+int valuePrint(Value value);
 
 bool greater(double a, double b);
 
@@ -111,6 +113,8 @@ bool valueToBool(Value value);
 int valueToInt(Value value);
 
 double valueToFloat(Value value);
+
+ObjString *valueToStr(Value value);
 
 const char* decodeValueType(Value value);
 

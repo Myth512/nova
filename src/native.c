@@ -87,3 +87,9 @@ Value novaFloat(int argc, Value *argv) {
         reportArityError(1, argc);
     return NUMBER_VAL(valueToFloat(argv[0]));
 }
+
+Value novaStr(int argc, Value *argv) {
+    if (argc != 1)
+        reportArityError(1, argc);
+    return OBJ_VAL(valueToStr(argv[0]));
+}
