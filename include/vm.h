@@ -101,6 +101,8 @@ OptValue callNovaMethod(Value obj, ObjString *methodName, int argc);
 
 OptValue callNovaMethod1arg(Value obj, ObjString *methodName, Value arg);
 
+OptValue callNovaMethod2args(Value obj, ObjString *methodName, Value arg1, Value arg2);
+
 void initVM();
 
 void freeVM();

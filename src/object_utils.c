@@ -246,6 +246,57 @@ Value objectDecrement(Value a) {
     return unary(a, "--", instanceDecrement);
 }
 
+OptValue objectGetField(Value obj, ObjString *name) {
+    switch (OBJ_TYPE(obj)) {
+        case OBJ_STRING:
+            return stringGetField(obj, name);
+        case OBJ_ARRAY:
+            return arrayGetField(obj, name);
+        case OBJ_INSTANCE:
+            return instanceGetField(obj, name);
+        default:
+            reportRuntimeError("%s does not have any fields", decodeValueType(obj));
+    }
+}
+
+void objectSetField(Value obj, ObjString *name, Value value) {
+    switch (OBJ_TYPE(obj)) {
+        case OBJ_INSTANCE:
+            instanceSetField(obj, name, value);
+        case OBJ_STRING:
+        case OBJ_ARRAY:
+            reportRuntimeError("%s fields are immutable", decodeValueType(obj));
+        default:
+            reportRuntimeError("%s does not have any fields", decodeValueType(obj));
+    }
+}
+
+Value objectGetAt(Value obj, Value key) {
+    switch (OBJ_TYPE(obj)) {
+        case OBJ_STRING:
+            return stringGetAt(AS_STRING(obj), key);
+        case OBJ_ARRAY:
+            return arrayGetAt(AS_ARRAY(obj), key);
+        case OBJ_INSTANCE:
+            return instanceGetAt(obj, key);
+        default:
+            reportRuntimeError("%s is not subscriptable", decodeValueType(obj));
+    }
+}
+
+void objectSetAt(Value obj, Value key, Value value) {
+    switch (OBJ_TYPE(obj)) {
+        case OBJ_ARRAY:
+            arraySetAt(AS_ARRAY(obj), key, value);
+        case OBJ_INSTANCE:
+            instanceSetAt(obj, key, value);
+        case OBJ_STRING:
+            reportRuntimeError("%s is immutable", decodeValueType(obj));
+        default:
+            reportRuntimeError("%s is not subscriptable", decodeValueType(obj));
+    }
+}
+
 uint64_t objectHash(Value a) {
 
 }

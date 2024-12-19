@@ -15,8 +15,14 @@ Value maxNative(int argc, Value *argv);
 
 Value typeNative(int argc, Value *argv);
 
-Value lenNative(int argc, Value *argv);
-
 Value novaAddr(int argc, Value *argv);
+
+Value novaLen(int argc, Value *argv);
+
+Value novaBool(int argc, Value *argv);
+
+Value novaInt(int argc, Value *argv);
+
+Value novaFloat(int argc, Value *argv);
 
 #endif

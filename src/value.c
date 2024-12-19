@@ -249,6 +249,26 @@ Value valueDecrement(Value a) {
     return unary(a, "--", decrement, objectDecrement);
 }
 
+OptValue valueGetField(Value obj, ObjString *name) {
+    if (!IS_OBJ(obj))
+        reportRuntimeError("%s does not have fields", decodeValueType(obj));
+    return objectGetField(obj, name);
+}
+
+void valueSetField(Value obj, ObjString *name, Value value) {
+    if (!IS_OBJ(obj))
+        reportRuntimeError("%s does not have fields", decodeValueType(obj));
+    objectSetField(value, name, value);
+}
+
+Value valueGetAt(Value obj, Value key) {
+
+}
+
+void valueSetAt(Value obj, Value key, Value value) {
+
+}
+
 uint64_t valueAddr(Value value) {
     return (uint64_t)&value;
 }

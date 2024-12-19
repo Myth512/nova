@@ -58,24 +58,32 @@ Value typeNative(int argc, Value *argv) {
     return OBJ_VAL(string);
 }
 
-Value lenNative(int argc, Value *argv) {
-    if (argc != 1) {
-        reportRuntimeError("Expect 1 argument but got %d\n", argc);
-    }
-    Value value = argv[0];
-    if (!IS_OBJ(value)) {
-        reportRuntimeError("%s does not have len", decodeValueType(value));
-    }
-    switch (AS_OBJ(value)->type) {
-        case OBJ_STRING:
-            return NUMBER_VAL(AS_STRING(value)->length);
-        default:
-            reportRuntimeError("%s does not have len", decodeValueType(value));
-    }
-}
-
 Value novaAddr(int argc, Value *argv) {
     if (argc != 1)
         reportArityError(1, argc);
     return NUMBER_VAL(valueAddr(argv[0]));
+}
+
+Value novaLen(int argc, Value *argv) {
+    if (argc != 1)
+        reportArityError(1, argc);
+    return NUMBER_VAL(valueLen(argv[0]));
+}
+
+Value novaBool(int argc, Value *argv) {
+    if (argc != 1)
+        reportArityError(1, argc);
+    return BOOL_VAL(valueToBool(argv[0]));
+}
+
+Value novaInt(int argc, Value *argv) {
+    if (argc != 1)
+        reportArityError(1, argc);
+    return NUMBER_VAL(valueToInt(argv[0]));
+}
+
+Value novaFloat(int argc, Value *argv) {
+    if (argc != 1)
+        reportArityError(1, argc);
+    return NUMBER_VAL(valueToFloat(argv[0]));
 }

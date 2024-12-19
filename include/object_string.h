@@ -48,6 +48,10 @@ ObjString *stringAdd(ObjString *a, ObjString *b);
 
 ObjString *stringMultiply(ObjString *string, int scalar);
 
+OptValue stringGetField(Value string, ObjString *name);
+
+Value stringGetAt(ObjString *string, Value index);
+
 int stringLen(ObjString *string);
 
 bool stringToBool(ObjString *string);

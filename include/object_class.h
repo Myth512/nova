@@ -76,6 +76,14 @@ Value instanceIncrement(Value a);
 
 Value instanceDecrement(Value a);
 
+OptValue instanceGetField(Value obj, ObjString *name);
+
+void instanceSetField(Value obj, ObjString *name, Value value);
+
+Value instanceGetAt(Value obj, Value key);
+
+void instanceSetAt(Value obj, Value key, Value value);
+
 int instanceLen(Value value);
 
 bool instanceToBool(Value value);

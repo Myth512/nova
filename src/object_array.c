@@ -1,7 +1,11 @@
 #include <stdio.h>
 
 #include "object_array.h"
+#include "object_string.h"
+#include "object_class.h"
+#include "array_methods.h"
 #include "memory.h"
+#include "vm.h"
 
 static int min(int a, int b) {
     return a < b ? a : b;
@@ -79,6 +83,45 @@ ObjArray *arrayMultiply(ObjArray *array, int scalar) {
         result->vec.values[i] = array->vec.values[i % oldSize];
 
     return result;
+}
+
+OptValue arrayGetField(Value array, ObjString *name) {
+    const struct ArrayMethod *result = in_array_set(name->chars, name->length);
+    if (result) {
+        ObjNativeMethod *method = createNativeMethod(array, result->method, result->name);
+        return (OptValue){.hasValue=true, .value=OBJ_VAL(method)};
+    } 
+    return (OptValue){.hasValue=false};
+}
+
+Value arrayGetAt(ObjArray *array, Value index) {
+    if (isInt(index))
+        reportRuntimeError("Index must be integer number");
+    
+    int i = asInt(index);
+    
+    int length = array->vec.size; 
+    if (i >= length || i < -length)
+        reportRuntimeError("Index is out of range");
+    if (i < 0)
+        i += length;
+    
+    return array->vec.values[i];
+}
+
+void arraySetAt(ObjArray *array, Value index, Value value) {
+    if (isInt(index))
+        reportRuntimeError("Index must be integer number");
+    
+    int i = asInt(index);
+    
+    int length = array->vec.size; 
+    if (i >= length || i < -length)
+        reportRuntimeError("Index is out of range");
+    if (i < 0)
+        i += length;
+    
+    array->vec.values[i] = value;
 }
 
 int arrayLen(ObjArray *array) {

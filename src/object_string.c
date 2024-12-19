@@ -2,6 +2,9 @@
 #include <stdlib.h>
 
 #include "object_string.h"
+#include "string_methods.h"
+#include "object_class.h"
+#include "vm.h"
 
 ObjString *allocateString(size_t length) {
     size_t size = sizeof(ObjString) + length + 1;
@@ -148,6 +151,33 @@ ObjString *stringMultiply(ObjString *string, int scalar) {
         memcpy(result->chars + i * oldLength, string->chars, oldLength);
 
     return result;
+}
+
+OptValue stringGetField(Value string, ObjString *name) {
+    const struct StringMethod *result = in_string_set(name->chars, name->length);
+    if (result) {
+        ObjNativeMethod *method = createNativeMethod(string, result->method, result->name);
+        return (OptValue){.hasValue=true, .value=OBJ_VAL(method)};
+    } 
+    return (OptValue){.hasValue=false};
+}
+
+Value stringGetAt(ObjString *string, Value index) {
+    if (isInt(index))
+        reportRuntimeError("Index must be integer number");
+    
+    int i = asInt(index);
+    
+    int length = string->length; 
+    if (i >= length || i < -length)
+        reportRuntimeError("Index is out of range");
+    if (i < 0)
+        i += length;
+    
+    const char chr = string->chars[i];
+    ObjString *result = copyString(&chr, 1);
+
+    return OBJ_VAL(result);
 }
 
 int stringLen(ObjString *string) {

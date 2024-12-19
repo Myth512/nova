@@ -13,8 +13,6 @@
 #include "compiler.h"
 #include "native.h"
 #include "error.h"
-#include "array_methods.h"
-#include "string_methods.h"
 
 #define READ_BYTE()     (*frame->ip++)
 #define READ_CONSTANT() (frame->closure->function->code.constants.values[READ_BYTE()]) 
@@ -127,8 +125,11 @@ static void defineNatives() {
     defineNative("min", minNative);
     defineNative("max", maxNative);
     defineNative("type", typeNative);
-    defineNative("len", lenNative);
+    defineNative("len", novaLen);
     defineNative("addr", novaAddr);
+    defineNative("bool", novaBool);
+    defineNative("int", novaInt);
+    defineNative("float", novaFloat);
 }
 
 static bool callValueInternal(Value callee, int argc) {
@@ -272,149 +273,6 @@ static void buildArray() {
     push(OBJ_VAL(array));
 }
 
-static void getAt(bool popValues) {
-    Value key;
-    Value object; 
-
-    if (popValues) {
-        key = pop();
-        object = pop();
-    } else {
-        key = peek(0);
-        object = peek(1);
-    }
-
-    if (!IS_OBJ(object))
-        reportRuntimeError("%s is not subscripable", decodeValueType(object));
-
-    switch (AS_OBJ(object)->type) {
-        case OBJ_ARRAY: {
-            if (!IS_NUMBER(key))
-                reportRuntimeError("Index must be a number");
-            float fi = AS_NUMBER(key);
-            if (fi != (int)fi)
-                reportRuntimeError("Index must be a whole number");
-            
-            int i = (int)fi;
-
-            int size = AS_ARRAY(object)->vec.size;
-            if (i >= size || i < -size)
-                reportRuntimeError("Index is out of range");
-            if (i < 0)
-                i += size;
-
-            push(AS_ARRAY(object)->vec.values[i]);
-            break;
-        }
-        case OBJ_STRING: {
-            if (!IS_NUMBER(key))
-                reportRuntimeError("Index must be a number");
-            float fi = AS_NUMBER(key);
-            if (fi != (int)fi)
-                reportRuntimeError("Index must be a whole number");
-            int i = (int)fi;
-
-            int length = AS_STRING(object)->length; 
-            if (i >= length || i < -length)
-                reportRuntimeError("Index is out of range");
-            if (i < 0)
-                i += length;
-            
-            const char chr = AS_STRING(object)->chars[i];
-            ObjString *string = copyString(&chr, 1);
-            push(OBJ_VAL(string));
-            break;
-        }
-        default:
-            reportRuntimeError("%s is not subscripable", decodeValueType(object));
-    }
-}
-
-static void setAt() {
-    Value value = pop();
-    Value key = pop();
-    Value object = peek(0);
-
-    if (!IS_OBJ(object))
-        reportRuntimeError("%s is not subscripable", decodeValueType(object));
-
-    switch (AS_OBJ(object)->type) {
-        case OBJ_ARRAY: {
-            if (!IS_NUMBER(key))
-                reportRuntimeError("Index must be a number");
-            float fi = AS_NUMBER(key);
-            if (fi != (int)fi)
-                reportRuntimeError("Index must be a whole number");
-            int i = (int)fi;
-
-            int size = AS_ARRAY(object)->vec.size;
-            if (i >= size || i < -size)
-                reportRuntimeError("Index is out of range");
-            if (i < 0)
-                i += size;
-
-            AS_ARRAY(object)->vec.values[i] = value;
-            break;
-        }
-        case OBJ_STRING:
-            reportRuntimeError("Strings are immutable");
-            break;
-        default:
-            reportRuntimeError("%s is not subscripable", decodeValueType(value));
-            break;
-    }
-
-}
-
-static bool getProperty(Value obj, ObjString *name, Value *value) {
-    if (!IS_OBJ(obj))
-        return false;
-
-    switch (OBJ_TYPE(obj)) {
-        case OBJ_STRING: {
-            const struct StringMethod *result = in_string_set(name->chars, strlen(name->chars));
-            if (result) {
-                ObjNativeMethod *method = createNativeMethod(obj, result->method, result->name);
-                *value = OBJ_VAL(method);
-                return true;
-            } 
-            return false;
-        }
-        case OBJ_ARRAY: {
-            const struct ArrayMethod *result = in_array_set(name->chars, strlen(name->chars));
-            if (result) {
-                ObjNativeMethod *method = createNativeMethod(obj, result->method, result->name);
-                *value = OBJ_VAL(method);
-                return true;
-            } 
-            return false;
-        }
-        case OBJ_INSTANCE: {
-            ObjInstance *instance = AS_INSTANCE(obj);
-            if (tableGet(&instance->fields, name, value))
-                return true;
-
-            if (tableGet(&instance->class->methods, name, value)) {
-                ObjMethod *method = createMethod(obj, AS_CLOSURE(*value));
-                *value = OBJ_VAL(method);
-                return true;
-            }
-
-            return false;
-        }
-        default: {
-            return false;
-        }
-    }
-}
-
-static void setProperty() {
-    if (!IS_INSTANCE(peek(1)))
-        reportRuntimeError("Only instances have fields");
-    ObjInstance *instance = AS_INSTANCE(peek(1));
-    tableSet(&instance->fields, READ_STRING(), peek(0));
-}
-
 static void arithmetic(Value (*func)(Value, Value)) {
     Value b = pop();
     Value a = pop();
@@ -430,6 +288,46 @@ static void equality(bool (*func)(Value, Value)) {
 static void unary(Value (*func)(Value)) {
     Value a = pop();
     push(func(a));
+}
+
+static void getAt(bool popValues) {
+    Value key;
+    Value object;
+    
+    if (popValues) {
+        key = pop();
+        object = pop();
+    } else {
+        key = peek(0);
+        object = peek(1);
+    }
+
+    push(valueGetAt(object, key));
+}
+
+static void setAt() {
+    Value value = pop();
+    Value key = pop();
+    Value object = peek(0);
+
+    valueSetAt(object, key, value);
+}
+
+static void getProperty() {
+    Value obj = pop();
+    ObjString *name = READ_STRING();
+    OptValue result = valueGetField(obj, name);
+    if (result.hasValue)
+        push(result.value);
+    else
+        reportRuntimeError("Object of %s does not have field %s", decodeValueType(obj), name->chars);
+}
+
+static void setProperty() {
+    Value obj = peek(1);
+    ObjString *name = READ_STRING();
+    Value value = peek(0);
+    valueSetField(obj, name, value);
 }
 
 static Value run() {
@@ -637,15 +535,7 @@ static Value run() {
                 defineMethod(READ_STRING());
                 break;
             case OP_GET_PROPERTY:
-                Value obj = peek(0);
-                ObjString *name = READ_STRING();
-                Value value;
-                if (getProperty(obj, name, &value)) {
-                    pop();
-                    push(value);
-                } else {
-                    reportRuntimeError("Object of %s does not have property %s", decodeValueType(obj), name->chars);
-                }
+                getProperty();
                 break;
             case OP_SET_PROPERTY:
                 setProperty();
@@ -674,28 +564,33 @@ Value callNovaValue(Value callee, int argc) {
 }
 
 OptValue callNovaMethod(Value obj, ObjString *methodName, int argc) {
-    Value method;
-    OptValue result;
-    if (getProperty(obj, methodName, &method)) {
-        result.value = callNovaValue(method, argc);
-        result.hasValue = true;
-        return result;
+    OptValue method = valueGetField(obj, methodName);
+    if (method.hasValue) {
+        Value value = callNovaValue(method.value, argc);
+        return (OptValue){.hasValue=true, .value=value};
     }
-    result.hasValue = false;
-    return result;
+    return (OptValue){.hasValue=false};
 }
 
 OptValue callNovaMethod1arg(Value obj, ObjString *methodName, Value arg) {
-    Value method;
-    OptValue result;
-    if (getProperty(obj, methodName, &method)) {
+    OptValue method = valueGetField(obj, methodName);
+    if (method.hasValue) {
         push(arg);
-        result.value = callNovaValue(method, 1);
-        result.hasValue = true;
-        return result;
+        Value value = callNovaValue(method.value, 1);
+        return (OptValue){.hasValue=true, .value=value};
     }
-    result.hasValue = false;
-    return result;
+    return (OptValue){.hasValue=false};
+}
+
+OptValue callNovaMethod2args(Value obj, ObjString *methodName, Value arg1, Value arg2) {
+    OptValue method = valueGetField(obj, methodName);
+    if (method.hasValue) {
+        push(arg1);
+        push(arg2);
+        Value value = callNovaValue(method.value, 1);
+        return (OptValue){.hasValue=true, .value=value};
+    }
+    return (OptValue){.hasValue=false};
 }
 
 void initMagicStrings() {

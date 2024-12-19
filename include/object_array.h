@@ -31,6 +31,12 @@ ObjArray *arrayAdd(ObjArray *a, ObjArray *b);
  
 ObjArray *arrayMultiply(ObjArray *array, int scalar);
 
+OptValue arrayGetField(Value array, ObjString *name);
+
+Value arrayGetAt(ObjArray *array, Value index);
+
+void arraySetAt(ObjArray *array, Value index, Value value);
+
 int arrayLen(ObjArray *array);
 
 bool arrayToBool(ObjArray *array);

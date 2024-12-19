@@ -42,6 +42,14 @@ Value objectIncrement(Value a);
 
 Value objectDecrement(Value a);
 
+OptValue objectGetField(Value obj, ObjString *name);
+
+void objectSetField(Value obj, ObjString *name, Value value);
+
+Value objectGetAt(Value obj, Value key);
+
+void objectSetAt(Value obj, Value key, Value value);
+
 uint64_t objectHash(Value a);
 
 int objectLen(Value value);

@@ -150,6 +150,39 @@ Value instanceDecrement(Value a) {
     return unary(a, "--", vm.magicStrings.dec);
 }
 
+OptValue instanceGetField(Value obj, ObjString *name) {
+    Value value;
+    ObjInstance *instance = AS_INSTANCE(obj);
+
+    if (tableGet(&instance->fields, name, &value))
+        return (OptValue){.hasValue=true, .value=value};
+
+    if (tableGet(&instance->class->methods, name, &value)) {
+        ObjMethod *method = createMethod(obj, AS_CLOSURE(value));
+        return (OptValue){.hasValue=true, .value=OBJ_VAL(method)};
+    }
+
+    return (OptValue){.hasValue=false};
+}
+
+void instanceSetField(Value obj, ObjString *name, Value value) {
+    ObjInstance *instance = AS_INSTANCE(obj);
+    tableSet(&instance->fields, name, value);
+}
+
+Value instanceGetAt(Value obj, Value key) {
+    OptValue result = callNovaMethod1arg(obj, vm.magicStrings.getat, key);
+    if (result.hasValue)
+        return result.value;
+    reportRuntimeError("%s is not subscriptable", decodeValueType(obj));
+}
+
+void instanceSetAt(Value obj, Value key, Value value) {
+    OptValue result = callNovaMethod2args(obj, vm.magicStrings.setat, key, value);
+    if (!result.hasValue)
+        reportRuntimeError("%s does not support item assignment", decodeValueType(obj));
+}
+
 int instanceLen(Value value) {
     OptValue result = callNovaMethod(value, vm.magicStrings.len, 0);
     if (result.hasValue) {

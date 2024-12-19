@@ -90,6 +90,14 @@ Value valueIncrement(Value a);
 
 Value valueDecrement(Value a);
 
+OptValue valueGetField(Value obj, ObjString *name);
+
+void valueSetField(Value obj, ObjString *name, Value value);
+
+Value valueGetAt(Value obj, Value key);
+
+void valueSetAt(Value obj, Value key, Value value);
+
 uint64_t hashLong(long value);
 
 uint64_t valueHash(Value value);
