@@ -32,3 +32,5 @@ print(3 * "{2 * 2 + 3}")
 
 // Case 11
 print("Hello\nWorld")
+
+print("a" > "b")
