@@ -27,4 +27,6 @@ Value novaFloat(int argc, Value *argv);
 
 Value novaStr(int argc, Value *argv);
 
+Value novaInput(int argc, Value *argv);
+
 #endif

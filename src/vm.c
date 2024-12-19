@@ -131,6 +131,7 @@ static void defineNatives() {
     defineNative("int", novaInt);
     defineNative("float", novaFloat);
     defineNative("str", novaStr);
+    defineNative("input", novaInput);
 }
 
 static bool callValueInternal(Value callee, int argc) {

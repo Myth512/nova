@@ -328,8 +328,7 @@ double valueToFloat(Value value) {
 ObjString *valueToStr(Value value) {
     char buffer[128];
     int length = valueWrite(value, buffer, sizeof(buffer));
-    ObjString *string = allocateString(length);
-    strcpy(string->chars, buffer);
+    ObjString *string = copyString(buffer, length);
     return string;
 }
 

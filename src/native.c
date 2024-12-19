@@ -93,3 +93,24 @@ Value novaStr(int argc, Value *argv) {
         reportArityError(1, argc);
     return OBJ_VAL(valueToStr(argv[0]));
 }
+
+Value novaInput(int argc, Value *argv) {
+    if (argc == 1)
+        valuePrint(argv[0]);
+    if (argc > 1)
+        reportRuntimeError("Input expect at most 1 argument");
+
+    const size_t size = 256;
+    char buffer[size];
+
+    if (fgets(buffer, size, stdin) == NULL)
+        reportRuntimeError("Can't read input");
+    
+    size_t length = strlen(buffer);
+    if (length > 0 && buffer[length - 1] == '\n')
+        buffer[--length] = '\0';
+
+    ObjString *string = copyString(buffer, length);
+
+    return OBJ_VAL(string);
+}
