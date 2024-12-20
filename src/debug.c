@@ -3,6 +3,7 @@
 #include "debug.h"
 #include "object.h"
 #include "value.h"
+#include "object_function.h"
 
 static int simpleInstruction(const char *name, int offset) {
     printf("%s\n", name);

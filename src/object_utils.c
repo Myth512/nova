@@ -4,6 +4,7 @@
 #include "object_string.h"
 #include "object_array.h"
 #include "object_class.h"
+#include "object_function.h"
 #include "vm.h"
 
 int objectWrite(Value value, char *buffer, const size_t size) {

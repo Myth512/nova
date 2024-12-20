@@ -315,7 +315,7 @@ static void emitConstant(Value value) {
     emitBytes(OP_CONSTANT, createConstant(value), (Token){0});
 }
 
-static void initCompiler(Compiler *compiler, FunctionType type) {
+static void initCompiler(Compiler *compiler, FunctionType type, Token name) {
     compiler->enclosing = current;
     compiler->function = createFunction();
     compiler->type = type;
@@ -323,7 +323,7 @@ static void initCompiler(Compiler *compiler, FunctionType type) {
     compiler->scopeDepth = 0;
     current = compiler;
     if (type != TYPE_TOP_LEVEL) {
-        current->function->name = copyString(parser.current.start, parser.current.length);
+        current->function->name = copyString(name.start, name.length);
     }
 
     // reserve 0th slot for internal use
@@ -1044,26 +1044,42 @@ static void forStatement() {
 
 static void function(FunctionType type) {
     Compiler compiler;
-    initCompiler(&compiler, type);
+    Token name = parser.current;
     advance(false);
-    beginScope();
 
     if (parser.current.type != TOKEN_LEFT_PAREN) {
         reportError("Expect '(' after function name", &parser.current);
     }
     advance(true);
+    
+    int defaultCount = 0;
+    int minArity = 0;
+    int maxArity = 0;
+    TokenVec names;
+    TokenVecInit(&names);
 
     if (!check(TOKEN_RIGHT_PAREN)) {
         do {
-            current->function->arity++;
-            if (current->function->arity > 255) {
+            if (current->function->maxArity > 255) {
                 reportError("Can't have more than 255 parameters", &parser.current);
             }
-            Token name = parser.current;
+
+            TokenVecPush(&names, parser.current);
             advance(false);
-            createLocal(name);
+
+            if (consume(TOKEN_EQUAL, true)) {
+                expression();
+                defaultCount++;
+            } else if (defaultCount > 0)
+                reportError("Non-default argument follows default argument", &parser.current);
+            else 
+                minArity++;
+            maxArity++;
+
         } while (match(TOKEN_COMMA, true));
     }
+
+    emitBytes(OP_BUILD_ARRAY, (uint8_t)defaultCount, parser.current);
 
     if (!consume(TOKEN_RIGHT_PAREN, true))
         reportError("Expect ')' after parameters", &parser.current);
@@ -1071,9 +1087,21 @@ static void function(FunctionType type) {
     if (!consume(TOKEN_LEFT_BRACE, true))
         reportError("Expect '{' after function body}", &parser.current);
 
+    initCompiler(&compiler, type, name);
+    beginScope();
+
+    current->function->minArity = minArity;
+    current->function->maxArity = maxArity;
+
+    for (int i = 0; i < names.size; i++)
+        createLocal(names.tokens[i]);
+    
+    TokenVecFree(&names);
+
     block(-1, -1);
 
     ObjFunction *function = endCompiler();
+
     emitBytes(OP_CLOSURE, createConstant(OBJ_VAL(function)), (Token){0});
 
     for (int i = 0; i < function->upvalueCount; i++) {
@@ -1278,7 +1306,7 @@ static void declaration(int breakPointer, int continuePointer) {
 ObjFunction* compile(const char *source) {
     initScanner(source);
     Compiler compiler;
-    initCompiler(&compiler, TYPE_TOP_LEVEL);
+    initCompiler(&compiler, TYPE_TOP_LEVEL, parser.current);
 
     parser.errorCount = 0;
     parser.panicMode = false;

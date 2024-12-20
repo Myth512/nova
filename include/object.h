@@ -9,15 +9,6 @@
 
 #define OBJ_TYPE(value)         (AS_OBJ(value)->type)
 
-#define IS_CLOSURE(value)       isObjType(value, OBJ_CLOSURE)
-#define IS_FUNCTION(value)      isObjType(value, OBJ_FUNCTION)
-#define IS_NATIVE(value)        isObjType(value, OBJ_NATIVE)
-
-#define AS_CLOSURE(value)       ((ObjClosure*)AS_OBJ(value))
-#define AS_FUNCTION(value)      ((ObjFunction*)AS_OBJ(value))
-#define AS_NATIVE(value)        ((ObjNative*)AS_OBJ(value))
-#define AS_UPVALUE(value)       ((ObjUpvalue*)AS_OBJ(value))
-
 typedef enum {
     OBJ_CLASS,
     OBJ_METHOD,
@@ -38,48 +29,10 @@ struct Obj {
     struct Obj *next;
 };
 
-typedef struct ObjUpvalue {
-    Obj obj;
-    Value *location;
-    Value closed;
-    struct ObjUpvalue *next;
-} ObjUpvalue;
-
-typedef struct {
-    Obj obj;
-    int arity;
-    int upvalueCount;
-    CodeVec code;
-    ObjString *name;
-} ObjFunction;
-
-typedef struct {
-    Obj obj;
-    ObjFunction *function;
-    ObjUpvalue **upvalues;
-    int upvalueCount;
-} ObjClosure;
-
-typedef Value (*NativeFn)(int argc, Value *argv);
-
-typedef struct {
-    Obj obj;
-    char *name; 
-    NativeFn function;
-} ObjNative;
-
 static inline bool isObjType(Value value, ObjType type) {
     return IS_OBJ(value) && AS_OBJ(value)->type == type;
 }
 
 Obj* allocateObject(size_t size, ObjType type);
-
-ObjUpvalue *createUpvalue(Value *slot);
-
-ObjFunction* createFunction();
-
-ObjClosure* createClosure(ObjFunction *function);
-
-ObjNative* createNative(NativeFn function, const char *name);
 
 #endif

@@ -37,7 +37,7 @@ static void swap(ObjArray* array, int l, int r) {
 }
 
 // Hoare partition
-int partition(ObjArray *array, int l, int r, bool reverse) {
+static int partition(ObjArray *array, int l, int r, bool reverse) {
     bool (*leftFunc)(Value, Value) = valueLessEqual;
     bool (*rightFunc)(Value, Value) = valueGreaterEqual;
     if (reverse) {

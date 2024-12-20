@@ -5,6 +5,7 @@
 #include "code.h"
 #include "table.h"
 #include "object.h"
+#include "object_function.h"
 
 #define FRAMES_SIZE 64
 #define STACK_SIZE (FRAMES_SIZE * UINT8_MAX)
@@ -87,7 +88,7 @@ Value pop();
 
 void reportRuntimeError(const char *format, ...);
 
-void reportArityError(int expected, int got);
+void reportArityError(int min, int max, int got);
 
 void operatorNotImplemented(char *operator, Value a, Value b);
 

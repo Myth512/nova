@@ -9,6 +9,7 @@
 #include "object_string.h"
 #include "object_array.h"
 #include "object_class.h"
+#include "object_function.h"
 #include "memory.h"
 #include "compiler.h"
 #include "native.h"
@@ -41,8 +42,11 @@ void reportRuntimeError(const char *format, ...) {
     exit(1);
 }
 
-void reportArityError(int expected, int got) {
-    reportRuntimeError("Expect %d arguments, but got %d", expected, got);
+void reportArityError(int min, int max, int got) {
+    if (min == max)
+        reportRuntimeError("Expect exactly %d arguments, but got %d", min, got);
+    else
+        reportRuntimeError("Expect from %d to %d arguments, but got %d", min, max, got);
     printErrorInCode();
     exit(1);
 }
@@ -96,8 +100,8 @@ static Value peek(int distance) {
 }
 
 static bool call(ObjClosure *closure, int argc) {
-    if (argc != closure->function->arity)
-        reportRuntimeError("Expected %d arguments but go %d", closure->function->arity, argc);
+    if (argc < closure->function->minArity || argc > closure->function->maxArity)
+        reportArityError(closure->function->minArity, closure->function->maxArity, argc);
 
     if (vm.frameSize == FRAMES_SIZE)
         reportRuntimeError("Stack overflow");
@@ -163,8 +167,14 @@ static bool callValueInternal(Value callee, int argc) {
                 }
                 return true;
             }
-            case OBJ_CLOSURE:
-                return call(AS_CLOSURE(callee), argc);
+            case OBJ_CLOSURE: {
+                ObjClosure *closure = AS_CLOSURE(callee);
+                int minArity = closure->function->minArity;
+                int maxArity = closure->function->maxArity;
+                for (int i = argc; i < maxArity; i++)
+                    push(closure->function->defaults->vec.values[i - minArity]);
+                return call(AS_CLOSURE(callee), argc < maxArity ? maxArity : argc);
+            }
             case OBJ_NATIVE:
                 NativeFn native = AS_NATIVE(callee)->function;
                 Value result = native(argc, vm.top - argc);
@@ -513,6 +523,8 @@ static Value run() {
             }
             case OP_CLOSURE: {
                 ObjFunction *function = AS_FUNCTION(READ_CONSTANT());
+                Value defaults = pop();
+                function->defaults = AS_ARRAY(defaults);
                 ObjClosure *closure = createClosure(function);
                 push(OBJ_VAL(closure));
                 for (int i = 0; i < closure->upvalueCount; i++) {

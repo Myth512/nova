@@ -16,7 +16,7 @@ Value novaStringReplace(int argc, Value *argv) {
 
 Value novaStringEqual(int argc, Value *argv) {
     if (argc != 1)
-        reportArityError(1, argc);
+        reportArityError(1, 1, argc);
 
     if (!IS_STRING(argv[1]))
         return BOOL_VAL(false);
@@ -29,7 +29,7 @@ Value novaStringEqual(int argc, Value *argv) {
 
 Value novaStringNotEqual(int argc, Value *argv) {
     if (argc != 1)
-        reportArityError(1, argc);
+        reportArityError(1, 1, argc);
 
     if (!IS_STRING(argv[1]))
         return BOOL_VAL(true);
@@ -42,7 +42,7 @@ Value novaStringNotEqual(int argc, Value *argv) {
 
 static Value inequality(int argc, Value *argv, char *name, bool (*func)(ObjString*, ObjString*)) {
     if (argc != 1)
-        reportArityError(1, argc);
+        reportArityError(1, 1, argc);
 
     if (!IS_STRING(argv[1]))
         operatorNotImplemented(name, argv[0], argv[1]);
@@ -71,7 +71,7 @@ Value novaStringLessEqual(int argc, Value *argv) {
 
 Value novaStringAdd(int argc, Value *argv) {
     if (argc != 1)
-        reportArityError(1, argc);
+        reportArityError(1, 1, argc);
 
     if (!IS_STRING(argv[1]))
         operatorNotImplemented("+", argv[0], argv[1]);
@@ -84,7 +84,7 @@ Value novaStringAdd(int argc, Value *argv) {
 
 Value novaStringMultiply(int argc, Value *argv) {
     if (argc != 1)
-        reportArityError(1, argc);
+        reportArityError(1, 1, argc);
 
     if (!isInt(argv[1]))
         operatorNotImplemented("*", argv[0], argv[1]);
@@ -101,7 +101,7 @@ Value novaStringGetAt(int argc, Value *argv) {
 
 Value novaStringLen(int argc, Value *argv) {
     if (argc != 0)
-        reportArityError(0, argc);
+        reportArityError(0, 0, argc);
 
     return NUMBER_VAL(AS_STRING(argv[0])->length);
 }

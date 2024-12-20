@@ -60,37 +60,37 @@ Value typeNative(int argc, Value *argv) {
 
 Value novaAddr(int argc, Value *argv) {
     if (argc != 1)
-        reportArityError(1, argc);
+        reportArityError(1, 1, argc);
     return NUMBER_VAL(valueAddr(argv[0]));
 }
 
 Value novaLen(int argc, Value *argv) {
     if (argc != 1)
-        reportArityError(1, argc);
+        reportArityError(1, 1, argc);
     return NUMBER_VAL(valueLen(argv[0]));
 }
 
 Value novaBool(int argc, Value *argv) {
     if (argc != 1)
-        reportArityError(1, argc);
+        reportArityError(1, 1, argc);
     return BOOL_VAL(valueToBool(argv[0]));
 }
 
 Value novaInt(int argc, Value *argv) {
     if (argc != 1)
-        reportArityError(1, argc);
+        reportArityError(1, 1, argc);
     return NUMBER_VAL(valueToInt(argv[0]));
 }
 
 Value novaFloat(int argc, Value *argv) {
     if (argc != 1)
-        reportArityError(1, argc);
+        reportArityError(1, 1, argc);
     return NUMBER_VAL(valueToFloat(argv[0]));
 }
 
 Value novaStr(int argc, Value *argv) {
     if (argc != 1)
-        reportArityError(1, argc);
+        reportArityError(1, 1, argc);
     return OBJ_VAL(valueToStr(argv[0]));
 }
 
@@ -98,7 +98,7 @@ Value novaInput(int argc, Value *argv) {
     if (argc == 1)
         valuePrint(argv[0]);
     if (argc > 1)
-        reportRuntimeError("Input expect at most 1 argument");
+        reportArityError(0, 1, argc);
 
     const size_t size = 256;
     char buffer[size];

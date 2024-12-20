@@ -2,6 +2,7 @@
 #define OBJECT_CLASS_H
 
 #include "object.h"
+#include "object_function.h"
 
 #define IS_CLASS(value)         isObjType(value, OBJ_CLASS)
 #define IS_INSTANCE(value)      isObjType(value, OBJ_INSTANCE)

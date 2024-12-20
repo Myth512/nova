@@ -15,6 +15,7 @@ ObjArray* allocateArray(int size) {
     ObjArray *array = (ObjArray*)allocateObject(sizeof(ObjArray), OBJ_ARRAY);
     array->vec.size = size; 
     array->vec.capacity = size; 
+    array->vec.values = NULL;
     array->vec.values = (Value*)reallocate(array->vec.values, 0, size * sizeof(Value));
     return array;
 }
