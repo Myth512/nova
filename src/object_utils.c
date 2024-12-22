@@ -242,6 +242,7 @@ void objectSetField(Value obj, ObjString *name, Value value) {
     switch (OBJ_TYPE(obj)) {
         case OBJ_INSTANCE:
             instanceSetField(obj, name, value);
+            break;
         case OBJ_STRING:
         case OBJ_ARRAY:
             reportRuntimeError("%s fields are immutable", decodeValueType(obj));

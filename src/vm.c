@@ -70,7 +70,6 @@ void functionNotImplemented(char *function, Value a) {
 }
 
 static void printStack() {
-    printf("stack: ");
     for (Value *slot = vm.stack; slot < vm.top; slot++) {
         printf("[ ");
         valuePrint(*slot);
@@ -88,15 +87,28 @@ static void resetStack() {
 void push(Value value) {
     *vm.top = value;
     vm.top++;
+    #ifdef DEBUG_TRACE_STACK
+        printStack();
+    #endif
 }
 
 Value pop() {
     vm.top--;
+    #ifdef DEBUG_TRACE_STACK
+        printStack();
+    #endif
     return *vm.top;
 }
 
 static Value peek(int distance) {
     return vm.top[-1 - distance];
+}
+
+static void insert(int distance, Value value) {
+    vm.top[-1 - distance] = value;
+    #ifdef DEBUG_TRACE_STACK
+        printStack();
+    #endif
 }
 
 static bool call(ObjClosure *closure, int argc) {
@@ -143,12 +155,12 @@ static bool callValueInternal(Value callee, int argc) {
         switch (OBJ_TYPE(callee)) {
             case OBJ_METHOD: {
                 ObjMethod *method = AS_METHOD(callee);
-                vm.top[-argc - 1] = method->reciever;
+                insert(argc, method->reciever);
                 return call(method->method, argc);
             }
             case OBJ_NATIVE_METHOD: {
                 ObjNativeMethod *method = AS_NATIVE_METHOD(callee);
-                vm.top[-argc - 1] = method->reciever;
+                insert(argc, method->reciever);
                 NativeFn native = method->method;
                 Value result = native(argc, vm.top - argc - 1);
                 vm.top -= argc + 1;
@@ -157,7 +169,7 @@ static bool callValueInternal(Value callee, int argc) {
             }
             case OBJ_CLASS: {
                 ObjClass *class = AS_CLASS(callee);
-                vm.top[-argc - 1] = OBJ_VAL(createInstance(class));
+                insert(argc, OBJ_VAL(createInstance(class)));
                 Value initializer;
                 if (tableGet(&class->methods, vm.magicStrings.init, &initializer)) {
                     return call(AS_CLOSURE(initializer), argc);
@@ -338,7 +350,7 @@ static void getProperty() {
 static void setProperty() {
     Value obj = peek(1);
     ObjString *name = READ_STRING();
-    Value value = peek(0);
+    Value value = pop();
     valueSetField(obj, name, value);
 }
 
@@ -348,7 +360,6 @@ static Value run() {
     while (true) {
 
         #ifdef DEBUG_TRACE_EXECUTION
-            printStack();
             printInstruction(&frame->closure->function->code, (int)(frame->ip - frame->closure->function->code.code));
         #endif
 
@@ -558,14 +569,13 @@ static Value run() {
                 Value result = pop();
                 closeUpvalues(frame->slots);
                 vm.frameSize--;
-                if (vm.frameSize == startFrame) {
-                    pop();
-                    return result;
-                }
 
                 vm.top = frame->slots;
-                push(result);
                 frame = &vm.frames[vm.frameSize - 1];
+                if (vm.frameSize == startFrame)
+                    return result;
+                else
+                    push(result);
                 break;
             }
         }
@@ -589,6 +599,7 @@ OptValue callNovaMethod(Value obj, ObjString *methodName, int argc) {
 OptValue callNovaMethod1arg(Value obj, ObjString *methodName, Value arg) {
     OptValue method = valueGetField(obj, methodName);
     if (method.hasValue) {
+        push(NIL_VAL);
         push(arg);
         Value value = callNovaValue(method.value, 1);
         return (OptValue){.hasValue=true, .value=value};
@@ -599,6 +610,7 @@ OptValue callNovaMethod1arg(Value obj, ObjString *methodName, Value arg) {
 OptValue callNovaMethod2args(Value obj, ObjString *methodName, Value arg1, Value arg2) {
     OptValue method = valueGetField(obj, methodName);
     if (method.hasValue) {
+        push(NIL_VAL);
         push(arg1);
         push(arg2);
         Value value = callNovaValue(method.value, 1);

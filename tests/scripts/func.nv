@@ -43,3 +43,12 @@ def func() {
 }
 
 func()
+
+def func_with_default_args(x=5, y=10, z=15) {
+	print(x, y, z)
+}
+
+func_with_default_args()
+func_with_default_args(1)
+func_with_default_args(1, 2)
+func_with_default_args(1, 2, 3)

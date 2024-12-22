@@ -35,7 +35,7 @@ int instanceWrite(Value instance, char *buffer, const size_t size) {
     OptValue result = callNovaMethod(instance, vm.magicStrings.str, 0);
     if (result.hasValue)
         return valueWrite(result.value, buffer, size);
-    return writeToBuffer(buffer, size, "instance of %s", decodeValueType(instance));
+    return writeToBuffer(buffer, size, "instance of %s", AS_INSTANCE(instance)->class->name->chars);
 }
 
 int instancePrint(Value instance) {
