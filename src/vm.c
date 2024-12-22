@@ -70,6 +70,10 @@ void functionNotImplemented(char *function, Value a) {
 }
 
 static void printStack(const char *prefix) {
+    if (!frame)
+        return;
+    if (strcmp(frame->closure->function->name->chars, "_str_") == 0)
+        return;
     static bool flag = false;
     if (flag)
         return;
@@ -600,11 +604,11 @@ Value callNovaValue(Value callee, int argc) {
     return run();
 }
 
-OptValue callNovaMethod(Value obj, ObjString *methodName, int argc) {
+OptValue callNovaMethod(Value obj, ObjString *methodName) {
     OptValue method = valueGetField(obj, methodName);
     if (method.hasValue) {
         push(NIL_VAL);
-        Value value = callNovaValue(method.value, argc);;
+        Value value = callNovaValue(method.value, 0);;
         return (OptValue){.hasValue=true, .value=value};
     }
     return (OptValue){.hasValue=false};

@@ -34,7 +34,7 @@ ObjNativeMethod *createNativeMethod(Value reciever, NativeFn function, const cha
 
 int instanceWrite(Value instance, char *buffer, const size_t size) {
     if (AS_INSTANCE(instance)->isInitiazed) {
-        OptValue result = callNovaMethod(instance, vm.magicStrings.str, 0);
+        OptValue result = callNovaMethod(instance, vm.magicStrings.str);
         if (result.hasValue)
             return valueWrite(result.value, buffer, size);
     }
@@ -66,7 +66,7 @@ bool instanceNotEqual(Value a, Value b) {
 }
 
 static Value unary(Value a, char *operator, ObjString *methodName) {
-    OptValue result = callNovaMethod(a, methodName, 0);
+    OptValue result = callNovaMethod(a, methodName);
     if (result.hasValue)
         return result.value;
     operatorNotImplementedUnary(operator, a);
@@ -198,7 +198,7 @@ void instanceSetAt(Value obj, Value key, Value value) {
 }
 
 int instanceLen(Value value) {
-    OptValue result = callNovaMethod(value, vm.magicStrings.len, 0);
+    OptValue result = callNovaMethod(value, vm.magicStrings.len);
     if (result.hasValue) {
         if (isInt(result.value))
             return asInt(result.value);
@@ -208,7 +208,7 @@ int instanceLen(Value value) {
 }
 
 bool instanceToBool(Value value) {
-    OptValue result = callNovaMethod(value, vm.magicStrings.bool_, 0);
+    OptValue result = callNovaMethod(value, vm.magicStrings.bool_);
     if (result.hasValue) {
         if (IS_BOOL(result.value))
             return AS_BOOL(result.value);
@@ -218,7 +218,7 @@ bool instanceToBool(Value value) {
 }
 
 int instanceToInt(Value value) {
-    OptValue result = callNovaMethod(value, vm.magicStrings.int_, 0);
+    OptValue result = callNovaMethod(value, vm.magicStrings.int_);
     if (result.hasValue) {
         if (isInt(result.value))
             return asInt(result.value);
@@ -228,7 +228,7 @@ int instanceToInt(Value value) {
 }
 
 double instanceToFloat(Value value) {
-    OptValue result = callNovaMethod(value, vm.magicStrings.float_, 0);
+    OptValue result = callNovaMethod(value, vm.magicStrings.float_);
     if (result.hasValue) {
         if (IS_NUMBER(result.value))
             return AS_NUMBER(result.value);

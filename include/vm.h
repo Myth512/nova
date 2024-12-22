@@ -98,7 +98,7 @@ void functionNotImplemented(char *function, Value a);
 
 Value callNovaValue(Value callee, int argc);
 
-OptValue callNovaMethod(Value obj, ObjString *methodName, int argc);
+OptValue callNovaMethod(Value obj, ObjString *methodName);
 
 OptValue callNovaMethod1arg(Value obj, ObjString *methodName, Value arg);
 
