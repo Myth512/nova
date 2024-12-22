@@ -6,10 +6,11 @@ class Vector {
 	}
 
 	def _str_() {
-		return "x: {self.x}, y: {self.y}, z: {self.z}"
+		return "Vector({self.x}, {self.y}, {self.z})" 
 	}
 
 	def _add_(other) {
+		return 10
 		return Vector(self.x + other.x, self.y + other.y, self.z + other.z) 
 	}
 }

@@ -24,6 +24,7 @@ typedef struct {
     Obj obj;
     ObjClass *class;
     Table fields;
+    bool isInitiazed;
 } ObjInstance;
 
 typedef struct {

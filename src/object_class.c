@@ -12,6 +12,7 @@ ObjClass *createClass(ObjString *name) {
 ObjInstance *createInstance(ObjClass *class) {
     ObjInstance *instance = (ObjInstance*)allocateObject(sizeof(ObjInstance), OBJ_INSTANCE);
     instance->class = class;
+    instance->isInitiazed = false;
     initTable(&instance->fields);
     return instance;
 }
@@ -32,9 +33,11 @@ ObjNativeMethod *createNativeMethod(Value reciever, NativeFn function, const cha
 }
 
 int instanceWrite(Value instance, char *buffer, const size_t size) {
-    OptValue result = callNovaMethod(instance, vm.magicStrings.str, 0);
-    if (result.hasValue)
-        return valueWrite(result.value, buffer, size);
+    if (AS_INSTANCE(instance)->isInitiazed) {
+        OptValue result = callNovaMethod(instance, vm.magicStrings.str, 0);
+        if (result.hasValue)
+            return valueWrite(result.value, buffer, size);
+    }
     return writeToBuffer(buffer, size, "instance of %s", AS_INSTANCE(instance)->class->name->chars);
 }
 

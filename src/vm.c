@@ -69,13 +69,21 @@ void functionNotImplemented(char *function, Value a) {
     exit(1);
 }
 
-static void printStack() {
+static void printStack(const char *prefix) {
+    static bool flag = false;
+    if (flag)
+        return;
+    
+    flag = true;
+    printf("%s\t", prefix);
     for (Value *slot = vm.stack; slot < vm.top; slot++) {
         printf("[ ");
         valuePrint(*slot);
         printf(" ]");
     }
     printf("\n");
+
+    flag = false;
 }
 
 static void resetStack() {
@@ -88,14 +96,14 @@ void push(Value value) {
     *vm.top = value;
     vm.top++;
     #ifdef DEBUG_TRACE_STACK
-        printStack();
+        printStack("push");
     #endif
 }
 
 Value pop() {
     vm.top--;
     #ifdef DEBUG_TRACE_STACK
-        printStack();
+        printStack("pop");
     #endif
     return *vm.top;
 }
@@ -107,7 +115,7 @@ static Value peek(int distance) {
 static void insert(int distance, Value value) {
     vm.top[-1 - distance] = value;
     #ifdef DEBUG_TRACE_STACK
-        printStack();
+        printStack("insert");
     #endif
 }
 
@@ -360,7 +368,8 @@ static Value run() {
     while (true) {
 
         #ifdef DEBUG_TRACE_EXECUTION
-            printInstruction(&frame->closure->function->code, (int)(frame->ip - frame->closure->function->code.code));
+            if (strcmp(frame->closure->function->name->chars, "_str_"))
+                printInstruction(&frame->closure->function->code, (int)(frame->ip - frame->closure->function->code.code));
         #endif
 
         uint8_t instruction;
@@ -567,15 +576,19 @@ static Value run() {
                 break;
             case OP_RETURN: {
                 Value result = pop();
+                
                 closeUpvalues(frame->slots);
+                if (strcmp(frame->closure->function->name->chars, "_init_") == 0)
+                    AS_INSTANCE(result)->isInitiazed = true;
                 vm.frameSize--;
 
                 vm.top = frame->slots;
                 frame = &vm.frames[vm.frameSize - 1];
-                if (vm.frameSize == startFrame)
+                if (vm.frameSize == startFrame) {
                     return result;
-                else
+                } else {
                     push(result);
+                }
                 break;
             }
         }
@@ -590,7 +603,8 @@ Value callNovaValue(Value callee, int argc) {
 OptValue callNovaMethod(Value obj, ObjString *methodName, int argc) {
     OptValue method = valueGetField(obj, methodName);
     if (method.hasValue) {
-        Value value = callNovaValue(method.value, argc);
+        push(NIL_VAL);
+        Value value = callNovaValue(method.value, argc);;
         return (OptValue){.hasValue=true, .value=value};
     }
     return (OptValue){.hasValue=false};
