@@ -82,29 +82,15 @@ static bool binary(Value a, Value b, char *operator, ObjString *methodName) {
     operatorNotImplemented(operator, a, b);
 }
 
-static bool isUnsupported(Value value) {
-    if (!IS_STRING(value))
-        return false;
-    return stringEqual(vm.magicStrings.unsupported, AS_STRING(value));
-}
-
-static Value arithmetic(Value a, Value b, char *operator, ObjString *universal, ObjString *left, ObjString *right) {
+static Value arithmetic(Value a, Value b, char *operator, ObjString *left, ObjString *right) {
     OptValue result = callNovaMethod1arg(a, left, b);
-    if (result.hasValue && !isUnsupported(result.value))
+    if (result.hasValue)
         return result.value;
     
-    result = callNovaMethod1arg(a, universal, b);
-    if (result.hasValue && !isUnsupported(result.value))
-        return result.value;
-
     result = callNovaMethod1arg(b, right, a);
-    if (result.hasValue && !isUnsupported(result.value))
+    if (result.hasValue)
         return result.value;
 
-    result = callNovaMethod1arg(b, universal, a);
-    if (result.hasValue && !isUnsupported(result.value))
-        return result.value;
-    
     operatorNotImplemented(operator, a, b);
 }
 
@@ -129,27 +115,27 @@ Value instanceNot(Value a) {
 }
 
 Value instanceAdd(Value a, Value b) {
-    return arithmetic(a, b, "+", vm.magicStrings.add, vm.magicStrings.ladd, vm.magicStrings.radd);
+    return arithmetic(a, b, "+", vm.magicStrings.add, vm.magicStrings.radd);
 }
 
 Value instanceSubtract(Value a, Value b) {
-    return arithmetic(a, b, "-", vm.magicStrings.sub, vm.magicStrings.lsub, vm.magicStrings.rsub);
+    return arithmetic(a, b, "-", vm.magicStrings.sub,  vm.magicStrings.rsub);
 }
 
 Value instanceMultiply(Value a, Value b) {
-    return arithmetic(a, b, "*", vm.magicStrings.mul, vm.magicStrings.lmul, vm.magicStrings.rmul);
+    return arithmetic(a, b, "*", vm.magicStrings.mul,  vm.magicStrings.rmul);
 }
 
 Value instanceDivide(Value a, Value b) {
-    return arithmetic(a, b, "/", vm.magicStrings.div, vm.magicStrings.ldiv, vm.magicStrings.rdiv);
+    return arithmetic(a, b, "/", vm.magicStrings.div,  vm.magicStrings.rdiv);
 }
 
 Value instanceModulo(Value a, Value b) {
-    return arithmetic(a, b, "%%", vm.magicStrings.mod, vm.magicStrings.lmod, vm.magicStrings.rmod);
+    return arithmetic(a, b, "%%", vm.magicStrings.mod, vm.magicStrings.rmod);
 }
 
 Value instancePower(Value a, Value b) {
-    return arithmetic(a, b, "^", vm.magicStrings.pow, vm.magicStrings.lpow, vm.magicStrings.rpow);
+    return arithmetic(a, b, "^", vm.magicStrings.pow,  vm.magicStrings.rpow);
 }
 
 Value instanceNegate(Value a) {

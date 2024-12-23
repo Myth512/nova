@@ -12,11 +12,29 @@ class Vector {
 	def _add_(other) {
 		return Vector(self.x + other.x, self.y + other.y, self.z + other.z)
 	}
+
+	def _sub_(other) {
+		return Vector(self.x - other.x, self.y - other.y, self.z - other.z)
+	}
+
+	def _mul_(other) {
+		return self.x * other.x + self.y * other.y + self.z + other.z
+	}
 }
 
 v1 := Vector(1, 2, 3)
+
+print(v1)
+
+v1.w = 4
+
+print(v1.w)
+
 v2 := Vector(4, 5, 6)
 
 print(v1 + v2)
 
+print(v2 - v1)
+
+print(v1 * v2)
 
