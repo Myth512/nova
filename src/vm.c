@@ -70,15 +70,10 @@ void functionNotImplemented(char *function, Value a) {
 }
 
 static void printStack(const char *prefix) {
-    if (!frame)
+    if (vm.stackPrinting)
         return;
-    if (strcmp(frame->closure->function->name->chars, "_str_") == 0)
-        return;
-    static bool flag = false;
-    if (flag)
-        return;
-    
-    flag = true;
+    vm.stackPrinting = true;
+
     printf("%s\t", prefix);
     for (Value *slot = vm.stack; slot < vm.top; slot++) {
         printf("[ ");
@@ -87,7 +82,7 @@ static void printStack(const char *prefix) {
     }
     printf("\n");
 
-    flag = false;
+    vm.stackPrinting = false;
 }
 
 static void resetStack() {
@@ -106,10 +101,11 @@ void push(Value value) {
 
 Value pop() {
     vm.top--;
+    Value res = *vm.top;
     #ifdef DEBUG_TRACE_STACK
         printStack("pop");
     #endif
-    return *vm.top;
+    return res;
 }
 
 static Value peek(int distance) {
@@ -372,7 +368,7 @@ static Value run() {
     while (true) {
 
         #ifdef DEBUG_TRACE_EXECUTION
-            if (strcmp(frame->closure->function->name->chars, "_str_"))
+            if (!vm.stackPrinting)
                 printInstruction(&frame->closure->function->code, (int)(frame->ip - frame->closure->function->code.code));
         #endif
 
@@ -682,6 +678,7 @@ void initVM() {
     vm.objects = NULL;
     vm.bytesAllocated = 0;
     vm.nextGC = 1024 * 1024;
+    vm.stackPrinting = false;
     initTable(&vm.globals);
     initTable(&vm.strings);
     initMagicStrings();

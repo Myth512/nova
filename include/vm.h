@@ -71,6 +71,7 @@ typedef struct {
     Obj *objects;
     size_t bytesAllocated;
     size_t nextGC;
+    bool stackPrinting;
 } VM;
 
 typedef enum {
