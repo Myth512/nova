@@ -460,12 +460,6 @@ static Value run() {
             case OP_LESS_EQUAL:
                 equality(valueLessEqual);
                 break;
-            case OP_INCREMENT:
-                unary(valueIncrement);
-                break; 
-            case OP_DECREMENT:
-                unary(valueDecrement);
-                break;
             case OP_ADD:
                 arithmetic(valueAdd); 
                 break;

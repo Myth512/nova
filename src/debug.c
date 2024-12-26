@@ -5,6 +5,96 @@
 #include "value.h"
 #include "object_function.h"
 
+static const char *TokenTypeToString[] = {
+    [TOKEN_AMPERSAND] = "AMPERSAND",
+    [TOKEN_AMPERSAND_EQUAL] = "AMPERNAND_EQUAL",
+    [TOKEN_AND] = "AND",
+    [TOKEN_AS] = "AS",
+    [TOKEN_ASSERT] = "ASSERT",
+    [TOKEN_ASYNC] = "ASYNC",
+    [TOKEN_AT] = "AT",
+    [TOKEN_AT_EQUAL] = "AT EQUAL",
+    [TOKEN_AWAIT] = "AWAIT",
+    [TOKEN_BANG_EQUAL] = "BANG EQUAL",
+    [TOKEN_BREAK] = "BREAK",
+    [TOKEN_CARET] = "CARET",
+    [TOKEN_CARET_EQUAL] = "CARET EQAUL",
+    [TOKEN_CLASS] = "CLASS",
+    [TOKEN_COLON] = "COLON",
+    [TOKEN_COLON_EQUAL] = "COLON EQAUL",
+    [TOKEN_COMMA] = "COMMA",
+    [TOKEN_CONTINUE] = "CONTINUE",
+    [TOKEN_DEDENT] = "DEDENT",
+    [TOKEN_DEF] = "DEF",
+    [TOKEN_DEL] = "DEL",
+    [TOKEN_DOT] = "DOT",
+    [TOKEN_DOUBLE_EQUAL] = "DOUBLE EQUAL",
+    [TOKEN_DOUBLE_SLASH] = "DOUBLE SLASH",
+    [TOKEN_DOUBLE_SLASH_EQUAL] = "DOUBLE SLASH EQUAL",
+    [TOKEN_DOUBLE_STAR] = "DOUBLE STAR",
+    [TOKEN_DOUBLE_STAR_EQUAL] = "DOUBLE STAR EQUAL",
+    [TOKEN_ELIF] = "ELIF",
+    [TOKEN_ELSE] = "ELSE",
+    [TOKEN_EOF] = "EOF",
+    [TOKEN_EQUAL] = "EQUAL",
+    [TOKEN_ERROR] = "ERROR",
+    [TOKEN_EXCEPT] = "EXCEPT",
+    [TOKEN_FALSE] = "FALSE",
+    [TOKEN_FINALLY] = "FINALLY",
+    [TOKEN_FOR] = "FOR",
+    [TOKEN_FROM] = "FROM",
+    [TOKEN_GLOBAL] = "GLOBAL",
+    [TOKEN_GREATER] = "GREATER",
+    [TOKEN_GREATER_EQUAL] = "GREATER EQUAL",
+    [TOKEN_IDENTIFIER] = "IDENTIFIER",
+    [TOKEN_IF] = "IF",
+    [TOKEN_IMPORT] = "IMPORT",
+    [TOKEN_IN] = "IN",
+    [TOKEN_INDENT] = "INDENT",
+    [TOKEN_IS] = "IS",
+    [TOKEN_LAMBDA] = "LAMBDA",
+    [TOKEN_LEFT_BRACE] = "LEFT BRACE",
+    [TOKEN_LEFT_BRACKET] = "LEFT BRACKET",
+    [TOKEN_LEFT_PAREN] = "LEFT PAREN",
+    [TOKEN_LEFT_SHIFT] = "LEFT SHIFT",
+    [TOKEN_LEFT_SHIFT_EQUAL] = "LEFT SHIFT EQUAL",
+    [TOKEN_LESS] = "LESS",
+    [TOKEN_LESS_EQUAL] = "LESS EQUAL",
+    [TOKEN_MINUS] = "MINUS",
+    [TOKEN_MINUS_EQUAL] = "MINUS EQUAL",
+    [TOKEN_NEWLINE] = "NEWLINE",
+    [TOKEN_NONE] = "NONE",
+    [TOKEN_NONLOCAL] = "NONLOCAL",
+    [TOKEN_NOT] = "NOT",
+    [TOKEN_NUMBER] = "NUMBER",
+    [TOKEN_OR] = "OR",
+    [TOKEN_PASS] = "PASS",
+    [TOKEN_PERCENT] = "PERCENT",
+    [TOKEN_PIPE] = "PIPE",
+    [TOKEN_PIPE_EQUAL] = "PIPE EQUAL",
+    [TOKEN_PLUS] = "PLUS",
+    [TOKEN_PLUS_EQUAL] = "PLUS EQUAL",
+    [TOKEN_RAISE] = "RAISE",
+    [TOKEN_RETURN] = "RETURN",
+    [TOKEN_RIGHT_BRACE] = "RIGHT BRACE",
+    [TOKEN_RIGHT_BRACKET] = "RIGHT BRACKET",
+    [TOKEN_RIGHT_PAREN] = "RIGHT PAREN",
+    [TOKEN_RIGHT_SHIFT] = "RIGHT SHIFT",
+    [TOKEN_RIGHT_SHIFT_EQUAL] = "RIGHT SHIFT EQUAL",
+    [TOKEN_SEMICOLON] = "SEMICOLON",
+    [TOKEN_SLASH] = "SLASH",
+    [TOKEN_SLASH_EQUAL] = "SLASH EQUAL",
+    [TOKEN_STAR] = "STAR",
+    [TOKEN_STAR_EQUAL] = "STAR EQUAL",
+    [TOKEN_STRING] = "STRING",
+    [TOKEN_TILDE] = "TILDE",
+    [TOKEN_TRUE] = "TRUE",
+    [TOKEN_TRY] = "TRY",
+    [TOKEN_WHILE] = "WHILE",
+    [TOKEN_WITH] = "WITH",
+    [TOKEN_YIELD] = "YIELD"
+};
+
 static int simpleInstruction(const char *name, int offset) {
     printf("%s\n", name);
     return offset + 1;
@@ -103,10 +193,6 @@ int printInstruction(CodeVec *vec, int offset) {
             return simpleInstruction("GET AT", offset);
         case OP_GET_AT_NO_POP:
             return simpleInstruction("GET AT NO POP", offset);
-        case OP_INCREMENT:
-            return simpleInstruction("INCREMENT", offset);
-        case OP_DECREMENT:
-            return simpleInstruction("DECREMENT", offset);
         case OP_ADD:
             return simpleInstruction("ADD", offset);
         case OP_SUBTRUCT:
@@ -189,114 +275,10 @@ int printInstruction(CodeVec *vec, int offset) {
 }
 
 static char* decodeTokenType(TokenType type) {
-    switch (type) {
-        case TOKEN_LEFT_PAREN:
-            return "LEFT PAREN";
-        case TOKEN_RIGHT_PAREN:
-            return "RIGHT PAREN";
-        case TOKEN_LEFT_BRACE:
-            return "LEFT BRACE";
-        case TOKEN_RIGHT_BRACE:
-            return "RIGHT BRACE";
-        case TOKEN_LEFT_BRACKET:
-            return "LEFT BRACKET";
-        case TOKEN_RIGHT_BRACKET:
-            return "RIGHT BRACKET";
-        case TOKEN_COMMA:
-            return "COMMA";
-        case TOKEN_DOT:
-            return "DOT";
-        case TOKEN_MINUS:
-            return "MINUS";
-        case TOKEN_PLUS:
-            return "PLUS";
-        case TOKEN_SLASH:
-            return "SLASH";
-        case TOKEN_STAR:
-            return "STAR";
-        case TOKEN_PERCENT:
-            return "PERCENT";
-        case TOKEN_CARET:
-            return "CARET";
-        case TOKEN_MINUS_EQUAL:
-            return "MINUS EQUAL";
-        case TOKEN_PLUS_EQUAL:
-            return "PLUS EQUAL";
-        case TOKEN_SLASH_EQUAL:
-            return "SLASH EQUAL";
-        case TOKEN_STAR_EQUAL:
-            return "STAR EQUAL";
-        case TOKEN_PERCENT_EQUAL:
-            return "PERCENT EQUAL";
-        case TOKEN_CARET_EQUAL:
-            return "CARET EQUAL";
-        case TOKEN_PLUS_PLUS:
-            return "PLUS PLUS";
-        case TOKEN_MINUS_MINUS:
-            return "MINUS MINUS";
-        case TOKEN_BANG_EQUAL:
-            return "BANG EQUAL";
-        case TOKEN_EQUAL:
+    if (type < 0 || type > TOKEN_DEDENT)
+        return "UNKNOWN TOKEN";
+    return TokenTypeToString[type];
             return "EQUAL";
-        case TOKEN_DOUBLE_EQUAL:
-            return "DOUBLE EQUAL";
-        case TOKEN_GREATER:
-            return "GREATER";
-        case TOKEN_GREATER_EQUAL:
-            return "GREATER EQUAL";
-        case TOKEN_LESS:
-            return "LESS";
-        case TOKEN_LESS_EQUAL:
-            return "LESS EQUAL";
-        case TOKEN_IDENTIFIER:
-            return "IDENTIFIER";
-        case TOKEN_STRING:
-            return "STRING";
-        case TOKEN_FSTRING:
-            return "FSTRING";
-        case TOKEN_NUMBER:
-            return "NUMBER";
-        case TOKEN_IF:
-            return "IF";
-        case TOKEN_ELSE:
-            return "ELSE";
-        case TOKEN_ELIF:
-            return "ELIF";
-        case TOKEN_FOR:
-            return "FOR";
-        case TOKEN_BREAK:
-            return "BREAK";
-        case TOKEN_CONTINUE:
-            return "CONTINUE";
-        case TOKEN_NOT:
-            return "NOT";
-        case TOKEN_AND:
-            return "AND";
-        case TOKEN_OR:
-            return "OR";
-        case TOKEN_TRUE:
-            return "TRUE";
-        case TOKEN_FALSE:
-            return "FALSE";
-        case TOKEN_NIL:
-            return "NIL";
-        case TOKEN_DEF:
-            return "DEF";
-        case TOKEN_RETURN:
-            return "RETURN";
-        case TOKEN_CLASS:
-            return "CLASS";
-        case TOKEN_ERROR:
-            return "ERROR";
-        case TOKEN_LINE_BREAK:
-            return "LINE BREAK";
-        case TOKEN_SEMICOLON:
-            return "SEMICOLON";
-        case TOKEN_EOF:
-            return "EOF";
-        default:
-            return "Unknow Token";
-    }
 }
 
 void printToken(Token *token) {

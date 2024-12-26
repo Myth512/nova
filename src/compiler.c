@@ -133,8 +133,6 @@ ParseRule rules[] = {
   [TOKEN_SLASH]         = {NULL,     binary, NULL,    PREC_FACTOR},
   [TOKEN_PERCENT]       = {NULL,     binary, NULL,    PREC_FACTOR},
   [TOKEN_NOT]           = {unary,    NULL,   NULL, PREC_NONE},
-  [TOKEN_PLUS_PLUS]     = {NULL,     NULL,   NULL,    PREC_NONE},
-  [TOKEN_MINUS_MINUS]   = {NULL,     NULL,   NULL,    PREC_NONE},
   [TOKEN_PLUS_EQUAL]    = {NULL,     NULL,   NULL,    PREC_NONE},
   [TOKEN_MINUS_EQUAL]   = {NULL,     NULL,   NULL,    PREC_NONE},
   [TOKEN_STAR_EQUAL]    = {NULL,     NULL,   NULL,    PREC_NONE},
@@ -151,7 +149,7 @@ ParseRule rules[] = {
   [TOKEN_LESS_EQUAL]    = {NULL,     binary, NULL,    PREC_EQUALITY},
   [TOKEN_IDENTIFIER]    = {variable, NULL,   NULL,    PREC_NONE},
   [TOKEN_STRING]        = {string,   NULL,   NULL,    PREC_NONE},
-  [TOKEN_FSTRING]       = {fstring,  NULL,   NULL,    PREC_NONE},
+//   [TOKEN_FSTRING]       = {fstring,  NULL,   NULL,    PREC_NONE},
   [TOKEN_NUMBER]        = {number,   NULL,   NULL,    PREC_NONE},
   [TOKEN_IF]            = {NULL,     NULL,   NULL,    PREC_NONE},
   [TOKEN_ELIF]          = {NULL,     NULL,   NULL,    PREC_NONE},
@@ -161,12 +159,11 @@ ParseRule rules[] = {
   [TOKEN_OR]            = {NULL,     or,    NULL,    PREC_OR},
   [TOKEN_TRUE]          = {literal,  NULL,   NULL,    PREC_NONE},
   [TOKEN_FALSE]         = {literal,  NULL,   NULL,    PREC_NONE},
-  [TOKEN_NIL]           = {literal,  NULL,   NULL,    PREC_NONE},
+  [TOKEN_NONE]          = {literal,  NULL,   NULL,    PREC_NONE},
   [TOKEN_DEF]           = {NULL,     NULL,   NULL,    PREC_NONE},
   [TOKEN_RETURN]        = {NULL,     NULL,   NULL,    PREC_NONE},
   [TOKEN_CLASS]         = {NULL,     NULL,   NULL,    PREC_NONE},
-  [TOKEN_LINE_BREAK]    = {NULL,     NULL,   NULL,    PREC_NONE},
-  [TOKEN_SEMICOLON]     = {NULL,     NULL,   NULL,    PREC_NONE},
+  [TOKEN_NEWLINE]    = {NULL,     NULL,   NULL,    PREC_NONE},
   [TOKEN_ERROR]         = {NULL,     NULL,   NULL,    PREC_NONE},
   [TOKEN_EOF]           = {NULL,     NULL,   NULL,    PREC_NONE},
   };
@@ -184,15 +181,11 @@ static CodeVec* currentCode() {
     return &current->function->code;
 }
 
-static void advance(bool skipLineBreak) {
-    if (skipLineBreak && parser.next.type == TOKEN_LINE_BREAK)
-        parser.current = scanToken(true);
-    else
-        parser.current = parser.next;
+static void advance() {
+    parser.current = scanToken();
     #ifdef DEBUG_PRINT_TOKENS
         printToken(&parser.current);
     #endif
-    parser.next = scanToken(false);
 }
 
 static void synchronize() {
@@ -205,8 +198,10 @@ static void synchronize() {
             case TOKEN_FOR:
             case TOKEN_IF:
             case TOKEN_RETURN:
-            case TOKEN_LINE_BREAK:
+            case TOKEN_NEWLINE:
             case TOKEN_SEMICOLON:
+            case TOKEN_INDENT:
+            case TOKEN_DEDENT:
                 return;
             default:
                 break;
@@ -244,7 +239,7 @@ static bool match(TokenType type, bool skipLineBreak) {
 }
 
 static bool consume(TokenType type, bool skipLineBreak) {
-    while (skipLineBreak && parser.current.type == TOKEN_LINE_BREAK)
+    while (skipLineBreak && parser.current.type == TOKEN_NEWLINE)
         advance(false);
     if (parser.current.type == type) {
         advance(false);
@@ -254,7 +249,7 @@ static bool consume(TokenType type, bool skipLineBreak) {
 }
 
 static bool consumeEOS() {
-    return consume(TOKEN_LINE_BREAK, false) || consume(TOKEN_SEMICOLON, false) || consume(TOKEN_EOF, false);
+    return consume(TOKEN_NEWLINE, false) || consume(TOKEN_EOF, false);
 }
 
 static void emitByte(uint8_t byte, Token token) {
@@ -373,7 +368,7 @@ static void literal(bool canAssign) {
         case TOKEN_FALSE:
             emitByte(OP_FALSE, parser.current);
             break;
-        case TOKEN_NIL:
+        case TOKEN_NONE:
             emitByte(OP_NIL, parser.current);
             break;
         default:
@@ -692,8 +687,6 @@ static void resolveVariable(Token *name, uint8_t *getOp, uint8_t *setOp, uint8_t
 static bool isAssignment(Token operator) {
     switch (operator.type) {
         case TOKEN_EQUAL:
-        case TOKEN_PLUS_PLUS:
-        case TOKEN_MINUS_MINUS:
         case TOKEN_PLUS_EQUAL:
         case TOKEN_MINUS_EQUAL:
         case TOKEN_STAR_EQUAL:
@@ -710,16 +703,7 @@ static void assignment(uint8_t getOp, uint8_t setOp, int arg, Token operator) {
     if (operator.type != TOKEN_EQUAL)
         emitAssignment(getOp, arg, operator);
 
-    if (operator.type != TOKEN_PLUS_PLUS && operator.type != TOKEN_MINUS_MINUS)
-        expression();
-
     switch (operator.type) {
-        case TOKEN_PLUS_PLUS:
-            emitByte(OP_INCREMENT, operator);
-            break;
-        case TOKEN_MINUS_MINUS:
-            emitByte(OP_DECREMENT, operator);
-            break;
         case TOKEN_PLUS_EQUAL:
             emitByte(OP_ADD, operator);
             break;
@@ -820,51 +804,51 @@ static void or(bool canAssign){
 }
 
 static void ifStatement(int breakPointer, int continuePointer) {
-    advance(false);
-    expression();
+    // advance(false);
+    // expression();
 
-    int jumpToNextBranch = emitJump(OP_JUMP_FALSE_POP);
-    int jumpToEnd = -1;
+    // int jumpToNextBranch = emitJump(OP_JUMP_FALSE_POP);
+    // int jumpToEnd = -1;
 
-    if (parser.current.type == TOKEN_LINE_BREAK) {
-        advance(false);
-        statement(breakPointer, continuePointer);
-    } else if (parser.current.type == TOKEN_LEFT_BRACE) {
-        statement(breakPointer, continuePointer);
-    } else {
-        reportError("Expect new line or block after condition", &parser.current);
-    }
+    // if (parser.current.type == TOKEN_LINE_BREAK) {
+    //     advance(false);
+    //     statement(breakPointer, continuePointer);
+    // } else if (parser.current.type == TOKEN_LEFT_BRACE) {
+    //     statement(breakPointer, continuePointer);
+    // } else {
+    //     reportError("Expect new line or block after condition", &parser.current);
+    // }
 
-    if (parser.current.type == TOKEN_ELIF) {
-        jumpToEnd = emitJump(OP_JUMP);
-        while (match(TOKEN_ELIF, false)) {
-            patchJump(jumpToNextBranch);
-            expression();
-            jumpToNextBranch = emitJump(OP_JUMP_FALSE_POP);
-            statement(-1, -1);
-            emitLoop(OP_LOOP, jumpToEnd - 1);
-        }
-    }
+    // if (parser.current.type == TOKEN_ELIF) {
+    //     jumpToEnd = emitJump(OP_JUMP);
+    //     while (match(TOKEN_ELIF, false)) {
+    //         patchJump(jumpToNextBranch);
+    //         expression();
+    //         jumpToNextBranch = emitJump(OP_JUMP_FALSE_POP);
+    //         statement(-1, -1);
+    //         emitLoop(OP_LOOP, jumpToEnd - 1);
+    //     }
+    // }
 
-    if (jumpToEnd == -1)
-        jumpToEnd = emitJump(OP_JUMP);
-    patchJump(jumpToNextBranch);
+    // if (jumpToEnd == -1)
+    //     jumpToEnd = emitJump(OP_JUMP);
+    // patchJump(jumpToNextBranch);
 
-    if (parser.current.type == TOKEN_ELSE) {
+    // if (parser.current.type == TOKEN_ELSE) {
 
-        advance(false);
-        if (parser.current.type == TOKEN_LINE_BREAK) {
-            advance(false);
-            statement(-1, -1);
-        } else if (parser.current.type == TOKEN_LEFT_BRACE) {
-            statement(-1, -1);
-        } else {
-            reportError("Expect new line or block after condition", &parser.current);
-        }
-    }
+    //     advance(false);
+    //     if (parser.current.type == TOKEN_LINE_BREAK) {
+    //         advance(false);
+    //         statement(-1, -1);
+    //     } else if (parser.current.type == TOKEN_LEFT_BRACE) {
+    //         statement(-1, -1);
+    //     } else {
+    //         reportError("Expect new line or block after condition", &parser.current);
+    //     }
+    // }
 
-    if (jumpToEnd != -1)
-        patchJump(jumpToEnd);
+    // if (jumpToEnd != -1)
+    //     patchJump(jumpToEnd);
 }
 
 static void breakStatement(int breakPointer) {
@@ -898,71 +882,71 @@ static int breakJump() {
 }
 
 static void forLoop() {
-    bool hasInit, hasCondition, hasPost;
-    int conditionPointer, postPointer, bodyPointer;
-    int jumpToStart, jumpToEndIfFalse, jumpToEnd, jumpToBody;
+    // bool hasInit, hasCondition, hasPost;
+    // int conditionPointer, postPointer, bodyPointer;
+    // int jumpToStart, jumpToEndIfFalse, jumpToEnd, jumpToBody;
 
-    jumpToEnd = breakJump();
+    // jumpToEnd = breakJump();
 
-    if (!check(TOKEN_SEMICOLON)) {
-        hasInit = true;
-        beginScope();
-        declaration(-1, -1);
-    } else {
-        hasInit = false;
-        advance(true);
-    }
+    // if (!check(TOKEN_SEMICOLON)) {
+    //     hasInit = true;
+    //     beginScope();
+    //     declaration(-1, -1);
+    // } else {
+    //     hasInit = false;
+    //     advance(true);
+    // }
 
-    if (!check(TOKEN_SEMICOLON)) {
-        hasCondition = true;
-        conditionPointer = currentCode()->size;
-        expression();
-        jumpToEndIfFalse = emitJump(OP_JUMP_FALSE_POP);
-        if (!check(TOKEN_SEMICOLON)) {
-            reportError("Expect ';' after condition", &parser.current);
-        }
-        advance(true);
-    } else {
-        hasCondition = false;
-        advance(true);
-    }
+    // if (!check(TOKEN_SEMICOLON)) {
+    //     hasCondition = true;
+    //     conditionPointer = currentCode()->size;
+    //     expression();
+    //     jumpToEndIfFalse = emitJump(OP_JUMP_FALSE_POP);
+    //     if (!check(TOKEN_SEMICOLON)) {
+    //         reportError("Expect ';' after condition", &parser.current);
+    //     }
+    //     advance(true);
+    // } else {
+    //     hasCondition = false;
+    //     advance(true);
+    // }
 
-    if (!check(TOKEN_LEFT_BRACE)) {
-        hasPost = true;
+    // if (!check(TOKEN_LEFT_BRACE)) {
+    //     hasPost = true;
 
-        jumpToBody = emitJump(OP_JUMP);
-        postPointer = currentCode()->size;
+    //     jumpToBody = emitJump(OP_JUMP);
+    //     postPointer = currentCode()->size;
 
-        parseExpression(PREC_ASSIGNMENT, true);
-        emitByte(OP_POP, (Token){0});
+    //     parseExpression(PREC_ASSIGNMENT, true);
+    //     emitByte(OP_POP, (Token){0});
 
-        if (hasCondition)
-            emitLoop(OP_LOOP, conditionPointer);
-    } else {
-        hasPost = false;
-    }
+    //     if (hasCondition)
+    //         emitLoop(OP_LOOP, conditionPointer);
+    // } else {
+    //     hasPost = false;
+    // }
 
-    bodyPointer = currentCode()->size;
-    if (hasPost)
-        patchJump(jumpToBody);
+    // bodyPointer = currentCode()->size;
+    // if (hasPost)
+    //     patchJump(jumpToBody);
 
-    if (hasPost)
-        jumpToStart = postPointer;
-    else if (hasCondition)
-        jumpToStart = conditionPointer;
-    else
-        jumpToStart = bodyPointer;
+    // if (hasPost)
+    //     jumpToStart = postPointer;
+    // else if (hasCondition)
+    //     jumpToStart = conditionPointer;
+    // else
+    //     jumpToStart = bodyPointer;
 
-    declaration(jumpToEnd, jumpToStart);
+    // declaration(jumpToEnd, jumpToStart);
 
-    emitLoop(OP_LOOP, jumpToStart);
+    // emitLoop(OP_LOOP, jumpToStart);
 
-    if (hasCondition)
-        patchJump(jumpToEndIfFalse);
-    patchJump(jumpToEnd);
+    // if (hasCondition)
+    //     patchJump(jumpToEndIfFalse);
+    // patchJump(jumpToEnd);
     
-    if (hasInit)
-        endScope();
+    // if (hasInit)
+    //     endScope();
 }
 
 static void whileLoop() {
@@ -1223,57 +1207,58 @@ static void at(bool canAssign) {
 }
 
 static void returnStatement() {
-    advance(false);
-    if (current->type == TYPE_TOP_LEVEL)
-        reportError("Can't return from top-level code", &parser.current);
+    // advance(false);
+    // if (current->type == TYPE_TOP_LEVEL)
+    //     reportError("Can't return from top-level code", &parser.current);
     
-    if (consumeEOS()) {
-        emitReturn();
-    } else {
-        if (current->type == TYPE_INITIALIZER) 
-            reportError("Can't return a value from an initializer", &parser.current);
+    // if (consumeEOS()) {
+    //     emitReturn();
+    // } else {
+    //     if (current->type == TYPE_INITIALIZER) 
+    //         reportError("Can't return a value from an initializer", &parser.current);
         
-        expression(false);
-        if (!consume(TOKEN_LINE_BREAK, false) && !consume(TOKEN_SEMICOLON, false)) {
-            reportError("Expect eos after value", &parser.current);
-        }
-        emitByte(OP_RETURN, parser.current);
-    }
+    //     expression(false);
+    //     if (!consume(TOKEN_LINE_BREAK, false) && !consume(TOKEN_SEMICOLON, false)) {
+    //         reportError("Expect eos after value", &parser.current);
+    //     }
+    //     emitByte(OP_RETURN, parser.current);
+    // }
 }
 
 static void statement(int breakPointer, int continuePointer) {
-    switch (parser.current.type) {
-        case TOKEN_LINE_BREAK:
-        case TOKEN_SEMICOLON:
-            advance(false);
-            break;
-        case TOKEN_IF:
-            ifStatement(breakPointer, continuePointer);
-            break;
-        case TOKEN_FOR:
-            forStatement();
-            break;
-        case TOKEN_BREAK:
-            breakStatement(breakPointer);
-            break;
-        case TOKEN_CONTINUE:
-            continueStatement(continuePointer);
-            break;
-        case TOKEN_LEFT_BRACE:
-            beginScope();
-            block(breakPointer, continuePointer);
-            endScope();
-            break;
-        case TOKEN_RETURN:
-            returnStatement();
-            break;
-        default:
-            expressionStatement();
-            break;
-    }
+    // switch (parser.current.type) {
+    //     case TOKEN_LINE_BREAK:
+    //     case TOKEN_SEMICOLON:
+    //         advance(false);
+    //         break;
+    //     case TOKEN_IF:
+    //         ifStatement(breakPointer, continuePointer);
+    //         break;
+    //     case TOKEN_FOR:
+    //         forStatement();
+    //         break;
+    //     case TOKEN_BREAK:
+    //         breakStatement(breakPointer);
+    //         break;
+    //     case TOKEN_CONTINUE:
+    //         continueStatement(continuePointer);
+    //         break;
+    //     case TOKEN_LEFT_BRACE:
+    //         beginScope();
+    //         block(breakPointer, continuePointer);
+    //         endScope();
+    //         break;
+    //     case TOKEN_RETURN:
+    //         returnStatement();
+    //         break;
+    //     default:
+    //         expressionStatement();
+    //         break;
+    // }
 }
 
 static void declaration(int breakPointer, int continuePointer) {
+    advance();
     switch (parser.current.type) {
         case TOKEN_DEF:
             funcDeclaration();
