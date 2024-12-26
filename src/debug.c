@@ -175,8 +175,6 @@ int printInstruction(CodeVec *vec, int offset) {
             return simpleInstruction("TRUE", offset);
         case OP_GET_GLOBAL:
             return varInstruction("GET GLOBAL", vec, offset);
-        case OP_DEFINE_GLOBAL:
-            return varInstruction("DEFINE GLOBAL", vec, offset);
         case OP_SET_GLOBAL:
             return varInstruction("SET GLOBAL", vec, offset);
         case OP_GET_LOCAL:

@@ -394,17 +394,9 @@ static Value run() {
                 push(value);
                 break;
             }
-            case OP_DEFINE_GLOBAL: {
-                ObjString *name = READ_STRING();
-                tableSet(&vm.globals, name, peek(0));
-                break;
-            }
             case OP_SET_GLOBAL: {
                 ObjString *name = READ_STRING();
-                if (tableSet(&vm.globals, name, peek(0))) {
-                    tableDelete(&vm.globals, name);
-                    reportRuntimeError("Undefined variable '%s'", name->chars);
-                }
+                tableSet(&vm.globals, name, peek(0));
                 break;
             }
             case OP_GET_LOCAL: {

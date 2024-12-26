@@ -15,6 +15,7 @@ typedef struct {
     int startColumn;
     int indentationStack[256];
     int indentationPointer;
+    int indent;
 } Scanner;
 
 Scanner scanner;
@@ -157,6 +158,24 @@ void initScanner(const char *source) {
 }
 
 Token scanToken() {
+    if (scanner.column == 1) {
+        int indent = 0;
+        while (match(' '))
+            indent++;
+        scanner.indent = indent;
+    }
+
+    if (scanner.indent > peekIndent()) {
+        pushIndent(scanner.indent);
+        return createToken(TOKEN_INDENT);
+    }
+
+    if (scanner.indent < peekIndent()) {
+        popIndent();
+        scanner.indent = peekIndent();
+        return createToken(TOKEN_DEDENT);
+    }
+
     skipWhitespace();
 
     scanner.start = scanner.current;
@@ -264,22 +283,10 @@ Token scanToken() {
         case ',':
             return createToken(TOKEN_COMMA);
         case '\n': {
-            int indent = 0;
-
-            while (match(' '))
-                indent++;
-            
-            int prevIndect = peekIndent();
-
-            if (prevIndect == indent) {
-                return createToken(TOKEN_NEWLINE);
-            } else if (prevIndect < indent) {
-                popIndent();
-                return createToken(TOKEN_DEDENT);
-            } else {
-                pushIndent(indent);
-                return createToken(TOKEN_INDENT);
-            }
+            Token token = createToken(TOKEN_NEWLINE);
+            scanner.line++;
+            scanner.column = 1;
+            return token;
         }
     }
 
