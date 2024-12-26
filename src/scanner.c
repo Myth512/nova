@@ -234,16 +234,6 @@ static Token scanIdentifier() {
             return createToken(checkKeyword(1, 5, "eturn", TOKEN_RETURN));
         case 't':
             return createToken(checkKeyword(1, 3, "rue", TOKEN_TRUE));
-        case 's':
-            if (scanner.current - scanner.start > 1) {
-                switch (scanner.start[1]) {
-                    case 'e':
-                        return createToken(checkKeyword(2, 2, "lf", TOKEN_SELF));
-                    case 'u':
-                        return createToken(checkKeyword(2, 3, "per", TOKEN_SUPER));
-                }
-            }
-            break;
         case 'f':
             if (scanner.current - scanner.start > 1) {
                 switch (scanner.start[1]) {

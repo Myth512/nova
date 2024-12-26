@@ -119,7 +119,7 @@ static void insert(int distance, Value value) {
     #endif
 }
 
-static bool call(ObjClosure *closure, int argc) {
+static bool call(ObjClosure *closure, int argc, bool isMethod) {
     if (argc < closure->function->minArity || argc > closure->function->maxArity)
         reportArityError(closure->function->minArity, closure->function->maxArity, argc);
 
@@ -129,7 +129,8 @@ static bool call(ObjClosure *closure, int argc) {
     CallFrame *frame = &vm.frames[vm.frameSize++];
     frame->closure = closure;
     frame->ip = closure->function->code.code;
-    frame->slots = vm.top - argc - 1;
+    frame->slots = vm.top - argc;
+    frame->isMethod = isMethod;
     return true;
 }
 
@@ -164,7 +165,7 @@ static bool callValueInternal(Value callee, int argc) {
             case OBJ_METHOD: {
                 ObjMethod *method = AS_METHOD(callee);
                 insert(argc, method->reciever);
-                return call(method->method, argc);
+                return call(method->method, argc + 1, true);
             }
             case OBJ_NATIVE_METHOD: {
                 ObjNativeMethod *method = AS_NATIVE_METHOD(callee);
@@ -180,7 +181,7 @@ static bool callValueInternal(Value callee, int argc) {
                 insert(argc, OBJ_VAL(createInstance(class)));
                 Value initializer;
                 if (tableGet(&class->methods, vm.magicStrings.init, &initializer)) {
-                    return call(AS_CLOSURE(initializer), argc);
+                    return call(AS_CLOSURE(initializer), argc + 1, true);
                 } else if (argc != 0) {
                     reportRuntimeError("Expect 0 arguments but got %d", argc);
                     return false;
@@ -193,7 +194,7 @@ static bool callValueInternal(Value callee, int argc) {
                 int maxArity = closure->function->maxArity;
                 for (int i = argc; i < maxArity; i++)
                     push(closure->function->defaults->vec.values[i - minArity]);
-                return call(AS_CLOSURE(callee), argc < maxArity ? maxArity : argc);
+                return call(AS_CLOSURE(callee), argc < maxArity ? maxArity : argc, false);
             }
             case OBJ_NATIVE:
                 NativeFn native = AS_NATIVE(callee)->function;
@@ -582,7 +583,7 @@ static Value run() {
                     AS_INSTANCE(result)->isInitiazed = true;
                 vm.frameSize--;
 
-                vm.top = frame->slots;
+                vm.top = frame->slots - !frame->isMethod;
                 frame = &vm.frames[vm.frameSize - 1];
                 if (vm.frameSize == startFrame) {
                     return result;
@@ -702,7 +703,7 @@ InterpretResult interpret(const char *source) {
     ObjClosure *closure = createClosure(function);
     pop();
     push(OBJ_VAL(closure));
-    call(closure, 0);
+    call(closure, 0, false);
 
     #ifdef DEBUG_DO_NOT_EXECUTE
         return INTERPRET_OK;

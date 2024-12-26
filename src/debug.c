@@ -286,10 +286,6 @@ static char* decodeTokenType(TokenType type) {
             return "RETURN";
         case TOKEN_CLASS:
             return "CLASS";
-        case TOKEN_SELF:
-            return "SELF";
-        case TOKEN_SUPER:
-            return "SUPER";
         case TOKEN_ERROR:
             return "ERROR";
         case TOKEN_LINE_BREAK:

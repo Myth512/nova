@@ -165,8 +165,6 @@ ParseRule rules[] = {
   [TOKEN_DEF]           = {NULL,     NULL,   NULL,    PREC_NONE},
   [TOKEN_RETURN]        = {NULL,     NULL,   NULL,    PREC_NONE},
   [TOKEN_CLASS]         = {NULL,     NULL,   NULL,    PREC_NONE},
-  [TOKEN_SELF]          = {self,     NULL,   NULL,    PREC_NONE},
-  [TOKEN_SUPER]         = {NULL,     NULL,   NULL,    PREC_NONE},
   [TOKEN_LINE_BREAK]    = {NULL,     NULL,   NULL,    PREC_NONE},
   [TOKEN_SEMICOLON]     = {NULL,     NULL,   NULL,    PREC_NONE},
   [TOKEN_ERROR]         = {NULL,     NULL,   NULL,    PREC_NONE},
@@ -324,18 +322,6 @@ static void initCompiler(Compiler *compiler, FunctionType type, Token name) {
     current = compiler;
     if (type != TYPE_TOP_LEVEL) {
         current->function->name = copyString(name.start, name.length);
-    }
-
-    // reserve 0th slot for internal use
-    Local* local = &current->locals[current->localCount++];
-    local->depth = 0;
-    local->isCaptured = false;
-    if (type != TYPE_FUNCTION) {
-        local->name.start = "self";
-        local->name.length = 4;
-    } else {
-        local->name.start = "";
-        local->name.length = 0;
     }
 }
 
