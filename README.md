@@ -38,6 +38,7 @@ To build and run YAPI:
 ## Contribution Policy
 
 YAPI is a personal project, and external contributions are not currently being accepted. However, issue reports are welcome! If you encounter any bugs or have suggestions, feel free to open an issue.
-License
+
+## License
 
 This project is licensed under the GNU General Public License v3.0. See the [LICENSE](LICENSE) file for details.
