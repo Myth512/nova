@@ -16,6 +16,8 @@ typedef struct {
     int indentationStack[256];
     int indentationPointer;
     int indent;
+    bool inFormattedString;
+    char stop;
 } Scanner;
 
 Scanner scanner;
@@ -46,14 +48,11 @@ static bool match(char expected) {
     return true;
 }
 
-static char peek() {
-    return *scanner.current;
-}
-
-static char peekNext() {
-    if (reachEnd())
-        return '\0';
-    return scanner.current[1];
+static char peek(int distance) {
+    for (int i = 0; i < distance; i++)
+        if (scanner.current[i] == '\0')
+            return '\0';
+    return scanner.current[distance];
 }
 
 static bool isAlpha(char c) {
@@ -80,7 +79,7 @@ static int peekIndent() {
 
 static void skipWhitespace() {
     while (true) {
-        char c = peek();
+        char c = peek(0);
 
         switch (c) {
             case ' ':
@@ -115,13 +114,13 @@ static Token createErrorToken(const char *message) {
 }
 
 static Token scanNumber() {
-    while (isDigit(peek()))
+    while (isDigit(peek(0)))
         advance();
 
-    if (peek() == '.') {
-        if (isDigit(peekNext())) {
+    if (peek(0) == '.') {
+        if (isDigit(peek(1))) {
             advance();
-            while (isDigit(peek()))
+            while (isDigit(peek(0)))
                 advance();
         } else {
             return createErrorToken("Missing fractional part after '.");
@@ -132,7 +131,7 @@ static Token scanNumber() {
 }
 
 static Token scanIdentifier() {
-    while (isAlpha(peek()) || isDigit(peek()))
+    while (isAlpha(peek(0)) || isDigit(peek(0)))
         advance();
 
     int length = scanner.current - scanner.start;
@@ -143,18 +142,52 @@ static Token scanIdentifier() {
     return createToken(TOKEN_IDENTIFIER);
 }
 
-static Token scanString(char stop, bool raw) {
-    if (raw)
-        skipChar();
+static Token scanString(char stop) {
+    bool multi = false;
     skipChar();
+    if (peek(0) == stop && peek(1) == stop)  {
+        multi = true;
+        skipChar();
+        skipChar();
+    }
 
-    while (peek() != stop && peek() != '\n' && !reachEnd()) {
-        if (peek() == '\\' && peekNext() == stop)
+    while (!reachEnd()) {
+        if (peek(0) == '\n') {
+            scanner.line++;
+            scanner.column = 1;
+            if (!multi)
+                break;
+        }
+        if (multi && peek(0) == stop && peek(1) == stop && peek(2) == stop)
+            break;
+        if (!multi && peek(0) == stop)
+            break;
+        if (peek(0) == '\\' && peek(1) == stop)
             advance();
         advance();
     }
 
-    Token string = createToken(raw ? TOKEN_RSTRING : TOKEN_STRING);
+    Token string = createToken(TOKEN_STRING);
+    
+    if (multi && (!match(stop) || !match(stop) || !match(stop)))
+        return createErrorToken("Unterminated string");
+    if (!multi && !match(stop))
+        return createErrorToken("Unterminated string");
+    
+    return string; 
+}
+
+static Token scanRawString(char stop) {
+    skipChar();
+    skipChar();
+
+    while (peek(0) != stop && peek(0) != '\n' && !reachEnd()) {
+        if (peek(0) == '\\' && peek(1) == stop)
+            advance();
+        advance();
+    }
+
+    Token string = createToken(TOKEN_RSTRING);
     
     if (!match(stop))
         return createErrorToken("Unterminated string");
@@ -163,7 +196,29 @@ static Token scanString(char stop, bool raw) {
 }
 
 static Token scanFormattedString(char stop) {
+    skipChar();
 
+    while (peek(0) != stop && peek(0) != '\n' && !reachEnd()) {
+        if (peek(0) == '\\' && peek(1) == stop)
+            advance();
+        if (peek(0) != '\\' && peek(1) == '{') {
+            scanner.inFormattedString = true;
+            scanner.stop = stop;
+            advance();
+            Token token = createToken(TOKEN_FSTRING);
+            advance();
+            return token;
+        }
+        advance();
+    }
+
+    Token string = createToken(TOKEN_STRING);
+    
+    if (!match(stop))
+        return createErrorToken("Unterminated string");
+    
+    scanner.inFormattedString = false;
+    return string; 
 }
 
 static bool isQuote(char c) {
@@ -211,17 +266,24 @@ Token scanToken() {
 
     char c = advance();
 
+    if (scanner.inFormattedString && c == '}') {
+        skipChar();
+        return scanFormattedString(scanner.stop);
+    }
+
     if (isDigit(c))
         return scanNumber();
 
     if (isQuote(c)) 
-        return scanString(c, false);
+        return scanString(c);
     
-    if ((c == 'r' || c == 'R') && isQuote(peek()))
-        return scanString(advance(), true);
+    if ((c == 'r' || c == 'R'))
+        return scanRawString(advance());
     
-    if ((c == 'f' || c == 'F') && isQuote(peek()))
+    if ((c == 'f' || c == 'F') && isQuote(peek(0))) {
+        skipChar();
         return scanFormattedString(advance());
+    }
     
     if (isAlpha(c))
         return scanIdentifier();

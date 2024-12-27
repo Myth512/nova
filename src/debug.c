@@ -43,6 +43,7 @@ static const char *TokenTypeToString[] = {
     [TOKEN_FINALLY] = "FINALLY",
     [TOKEN_FOR] = "FOR",
     [TOKEN_FROM] = "FROM",
+    [TOKEN_FSTRING] = "FSTRING",
     [TOKEN_GLOBAL] = "GLOBAL",
     [TOKEN_GREATER] = "GREATER",
     [TOKEN_GREATER_EQUAL] = "GREATER EQUAL",

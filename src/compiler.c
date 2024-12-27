@@ -146,7 +146,7 @@ ParseRule rules[] = {
   [TOKEN_IDENTIFIER]    = {variable, NULL,   NULL,    PREC_NONE},
   [TOKEN_STRING]        = {string,   NULL,   NULL,    PREC_NONE},
   [TOKEN_RSTRING]       = {rstring,  NULL,   NULL,    PREC_NONE},
-//   [TOKEN_FSTRING]       = {fstring,  NULL,   NULL,    PREC_NONE},
+  [TOKEN_FSTRING]       = {fstring,  NULL,   NULL,    PREC_NONE},
   [TOKEN_NUMBER]        = {number,   NULL,   NULL,    PREC_NONE},
   [TOKEN_IF]            = {NULL,     NULL,   NULL,    PREC_NONE},
   [TOKEN_ELIF]          = {NULL,     NULL,   NULL,    PREC_NONE},
@@ -391,11 +391,6 @@ static void rstring(bool canAssign) {
     advance();
 }
 
-static void rawString() {
-    emitConstant(OBJ_VAL(createRawString(parser.current.start, parser.current.length)));
-    advance();
-}
-
 static void array(bool canAssign) {
     // (void)canAssign;
 
@@ -419,7 +414,7 @@ static void fstring(bool canAssign) {
 
     while (!check(TOKEN_STRING, false)) {
         if (parser.current.length > 0) {
-            rawString();
+            string(true);
             count++;
         } else {
             advance();
@@ -429,7 +424,7 @@ static void fstring(bool canAssign) {
     }
 
     if (parser.current.length > 0) {
-        rawString();
+        string(true);
         count++;
     } else {
         advance();
