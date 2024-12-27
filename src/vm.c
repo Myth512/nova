@@ -337,9 +337,10 @@ static void setLocal() {
     uint8_t slot = READ_BYTE();
     while (frame->slots + slot > vm.top - 1)
         push(UNDEFINED_VAL);
-    if (frame->slots + slot == vm.top)
+    if (frame->slots + slot == vm.top - 1)
         push(NIL_VAL);
-    frame->slots[slot] = peek(0);
+    else
+        frame->slots[slot] = peek(0);
 }
 
 static void getAt(bool popValues) {
