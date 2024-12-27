@@ -241,7 +241,8 @@ Token scanToken() {
         int indent = 0;
         while (match(' '))
             indent++;
-        scanner.indent = indent;
+        if (peek(0) != '\n')
+            scanner.indent = indent;
     }
 
     if (scanner.indent > peekIndent()) {

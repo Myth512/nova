@@ -130,6 +130,8 @@ static bool call(ObjClosure *closure, int argc, bool isMethod) {
     frame->closure = closure;
     frame->ip = closure->function->code.code;
     frame->slots = vm.top - argc;
+    for (int i = 0; i < closure->function->localNames->vec.size - argc; i++)
+        push(UNDEFINED_VAL);
     frame->isMethod = isMethod;
     return true;
 }
@@ -325,22 +327,15 @@ static void unary(Value (*func)(Value)) {
 
 static void getLocal() {
     uint8_t slot = READ_BYTE();
-    if (frame->slots + slot >= vm.top)
-        reportRuntimeError("Undefined variable");
     Value value = frame->slots[slot];
     if (IS_UNDEFINED(value))
-        reportRuntimeError("Undefined variable");
+        reportRuntimeError("Undefined variable '%s'", AS_STRING(frame->closure->function->localNames->vec.values[slot])->chars);
     push(frame->slots[slot]);
 }
 
 static void setLocal() {
     uint8_t slot = READ_BYTE();
-    while (frame->slots + slot > vm.top - 1)
-        push(UNDEFINED_VAL);
-    if (frame->slots + slot == vm.top - 1)
-        push(NIL_VAL);
-    else
-        frame->slots[slot] = peek(0);
+    frame->slots[slot] = peek(0);
 }
 
 static void getAt(bool popValues) {

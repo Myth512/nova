@@ -25,6 +25,7 @@ typedef struct {
     int minArity;
     int maxArity;
     ObjArray *defaults;
+    ObjArray *localNames;
     int upvalueCount;
     CodeVec code;
     ObjString *name;

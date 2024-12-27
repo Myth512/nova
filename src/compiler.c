@@ -9,6 +9,7 @@
 #include "common.h"
 #include "object.h"
 #include "object_string.h"
+#include "object_array.h"
 #include "error.h"
 
 #define NO_ARG -1
@@ -322,6 +323,13 @@ static ObjFunction* endCompiler() {
         if (parser.errorCount == 0)
             printCodeVec(currentCode(), function->name != NULL ? function->name->chars : "<top level>");
     #endif
+
+    ObjArray *names = allocateArray(current->localCount);
+    for (int i = 0; i < current->localCount; i++) {
+        Token name = current->locals[i].name;
+        names->vec.values[i] = OBJ_VAL(copyString(name.start, name.length));
+    }
+    function->localNames = names;
 
     current = current->enclosing;
     return function;
