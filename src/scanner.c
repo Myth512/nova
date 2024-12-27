@@ -136,14 +136,38 @@ static Token scanIdentifier() {
         advance();
 
     int length = scanner.current - scanner.start;
-    char str[256];
-    strncpy(str, scanner.start, length);
-    str[2] = '\0';
     const struct Keyword *keyword = in_keyword_set(scanner.start, length);
 
     if (keyword)
         return createToken(keyword->type);
     return createToken(TOKEN_IDENTIFIER);
+}
+
+static Token scanString(char stop, bool raw) {
+    if (raw)
+        skipChar();
+    skipChar();
+
+    while (peek() != stop && peek() != '\n' && !reachEnd()) {
+        if (peek() == '\\' && peekNext() == stop)
+            advance();
+        advance();
+    }
+
+    Token string = createToken(raw ? TOKEN_RSTRING : TOKEN_STRING);
+    
+    if (!match(stop))
+        return createErrorToken("Unterminated string");
+    
+    return string; 
+}
+
+static Token scanFormattedString(char stop) {
+
+}
+
+static bool isQuote(char c) {
+    return c == '\'' || c == '"';
 }
 
 void initScanner(const char *source) {
@@ -189,6 +213,15 @@ Token scanToken() {
 
     if (isDigit(c))
         return scanNumber();
+
+    if (isQuote(c)) 
+        return scanString(c, false);
+    
+    if ((c == 'r' || c == 'R') && isQuote(peek()))
+        return scanString(advance(), true);
+    
+    if ((c == 'f' || c == 'F') && isQuote(peek()))
+        return scanFormattedString(advance());
     
     if (isAlpha(c))
         return scanIdentifier();

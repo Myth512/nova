@@ -87,6 +87,8 @@ static void number(bool canAssign);
 
 static void string(bool canAssign);
 
+static void rstring(bool canAssign);
+
 static void fstring(bool canAssign);
 
 static void array(bool canAssign);
@@ -103,13 +105,13 @@ static void and(bool canAssign);
 
 static void or(bool canAssign);
 
-static void statement(int breakPointer, int continuePointer);
-
 static void call(bool canAssign);
 
 static void at(bool canAssign);
 
 static void dot(bool canAssign);
+
+static void statement(int breakPointer, int continuePointer);
 
 ParseRule rules[] = {
   [TOKEN_LEFT_PAREN]    = {grouping, call,   NULL,    PREC_CALL},
@@ -143,6 +145,7 @@ ParseRule rules[] = {
   [TOKEN_LESS_EQUAL]    = {NULL,     binary, NULL,    PREC_EQUALITY},
   [TOKEN_IDENTIFIER]    = {variable, NULL,   NULL,    PREC_NONE},
   [TOKEN_STRING]        = {string,   NULL,   NULL,    PREC_NONE},
+  [TOKEN_RSTRING]       = {rstring,  NULL,   NULL,    PREC_NONE},
 //   [TOKEN_FSTRING]       = {fstring,  NULL,   NULL,    PREC_NONE},
   [TOKEN_NUMBER]        = {number,   NULL,   NULL,    PREC_NONE},
   [TOKEN_IF]            = {NULL,     NULL,   NULL,    PREC_NONE},
@@ -378,6 +381,13 @@ static void string(bool canAssign) {
     (void)canAssign;
 
     emitConstant(OBJ_VAL(copyEscapedString(parser.current.start, parser.current.length)));
+    advance();
+}
+
+static void rstring(bool canAssign) {
+    (void)canAssign;
+
+    emitConstant(OBJ_VAL(copyString(parser.current.start, parser.current.length)));
     advance();
 }
 
