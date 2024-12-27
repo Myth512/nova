@@ -562,18 +562,22 @@ static void oneLineBlock(int breakPointer, int continuePointer) {
 //               Variables
 // ======================================    
 
+static int createLocal(Token name) {
+    Local local;
+    local.name = name;
+    local.isCaptured = false;
+    current->locals[current->localCount++] = local;
+    return current->localCount - 1;
+}
+
 static int resolveLocal(Compiler *compiler, Token *name, bool new) {
     for (int i = 0; i < compiler->localCount; i++) {
         Local *local = &compiler->locals[i];
         if (identifierEqual(name, &local->name))
             return i;
     }
-    if (new) {
-        Local *local = &current->locals[current->localCount++];
-        local->name = *name;
-        local->isCaptured = false;
-        return current->localCount - 1;
-    }
+    if (new)
+        return createLocal(*name);
     return -1;
 }
 
@@ -613,53 +617,38 @@ static int resolveUpvalue(Compiler *compiler, Token *name) {
     // return -1;
 }
 
-static void resolveVariable(Token *name, uint8_t *getOp, uint8_t *setOp, uint8_t *arg) {
-    // int offset = resolveLocal(current, name);
-    // if (current->type == TYPE_FUNCTION)
-    //     *setOp = OP_
-    // if (offset != -1) {
-    //     *getOp = OP_GET_LOCAL;
-    //     *setOp = OP_SET_LOCAL;
-    //     *arg = offset;
-    //     return;
-    // }
-    
-    // offset = resolveUpvalue(current, name);
-    // if (offset != -1) {
-    //     *getOp = OP_GET_UPVALUE;
-    //     *setOp = OP_SET_UPVALUE;
-    //     *arg = offset;
-    //     return;
-    // }
-
-    // *getOp = OP_GET_GLOBAL;
-    // *setOp = OP_SET_GLOBAL;
-    // *arg = identifierConstant(name);
-}
-
 static void resolveVariableAssignment(Token *name, uint8_t *setOp, uint8_t *arg) {
     if (current->type == TYPE_FUNCTION) {
         *setOp = OP_SET_LOCAL;
         *arg = resolveLocal(current, name, true);
         return;
     }
-
     *setOp = OP_SET_GLOBAL;
     *arg = identifierConstant(name);
 }
 
 static void resolveVariableReference(Token *name, uint8_t *getOp, uint8_t *arg) {
-    if (current->type == TYPE_FUNCTION) {
+    if (current->type != TYPE_TOP_LEVEL) {
         int offset = resolveLocal(current, name, false);
         if (offset != -1) {
-            *getOp = OP_SET_LOCAL;
+            *getOp = OP_GET_LOCAL;
             *arg = offset;
             return;
         }
     }
-
     *getOp = OP_GET_GLOBAL;
     *arg = identifierConstant(name);
+}
+
+static void declareVariable(Token name) {
+    if (current->type != TYPE_TOP_LEVEL)
+        resolveLocal(current, &name, true);
+}
+
+static void defineVariable(Token name) {
+    uint8_t setOp, arg;
+    resolveVariableAssignment(&name, &setOp, &arg);
+    emitBytes(setOp, arg, name);
 }
 
 static bool isAssignment(Token operator) {
@@ -964,79 +953,74 @@ static void forStatement() {
 // ======================================    
 
 static void function(FunctionType type) {
-    // Compiler compiler;
-    // Token name = parser.current;
-    // advance(false);
+    Compiler compiler;
+    Token name = parser.current;
+    advance();
 
-    // if (parser.current.type != TOKEN_LEFT_PAREN) {
-    //     reportError("Expect '(' after function name", &parser.current);
-    // }
-    // advance(true);
+    if (!consume(TOKEN_LEFT_PAREN, false)) {
+        reportError("Expect '(' after function name", &parser.current);
+    }
     
-    // int defaultCount = 0;
-    // int minArity = 0;
-    // int maxArity = 0;
-    // TokenVec names;
-    // TokenVecInit(&names);
+    int defaultCount = 0;
+    int minArity = 0;
+    int maxArity = 0;
+    TokenVec names;
+    TokenVecInit(&names);
 
-    // if (!check(TOKEN_RIGHT_PAREN, false)) {
-    //     do {
-    //         if (current->function->maxArity > 255) {
-    //             reportError("Can't have more than 255 parameters", &parser.current);
-    //         }
+    if (!check(TOKEN_RIGHT_PAREN, false)) {
+        do {
+            if (current->function->maxArity > 255) {
+                reportError("Can't have more than 255 parameters", &parser.current);
+            }
 
-    //         TokenVecPush(&names, parser.current);
-    //         advance(false);
+            TokenVecPush(&names, parser.current);
+            advance();
 
-    //         if (consume(TOKEN_EQUAL, true)) {
-    //             expression();
-    //             defaultCount++;
-    //         } else if (defaultCount > 0)
-    //             reportError("Non-default argument follows default argument", &parser.current);
-    //         else 
-    //             minArity++;
-    //         maxArity++;
+            if (consume(TOKEN_EQUAL, true)) {
+                expression();
+                defaultCount++;
+            } else if (defaultCount > 0)
+                reportError("Non-default argument follows default argument", &parser.current);
+            else 
+                minArity++;
+            maxArity++;
 
-    //     } while (match(TOKEN_COMMA, true));
-    // }
+        } while (consume(TOKEN_COMMA, true));
+    }
 
-    // emitBytes(OP_BUILD_ARRAY, (uint8_t)defaultCount, parser.current);
+    emitBytes(OP_BUILD_ARRAY, (uint8_t)defaultCount, parser.current);
 
-    // if (!consume(TOKEN_RIGHT_PAREN, true))
-    //     reportError("Expect ')' after parameters", &parser.current);
+    if (!consume(TOKEN_RIGHT_PAREN, true))
+        reportError("Expect ')' after parameters", &parser.current);
     
-    // if (!consume(TOKEN_LEFT_BRACE, true))
-    //     reportError("Expect '{' after function body}", &parser.current);
+    initCompiler(&compiler, type, name);
 
-    // initCompiler(&compiler, type, name);
-    // beginScope();
+    current->function->minArity = minArity;
+    current->function->maxArity = maxArity;
 
-    // current->function->minArity = minArity;
-    // current->function->maxArity = maxArity;
-
-    // for (int i = 0; i < names.size; i++)
-    //     createLocal(names.tokens[i]);
+    for (int i = 0; i < names.size; i++)
+        createLocal(names.tokens[i]);
     
-    // TokenVecFree(&names);
+    TokenVecFree(&names);
 
-    // block(-1, -1);
+    parseBlock(-1, -1);
 
-    // ObjFunction *function = endCompiler();
+    ObjFunction *function = endCompiler();
 
-    // emitBytes(OP_CLOSURE, createConstant(OBJ_VAL(function)), (Token){0});
+    emitBytes(OP_CLOSURE, createConstant(OBJ_VAL(function)), (Token){0});
 
-    // for (int i = 0; i < function->upvalueCount; i++) {
-    //     emitByte(compiler.upvalues[i].isLocal ? 1 : 0, (Token){0});
-    //     emitByte(compiler.upvalues[i].index, (Token){0});
-    // }
+    for (int i = 0; i < function->upvalueCount; i++) {
+        emitByte(compiler.upvalues[i].isLocal ? 1 : 0, (Token){0});
+        emitByte(compiler.upvalues[i].index, (Token){0});
+    }
 }
 
 static void funcDeclaration() {
-    // advance();
-    // Token name = parser.current;
-    // declareVariable(name);
-    // function(TYPE_FUNCTION);
-    // defineVariable(name);
+    advance();
+    Token name = parser.current;
+    declareVariable(name);
+    function(TYPE_FUNCTION);
+    defineVariable(name);
 }
 
 static uint8_t parseArguments() {
