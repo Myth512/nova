@@ -821,75 +821,9 @@ static int breakJump() {
     return emitJump(OP_JUMP); 
 }
 
-static void forLoop() {
-    // bool hasInit, hasCondition, hasPost;
-    // int conditionPointer, postPointer, bodyPointer;
-    // int jumpToStart, jumpToEndIfFalse, jumpToEnd, jumpToBody;
+static void whileStatement() {
+    advance();
 
-    // jumpToEnd = breakJump();
-
-    // if (!check(TOKEN_SEMICOLON)) {
-    //     hasInit = true;
-    //     beginScope();
-    //     declaration(-1, -1);
-    // } else {
-    //     hasInit = false;
-    //     advance(true);
-    // }
-
-    // if (!check(TOKEN_SEMICOLON)) {
-    //     hasCondition = true;
-    //     conditionPointer = currentCode()->size;
-    //     expression();
-    //     jumpToEndIfFalse = emitJump(OP_JUMP_FALSE_POP);
-    //     if (!check(TOKEN_SEMICOLON)) {
-    //         reportError("Expect ';' after condition", &parser.current);
-    //     }
-    //     advance(true);
-    // } else {
-    //     hasCondition = false;
-    //     advance(true);
-    // }
-
-    // if (!check(TOKEN_LEFT_BRACE)) {
-    //     hasPost = true;
-
-    //     jumpToBody = emitJump(OP_JUMP);
-    //     postPointer = currentCode()->size;
-
-    //     parseExpression(PREC_ASSIGNMENT, true);
-    //     emitByte(OP_POP, (Token){0});
-
-    //     if (hasCondition)
-    //         emitLoop(OP_LOOP, conditionPointer);
-    // } else {
-    //     hasPost = false;
-    // }
-
-    // bodyPointer = currentCode()->size;
-    // if (hasPost)
-    //     patchJump(jumpToBody);
-
-    // if (hasPost)
-    //     jumpToStart = postPointer;
-    // else if (hasCondition)
-    //     jumpToStart = conditionPointer;
-    // else
-    //     jumpToStart = bodyPointer;
-
-    // declaration(jumpToEnd, jumpToStart);
-
-    // emitLoop(OP_LOOP, jumpToStart);
-
-    // if (hasCondition)
-    //     patchJump(jumpToEndIfFalse);
-    // patchJump(jumpToEnd);
-    
-    // if (hasInit)
-    //     endScope();
-}
-
-static void whileLoop() {
     int jumpToEnd, jumpToEndIfFalse;
     int conditionPointer;
 
@@ -899,53 +833,12 @@ static void whileLoop() {
     expression();
     jumpToEndIfFalse = emitJump(OP_JUMP_FALSE_POP);
 
-    statement(jumpToEnd, conditionPointer);
+    parseBlock(jumpToEnd, conditionPointer);
 
     emitLoop(OP_LOOP, conditionPointer);
 
     patchJump(jumpToEnd);
     patchJump(jumpToEndIfFalse);
-}
-
-static void unconditionalLoop() {
-    int jumpToEnd;
-    int startPointer;
-
-    jumpToEnd = breakJump();
-    startPointer = currentCode()->size;
-
-    statement(jumpToEnd, startPointer);
-
-    if (consume(TOKEN_LEFT_PAREN, true)) {
-        expression();
-        emitLoop(OP_LOOP_TRUE_POP, startPointer);
-
-        if (!consume(TOKEN_RIGHT_PAREN, true))
-            reportError("Expect ')' after condition", &parser.current);
-    } else {
-        emitLoop(OP_LOOP, startPointer);
-    }
-
-    patchJump(jumpToEnd);
-}
-
-static void forStatement() {
-    advance();
-
-    if (check(TOKEN_LEFT_BRACE, false)) {
-        unconditionalLoop();
-        return;
-    }
-
-    if (check(TOKEN_IDENTIFIER, false)) {
-        if (checkNext(TOKEN_COLON_EQUAL, false) || checkNext(TOKEN_EQUAL, false) || checkNext(TOKEN_COMMA, false)) {
-            forLoop();
-            return;
-        } else {
-            whileLoop();
-            return;
-        }
-    }
 }
 
 // ======================================
@@ -1175,8 +1068,8 @@ static void statement(int breakPointer, int continuePointer) {
         case TOKEN_IF:
             ifStatement(breakPointer, continuePointer);
             break;
-        case TOKEN_FOR:
-            forStatement();
+        case TOKEN_WHILE:
+            whileStatement();
             break;
         case TOKEN_BREAK:
             breakStatement(breakPointer);
