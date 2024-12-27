@@ -540,12 +540,17 @@ static void patchJump(int offset) {
 }
 
 static void block(int breakPoiner, int continuePointer) {
-    if (!consume(TOKEN_INDENT, false))
-
     while (!check(TOKEN_DEDENT, false) && !check(TOKEN_EOF, false))
         statement(breakPoiner, continuePointer);
     
     consume(TOKEN_DEDENT, false);
+}
+
+static void oneLineBlock(int breakPointer, int continuePointer) {
+    while (!check(TOKEN_NEWLINE, false) && !check(TOKEN_EOF, false))
+        statement(breakPointer, continuePointer);
+    
+    consume(TOKEN_NEWLINE, false);
 }
 
 // ======================================
@@ -713,7 +718,7 @@ static void variable(bool canAssign) {
         expression();
         emitBytes(setOp, arg, name);
     } else {
-        resolveVariableReference(&name, &setOp, &arg);
+        resolveVariableReference(&name, &getOp, &arg);
         emitBytes(getOp, arg, name);
     }
 }
@@ -746,52 +751,50 @@ static void or(bool canAssign){
     patchJump(endJump);
 }
 
+static void parseBlock(int breakPointer, int continuePointer) {
+    if (!consume(TOKEN_COLON, false))
+        reportError("Expect ':' after condition", &parser.current);
+    
+    if (consume(TOKEN_NEWLINE, false)) {
+        if (!consume(TOKEN_INDENT, false))
+            reportError("Expect indentation block", &parser.current);
+        block(breakPointer, continuePointer);
+    } else {
+        oneLineBlock(breakPointer, continuePointer);
+    }
+}
+
 static void ifStatement(int breakPointer, int continuePointer) {
-    // advance(false);
-    // expression();
+    advance(false);
+    expression();
 
-    // int jumpToNextBranch = emitJump(OP_JUMP_FALSE_POP);
-    // int jumpToEnd = -1;
+    int jumpToNextBranch = emitJump(OP_JUMP_FALSE_POP);
+    int jumpToEnd = -1;
 
-    // if (parser.current.type == TOKEN_LINE_BREAK) {
-    //     advance(false);
-    //     statement(breakPointer, continuePointer);
-    // } else if (parser.current.type == TOKEN_LEFT_BRACE) {
-    //     statement(breakPointer, continuePointer);
-    // } else {
-    //     reportError("Expect new line or block after condition", &parser.current);
-    // }
+    parseBlock(breakPointer, continuePointer);
 
-    // if (parser.current.type == TOKEN_ELIF) {
-    //     jumpToEnd = emitJump(OP_JUMP);
-    //     while (match(TOKEN_ELIF, false)) {
-    //         patchJump(jumpToNextBranch);
-    //         expression();
-    //         jumpToNextBranch = emitJump(OP_JUMP_FALSE_POP);
-    //         statement(-1, -1);
-    //         emitLoop(OP_LOOP, jumpToEnd - 1);
-    //     }
-    // }
+    if (parser.current.type == TOKEN_ELIF) {
+        jumpToEnd = emitJump(OP_JUMP);
+        while (consume(TOKEN_ELIF, false)) {
+            patchJump(jumpToNextBranch);
+            expression();
+            jumpToNextBranch = emitJump(OP_JUMP_FALSE_POP);
 
-    // if (jumpToEnd == -1)
-    //     jumpToEnd = emitJump(OP_JUMP);
-    // patchJump(jumpToNextBranch);
+            parseBlock(breakPointer, continuePointer);
 
-    // if (parser.current.type == TOKEN_ELSE) {
+            emitLoop(OP_LOOP, jumpToEnd - 1);
+        }
+    }
 
-    //     advance(false);
-    //     if (parser.current.type == TOKEN_LINE_BREAK) {
-    //         advance(false);
-    //         statement(-1, -1);
-    //     } else if (parser.current.type == TOKEN_LEFT_BRACE) {
-    //         statement(-1, -1);
-    //     } else {
-    //         reportError("Expect new line or block after condition", &parser.current);
-    //     }
-    // }
+    if (jumpToEnd == -1)
+        jumpToEnd = emitJump(OP_JUMP);
+    patchJump(jumpToNextBranch);
 
-    // if (jumpToEnd != -1)
-    //     patchJump(jumpToEnd);
+    if (consume(TOKEN_ELSE, false))
+        parseBlock(breakPointer, continuePointer);
+
+    if (jumpToEnd != -1)
+        patchJump(jumpToEnd);
 }
 
 static void breakStatement(int breakPointer) {

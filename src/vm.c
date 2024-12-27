@@ -323,6 +323,25 @@ static void unary(Value (*func)(Value)) {
     push(func(a));
 }
 
+static void getLocal() {
+    uint8_t slot = READ_BYTE();
+    if (frame->slots + slot >= vm.top)
+        reportRuntimeError("Undefined variable");
+    Value value = frame->slots[slot];
+    if (IS_UNDEFINED(value))
+        reportRuntimeError("Undefined variable");
+    push(frame->slots[slot]);
+}
+
+static void setLocal() {
+    uint8_t slot = READ_BYTE();
+    while (frame->slots + slot > vm.top - 1)
+        push(UNDEFINED_VAL);
+    if (frame->slots + slot == vm.top)
+        push(NIL_VAL);
+    frame->slots[slot] = peek(0);
+}
+
 static void getAt(bool popValues) {
     Value key;
     Value object;
@@ -399,16 +418,12 @@ static Value run() {
                 tableSet(&vm.globals, name, peek(0));
                 break;
             }
-            case OP_GET_LOCAL: {
-                uint8_t slot = READ_BYTE();
-                push(frame->slots[slot]);
+            case OP_GET_LOCAL:
+                getLocal();
                 break;
-            }
-            case OP_SET_LOCAL: {
-                uint8_t slot = READ_BYTE();
-                frame->slots[slot] = peek(0);
+            case OP_SET_LOCAL:
+                setLocal();
                 break;
-            }
             case OP_GET_UPVALUE: {
                 uint8_t slot = READ_BYTE();
                 push(*frame->closure->upvalues[slot]->location);

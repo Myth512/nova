@@ -45,6 +45,8 @@ int valueWrite(Value value, char *buffer, const size_t size) {
             return writeToBuffer(buffer, size, AS_BOOL(value) ? "true" : "false");
         case VAL_NIL:
             return writeToBuffer(buffer, size, "nil");
+        case VAL_UNDEFINED:
+            return writeToBuffer(buffer, size, "undefined");
         case VAL_NUMBER:
             return writeToBuffer(buffer, size, "%g", AS_NUMBER(value));
         case VAL_OBJ:
