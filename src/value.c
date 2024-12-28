@@ -13,17 +13,6 @@
 #include "error.h"
 #include "vm.h"
 
-bool isInt(Value value) {
-    if (!IS_NUMBER(value))
-        return false;
-    double f = AS_NUMBER(value);
-    return f == (int)f;
-}
-
-int asInt(Value value) {
-    return (int)AS_NUMBER(value);
-}
-
 int writeToBuffer(char *buffer, const size_t size, const char *format, ...) {
     va_list args;
     va_start(args, format);
@@ -47,8 +36,10 @@ int valueWrite(Value value, char *buffer, const size_t size) {
             return writeToBuffer(buffer, size, "nil");
         case VAL_UNDEFINED:
             return writeToBuffer(buffer, size, "undefined");
-        case VAL_NUMBER:
-            return writeToBuffer(buffer, size, "%g", AS_NUMBER(value));
+        case VAL_INT:
+            return writeToBuffer(buffer, size, "%lld", AS_INT(value));
+        case VAL_FLOAT:
+            return writeToBuffer(buffer, size, "%g", AS_FLOAT(value));
         case VAL_OBJ:
             return objectWrite(value, buffer, size);
     }
@@ -113,14 +104,6 @@ double modulo(double a, double b) {
     if (b == 0)
         reportRuntimeError("Division by zero");
     return fmod(a, b);
-}
-
-double increment(double a) {
-    return a + 1;
-}
-
-double decrement(double a) {
-    return a - 1;
 }
 
 double negate(double a) {
@@ -241,14 +224,6 @@ Value valuePower(Value a, Value b) {
 
 Value valueNegate(Value a) {
     return unary(a, "-", negate, objectNegate);
-}
-
-Value valueIncrement(Value a) {
-    return unary(a, "++", increment, objectIncrement);
-}
-
-Value valueDecrement(Value a) {
-    return unary(a, "--", decrement, objectDecrement);
 }
 
 OptValue valueGetField(Value obj, ObjString *name) {

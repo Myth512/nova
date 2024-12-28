@@ -18,7 +18,6 @@ typedef enum {
     OBJ_FUNCTION,
     OBJ_NATIVE,
     OBJ_STRING,
-    OBJ_RAW_STRING,
     OBJ_UPVALUE,
     OBJ_ARRAY,
     OBJ_TUPLE,
