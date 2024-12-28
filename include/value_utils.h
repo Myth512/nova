@@ -35,9 +35,9 @@ Value valueModulo(Value a, Value b);
 
 Value valuePower(Value a, Value b);
 
-Value valuePlus(Value a);
+Value valuePositive(Value a);
 
-Value valueNegate(Value a);
+Value valueNegative(Value a);
 
 Value valueAnd(Value a, Value b);
 
@@ -69,7 +69,7 @@ uint64_t valueHash(Value value);
 
 uint64_t valueId(Value value);
 
-int valueLen(Value value);
+long long valueLen(Value value);
 
 bool valueToBool(Value value);
 

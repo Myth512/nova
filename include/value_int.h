@@ -35,9 +35,9 @@ Value intModulo(Value a, Value b);
 
 Value intPower(Value a, Value b);
 
-Value intPlus(Value a);
+Value intPositive(Value a);
 
-Value intNegate(Value a);
+Value intNegative(Value a);
 
 Value intAnd(Value a, Value b); 
 

@@ -36,21 +36,9 @@ Value floatModulo(Value a, Value b);
 
 Value floatPower(Value a, Value b);
 
-Value floatPlus(Value a);
+Value floatPositive(Value a);
 
-Value floatNegate(Value a);
-
-Value floatAnd(Value a, Value b);
-
-Value floatXor(Value a, Value b);
-
-Value floatOr(Value a, Value b);
-
-Value floatInvert(Value a, Value b);
-
-Value floatLeftShift(Value a, Value b);
-
-Value floatRightShift(Value a, Value b);
+Value floatNegative(Value a);
 
 uint64_t floatHash(Value value);
 
@@ -60,8 +48,8 @@ long long floatToInt(Value value);
 
 double floatToFloat(Value value);
 
-ObjString floatToStr(Value value);
+ObjString *floatToStr(Value value);
 
-ObjString floatToRepr(Value value);
+ObjString *floatToRepr(Value value);
 
 #endif
