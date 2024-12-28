@@ -226,6 +226,8 @@ int printInstruction(CodeVec *vec, int offset) {
             return argInstruction("BUILD FSTRING", vec, offset);
         case OP_BUILD_ARRAY:
             return argInstruction("BUILD ARRAY", vec, offset);
+        case OP_BUILD_TUPLE:
+            return argInstruction("BUILD TUPLE", vec, offset);
         case OP_JUMP:
             return jumpInstruction("JUMP", 1, vec, offset);
         case OP_JUMP_TRUE:

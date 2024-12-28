@@ -20,7 +20,8 @@ typedef enum {
     OBJ_STRING,
     OBJ_RAW_STRING,
     OBJ_UPVALUE,
-    OBJ_ARRAY
+    OBJ_ARRAY,
+    OBJ_TUPLE,
 } ObjType;
 
 struct Obj {

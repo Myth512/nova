@@ -3,6 +3,7 @@
 #include "object_utils.h"
 #include "object_string.h"
 #include "object_array.h"
+#include "object_tuple.h"
 #include "object_class.h"
 #include "object_function.h"
 #include "vm.h"
@@ -29,6 +30,8 @@ int objectWrite(Value value, char *buffer, const size_t size) {
         }
         case OBJ_ARRAY:
             return arrayWrite(AS_ARRAY(value), buffer, size);
+        case OBJ_TUPLE:
+            return tupleWrite(AS_TUPLE(value), buffer, size);
         case OBJ_CLASS:
             return writeToBuffer(buffer, size, "%s", AS_CLASS(value)->name->chars);
         case OBJ_INSTANCE:

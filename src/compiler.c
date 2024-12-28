@@ -73,97 +73,98 @@ typedef enum {
     VAR_MODE_DECLARATION
 } VarAccessMode;
 
-typedef void (*ParseFn)(bool);
+typedef void (*ParseFn)(bool, bool);
 
 typedef struct {
     ParseFn prefix;
     ParseFn infix;
-    ParseFn postfix;
     Precedence precedence;
 } ParseRule;
 
-static void literal(bool canAssign);
+static void literal(bool canAssign, bool allowTuple);
 
-static void number(bool canAssign);
+static void number(bool canAssign, bool allowTuple);
 
-static void string(bool canAssign);
+static void string(bool canAssign, bool allowTuple);
 
-static void rstring(bool canAssign);
+static void rstring(bool canAssign, bool allowTuple);
 
-static void fstring(bool canAssign);
+static void fstring(bool canAssign, bool allowTuple);
 
-static void array(bool canAssign);
+static void array(bool canAssign, bool allowTuple);
 
-static void grouping(bool canAssign);
+static void tuple(bool canAssign, bool allowTuple);
 
-static void unary(bool canAssign);
+static void grouping(bool canAssign, bool allowTuple);
 
-static void binary(bool canAssign);
+static void unary(bool canAssign, bool allowTuple);
 
-static void variable(bool canAssign);
+static void binary(bool canAssign, bool allowTuple);
 
-static void and(bool canAssign);
+static void variable(bool canAssign, bool allowTuple);
 
-static void or(bool canAssign);
+static void and(bool canAssign, bool allowTuple);
 
-static void call(bool canAssign);
+static void or(bool canAssign, bool allowTuple);
 
-static void at(bool canAssign);
+static void call(bool canAssign, bool allowTuple);
 
-static void dot(bool canAssign);
+static void at(bool canAssign, bool allowTuple);
+
+static void dot(bool canAssign, bool allowTuple);
 
 static void statement(int breakPointer, int continuePointer);
 
 ParseRule rules[] = {
-  [TOKEN_LEFT_PAREN]    = {grouping, call,   NULL,    PREC_CALL},
-  [TOKEN_RIGHT_PAREN]   = {NULL,     NULL,   NULL,    PREC_NONE},
-  [TOKEN_LEFT_BRACE]    = {NULL,     NULL,   NULL,    PREC_NONE}, 
-  [TOKEN_RIGHT_BRACE]   = {NULL,     NULL,   NULL,    PREC_NONE},
-  [TOKEN_LEFT_BRACKET]  = {array,    at,     NULL,    PREC_CALL},
-  [TOKEN_RIGHT_BRACKET] = {NULL,     NULL,   NULL,    PREC_NONE},
-  [TOKEN_COMMA]         = {NULL,     NULL,   NULL,    PREC_NONE},
-  [TOKEN_DOT]           = {NULL,     dot,   NULL,     PREC_CALL},
-  [TOKEN_PLUS]          = {unary,    binary, NULL,    PREC_TERM},
-  [TOKEN_MINUS]         = {unary,    binary, NULL,    PREC_TERM},
-  [TOKEN_STAR]          = {NULL,     binary, NULL,    PREC_FACTOR},
-  [TOKEN_CARET]         = {NULL,     binary, NULL,    PREC_POWER},
-  [TOKEN_SLASH]         = {NULL,     binary, NULL,    PREC_FACTOR},
-  [TOKEN_PERCENT]       = {NULL,     binary, NULL,    PREC_FACTOR},
-  [TOKEN_NOT]           = {unary,    NULL,   NULL, PREC_NONE},
-  [TOKEN_PLUS_EQUAL]    = {NULL,     NULL,   NULL,    PREC_NONE},
-  [TOKEN_MINUS_EQUAL]   = {NULL,     NULL,   NULL,    PREC_NONE},
-  [TOKEN_STAR_EQUAL]    = {NULL,     NULL,   NULL,    PREC_NONE},
-  [TOKEN_CARET_EQUAL]   = {NULL,     NULL,   NULL,    PREC_NONE},
-  [TOKEN_SLASH_EQUAL]   = {NULL,     NULL,   NULL,    PREC_NONE},
-  [TOKEN_PERCENT_EQUAL] = {NULL,     NULL,   NULL,    PREC_NONE},
-  [TOKEN_EQUAL]         = {NULL,     NULL,   NULL,    PREC_NONE},
-  [TOKEN_DOUBLE_EQUAL]  = {NULL,     binary, NULL,    PREC_EQUALITY},
-  [TOKEN_BANG_EQUAL]    = {NULL,     binary, NULL,    PREC_EQUALITY},
-  [TOKEN_COLON_EQUAL]   = {NULL,     NULL,   NULL,    PREC_NONE},
-  [TOKEN_GREATER]       = {NULL,     binary, NULL,    PREC_EQUALITY},
-  [TOKEN_GREATER_EQUAL] = {NULL,     binary, NULL,    PREC_EQUALITY},
-  [TOKEN_LESS]          = {NULL,     binary, NULL,    PREC_EQUALITY},
-  [TOKEN_LESS_EQUAL]    = {NULL,     binary, NULL,    PREC_EQUALITY},
-  [TOKEN_IDENTIFIER]    = {variable, NULL,   NULL,    PREC_NONE},
-  [TOKEN_STRING]        = {string,   NULL,   NULL,    PREC_NONE},
-  [TOKEN_RSTRING]       = {rstring,  NULL,   NULL,    PREC_NONE},
-  [TOKEN_FSTRING]       = {fstring,  NULL,   NULL,    PREC_NONE},
-  [TOKEN_NUMBER]        = {number,   NULL,   NULL,    PREC_NONE},
-  [TOKEN_IF]            = {NULL,     NULL,   NULL,    PREC_NONE},
-  [TOKEN_ELIF]          = {NULL,     NULL,   NULL,    PREC_NONE},
-  [TOKEN_ELSE]          = {NULL,     NULL,   NULL,    PREC_NONE},
-  [TOKEN_FOR]           = {NULL,     NULL,   NULL,    PREC_NONE},
-  [TOKEN_AND]           = {NULL,     and,   NULL,    PREC_AND},
-  [TOKEN_OR]            = {NULL,     or,    NULL,    PREC_OR},
-  [TOKEN_TRUE]          = {literal,  NULL,   NULL,    PREC_NONE},
-  [TOKEN_FALSE]         = {literal,  NULL,   NULL,    PREC_NONE},
-  [TOKEN_NONE]          = {literal,  NULL,   NULL,    PREC_NONE},
-  [TOKEN_DEF]           = {NULL,     NULL,   NULL,    PREC_NONE},
-  [TOKEN_RETURN]        = {NULL,     NULL,   NULL,    PREC_NONE},
-  [TOKEN_CLASS]         = {NULL,     NULL,   NULL,    PREC_NONE},
-  [TOKEN_NEWLINE]    = {NULL,     NULL,   NULL,    PREC_NONE},
-  [TOKEN_ERROR]         = {NULL,     NULL,   NULL,    PREC_NONE},
-  [TOKEN_EOF]           = {NULL,     NULL,   NULL,    PREC_NONE},
+  [TOKEN_LEFT_PAREN]    = {grouping, call,   PREC_CALL},
+  [TOKEN_RIGHT_PAREN]   = {NULL,     NULL,   PREC_NONE},
+  [TOKEN_LEFT_BRACE]    = {NULL,     NULL,   PREC_NONE}, 
+  [TOKEN_RIGHT_BRACE]   = {NULL,     NULL,   PREC_NONE},
+  [TOKEN_LEFT_BRACKET]  = {array,    at,     PREC_CALL},
+  [TOKEN_RIGHT_BRACKET] = {NULL,     NULL,   PREC_NONE},
+  [TOKEN_COMMA]         = {NULL,     tuple,  PREC_PRIMARY},
+  [TOKEN_DOT]           = {NULL,     dot,    PREC_CALL},
+  [TOKEN_PLUS]          = {unary,    binary, PREC_TERM},
+  [TOKEN_MINUS]         = {unary,    binary, PREC_TERM},
+  [TOKEN_STAR]          = {NULL,     binary, PREC_FACTOR},
+  [TOKEN_CARET]         = {NULL,     binary, PREC_POWER},
+  [TOKEN_SLASH]         = {NULL,     binary, PREC_FACTOR},
+  [TOKEN_PERCENT]       = {NULL,     binary, PREC_FACTOR},
+  [TOKEN_NOT]           = {unary,    NULL,   PREC_NONE},
+  [TOKEN_PLUS_EQUAL]    = {NULL,     NULL,   PREC_NONE},
+  [TOKEN_MINUS_EQUAL]   = {NULL,     NULL,   PREC_NONE},
+  [TOKEN_STAR_EQUAL]    = {NULL,     NULL,   PREC_NONE},
+  [TOKEN_CARET_EQUAL]   = {NULL,     NULL,   PREC_NONE},
+  [TOKEN_SLASH_EQUAL]   = {NULL,     NULL,   PREC_NONE},
+  [TOKEN_PERCENT_EQUAL] = {NULL,     NULL,   PREC_NONE},
+  [TOKEN_EQUAL]         = {NULL,     NULL,   PREC_NONE},
+  [TOKEN_DOUBLE_EQUAL]  = {NULL,     binary, PREC_EQUALITY},
+  [TOKEN_BANG_EQUAL]    = {NULL,     binary, PREC_EQUALITY},
+  [TOKEN_COLON_EQUAL]   = {NULL,     NULL,   PREC_NONE},
+  [TOKEN_GREATER]       = {NULL,     binary, PREC_EQUALITY},
+  [TOKEN_GREATER_EQUAL] = {NULL,     binary, PREC_EQUALITY},
+  [TOKEN_LESS]          = {NULL,     binary, PREC_EQUALITY},
+  [TOKEN_LESS_EQUAL]    = {NULL,     binary, PREC_EQUALITY},
+  [TOKEN_IDENTIFIER]    = {variable, NULL,   PREC_NONE},
+  [TOKEN_STRING]        = {string,   NULL,   PREC_NONE},
+  [TOKEN_RSTRING]       = {rstring,  NULL,   PREC_NONE},
+  [TOKEN_FSTRING]       = {fstring,  NULL,   PREC_NONE},
+  [TOKEN_NUMBER]        = {number,   NULL,   PREC_NONE},
+  [TOKEN_IF]            = {NULL,     NULL,   PREC_NONE},
+  [TOKEN_ELIF]          = {NULL,     NULL,   PREC_NONE},
+  [TOKEN_ELSE]          = {NULL,     NULL,   PREC_NONE},
+  [TOKEN_FOR]           = {NULL,     NULL,   PREC_NONE},
+  [TOKEN_AND]           = {NULL,     and,    PREC_AND},
+  [TOKEN_OR]            = {NULL,     or,     PREC_OR},
+  [TOKEN_TRUE]          = {literal,  NULL,   PREC_NONE},
+  [TOKEN_FALSE]         = {literal,  NULL,   PREC_NONE},
+  [TOKEN_NONE]          = {literal,  NULL,   PREC_NONE},
+  [TOKEN_DEF]           = {NULL,     NULL,   PREC_NONE},
+  [TOKEN_RETURN]        = {NULL,     NULL,   PREC_NONE},
+  [TOKEN_CLASS]         = {NULL,     NULL,   PREC_NONE},
+  [TOKEN_NEWLINE]       = {NULL,     NULL,   PREC_NONE},
+  [TOKEN_ERROR]         = {NULL,     NULL,   PREC_NONE},
+  [TOKEN_EOF]           = {NULL,     NULL,   PREC_NONE},
   };
 
 static ParseRule* getRule(TokenType type) {
@@ -335,7 +336,7 @@ static ObjFunction* endCompiler() {
     return function;
 }
 
-static void parseExpression(Precedence precedence, bool canAssign) {
+static void parseExpression(Precedence precedence, bool canAssign, bool allowTuple) {
     ParseFn prefixFunc = getRule(parser.current.type)->prefix;
 
     if (prefixFunc == NULL) {
@@ -346,19 +347,21 @@ static void parseExpression(Precedence precedence, bool canAssign) {
 
     canAssign &= precedence <= PREC_ASSIGNMENT;
 
-    prefixFunc(canAssign);
+    prefixFunc(canAssign, allowTuple);
 
     while (precedence < getRule(parser.current.type)->precedence) {
         ParseFn infixFunc = getRule(parser.current.type)->infix;
-        infixFunc(canAssign);
+        if (infixFunc == tuple && !allowTuple)
+            return;
+        infixFunc(canAssign, allowTuple);
     }
 }
 
 static void expression() {
-    parseExpression(PREC_ASSIGNMENT, false);
+    parseExpression(PREC_ASSIGNMENT, false, true);
 }
 
-static void literal(bool canAssign) {
+static void literal(bool canAssign, bool allowTuple) {
     (void)canAssign;
 
     switch (parser.current.type) {
@@ -377,7 +380,7 @@ static void literal(bool canAssign) {
     advance();
 }
 
-static void number(bool canAssign) {
+static void number(bool canAssign, bool allowTuple) {
     (void)canAssign;
 
     double value = strtod(parser.current.start, NULL);
@@ -385,21 +388,21 @@ static void number(bool canAssign) {
     advance();
 }
 
-static void string(bool canAssign) {
+static void string(bool canAssign, bool allowTuple) {
     (void)canAssign;
 
     emitConstant(OBJ_VAL(copyEscapedString(parser.current.start, parser.current.length)));
     advance();
 }
 
-static void rstring(bool canAssign) {
+static void rstring(bool canAssign, bool allowTuple) {
     (void)canAssign;
 
     emitConstant(OBJ_VAL(copyString(parser.current.start, parser.current.length)));
     advance();
 }
 
-static void array(bool canAssign) {
+static void array(bool canAssign, bool allowTuple) {
     // (void)canAssign;
 
     // size_t size = 0;
@@ -415,14 +418,29 @@ static void array(bool canAssign) {
     // emitBytes(OP_BUILD_ARRAY, (uint8_t)size, (Token){0});
 }
 
-static void fstring(bool canAssign) {
+static void tuple(bool canAssign, bool allowTuple) {
+    (void)canAssign;
+    if (!allowTuple)
+        return;
+    advance();
+
+    size_t size = 1;
+    do {
+        parseExpression(PREC_ASSIGNMENT, canAssign, false);
+        size++;
+    } while (consume(TOKEN_COMMA, false));
+
+    emitBytes(OP_BUILD_TUPLE, (uint8_t)size, (Token){0});
+}
+
+static void fstring(bool canAssign, bool allowTuple) {
     (void)canAssign;
 
     int count = 0;
 
     while (!check(TOKEN_STRING, false)) {
         if (parser.current.length > 0) {
-            string(true);
+            string(true, true);
             count++;
         } else {
             advance();
@@ -432,7 +450,7 @@ static void fstring(bool canAssign) {
     }
 
     if (parser.current.length > 0) {
-        string(true);
+        string(true, true);
         count++;
     } else {
         advance();
@@ -440,24 +458,24 @@ static void fstring(bool canAssign) {
     emitBytes(OP_BUILD_FSTRING, (uint8_t)count, (Token){0});
 }
 
-static void grouping(bool canAssign) {
+static void grouping(bool canAssign, bool allowTuple) {
     (void)canAssign;
 
     advance();
-    parseExpression(PREC_ASSIGNMENT, false);
+    parseExpression(PREC_ASSIGNMENT, false, true);
 
     if (!consume(TOKEN_RIGHT_PAREN, true))
         reportError("Opening parenthesis does not closed", NULL);
 }
 
-static void unary(bool canAssign) {
+static void unary(bool canAssign, bool allowTuple) {
     (void)canAssign;
 
     Token operator = parser.current;
     advance();
 
     Precedence precedence = getRule(operator.type)->precedence + 1;
-    parseExpression(precedence, false);
+    parseExpression(precedence, false, true);
 
     switch (operator.type) {
         case TOKEN_PLUS:
@@ -473,12 +491,12 @@ static void unary(bool canAssign) {
     }
 }
 
-static void binary(bool canAssign) {
+static void binary(bool canAssign, bool allowTuple) {
     (void)canAssign;
     
     Token operator = parser.current;
     advance();
-    parseExpression(getRule(operator.type)->precedence, false);
+    parseExpression(getRule(operator.type)->precedence, false, true);
 
     switch (operator.type) {
         case TOKEN_BANG_EQUAL:
@@ -534,7 +552,7 @@ static uint8_t identifierConstant(Token *name) {
 }
 
 static void expressionStatement() {
-    parseExpression(PREC_ASSIGNMENT, true);
+    parseExpression(PREC_ASSIGNMENT, true, true);
     
     if (!consumeEOS())
         reportError("Expect eos after statement", &parser.current);
@@ -707,7 +725,7 @@ static void assignment(uint8_t getOp, uint8_t setOp, int arg, Token operator) {
     emitAssignment(setOp, arg, operator);
 }
 
-static void variable(bool canAssign) {
+static void variable(bool canAssign, bool allowTuple) {
     uint8_t getOp, setOp, arg;
     Token name = parser.current;
     advance(false);
@@ -729,26 +747,26 @@ static void variable(bool canAssign) {
 //            Control flow
 // ======================================    
 
-static void and(bool canAssign) {
+static void and(bool canAssign, bool allowTuple) {
     (void)canAssign;
 
     advance();
     int endJump = emitJump(OP_JUMP_FALSE);
 
     emitByte(OP_POP, (Token){0});
-    parseExpression(PREC_AND, false);
+    parseExpression(PREC_AND, false, true);
 
     patchJump(endJump);
 }
 
-static void or(bool canAssign){
+static void or(bool canAssign, bool allowTuple){
     (void)canAssign;
 
     advance();
     int endJump = emitJump(OP_JUMP_TRUE);
 
     emitByte(OP_POP, (Token){0});
-    parseExpression(PREC_OR, false);
+    parseExpression(PREC_OR, false, true);
 
     patchJump(endJump);
 }
@@ -878,7 +896,7 @@ static void function(FunctionType type) {
             advance();
 
             if (consume(TOKEN_EQUAL, true)) {
-                expression();
+                parseExpression(PREC_ASSIGNMENT, true, false);
                 defaultCount++;
             } else if (defaultCount > 0)
                 reportError("Non-default argument follows default argument", &parser.current);
@@ -941,7 +959,7 @@ static uint8_t parseArguments() {
     return argc;
 }
 
-static void call(bool canAssign) {
+static void call(bool canAssign, bool allowTuple) {
     (void)canAssign;
 
     Token name = parser.current;
@@ -997,7 +1015,7 @@ static void classDeclaration() {
     // currentClass = currentClass->enclosing;
 }
 
-static void dot(bool canAssign) {
+static void dot(bool canAssign, bool allowTuple) {
     advance();
     Token name = parser.current;
     if (!consume(TOKEN_IDENTIFIER, false)) {
@@ -1017,7 +1035,7 @@ static void dot(bool canAssign) {
     }
 }
 
-static void at(bool canAssign) {
+static void at(bool canAssign, bool allowTuple) {
     // (void)canAssign;
 
     // advance(true);

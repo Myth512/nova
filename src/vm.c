@@ -8,6 +8,7 @@
 #include "object.h"
 #include "object_string.h"
 #include "object_array.h"
+#include "object_tuple.h"
 #include "object_class.h"
 #include "object_function.h"
 #include "memory.h"
@@ -308,6 +309,21 @@ static void buildArray() {
     push(OBJ_VAL(array));
 }
 
+static void buildTuple() {
+    size_t size = READ_BYTE();
+    ObjTuple *tuple = allocateTuple(size);
+
+    for (int i = 0; i < size; i++) {
+        Value value = peek(size - i - 1);
+        tuple->values[i] = value;
+    }
+    
+    for (int i = 0; i < size; i++)
+        pop();
+    
+    push(OBJ_VAL(tuple));
+}
+
 static void arithmetic(Value (*func)(Value, Value)) {
     Value b = pop();
     Value a = pop();
@@ -492,6 +508,9 @@ static Value run() {
                 break;
             case OP_BUILD_ARRAY:
                 buildArray();
+                break;
+            case OP_BUILD_TUPLE:
+                buildTuple();
                 break;
             case OP_JUMP: {
                 uint16_t offset = READ_SHORT();

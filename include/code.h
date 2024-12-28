@@ -35,6 +35,7 @@ typedef enum {
     OP_NEGATE,
     OP_BUILD_FSTRING,
     OP_BUILD_ARRAY,
+    OP_BUILD_TUPLE,
     OP_GET_AT,
     OP_GET_AT_NO_POP,
     OP_SET_AT,
