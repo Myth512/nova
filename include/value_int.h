@@ -3,10 +3,13 @@
 
 #include "value.h"
 
+#define BOOL_VAL(value)     ((Value){VAL_BOOL, {.integer=value}})
 #define INT_VAL(value)      ((Value){VAL_INT, {.integer=value}}) 
 
+#define IS_BOOL(value)      ((value).type == VAL_BOOL)
 #define IS_INT(value)       ((value).type == VAL_INT)
 
+#define AS_BOOL(value)      ((value).as.integer)
 #define AS_INT(value)       ((value).as.integer)
 
 Value intEqual(Value a, Value b);

@@ -3,12 +3,13 @@
 
 #include "object_string.h"
 #include "string_methods.h"
+#include "value_int.h"
 #include "object_class.h"
 #include "vm.h"
 
 ObjString *allocateString(size_t length) {
     size_t size = sizeof(ObjString) + length + 1;
-    ObjString *string = (ObjString*)allocateObject(size, OBJ_STRING);
+    ObjString *string = (ObjString*)allocateObject(size);
     string->isInterned = false;
     string->isHashed = false;
     string->length = length;
@@ -73,35 +74,7 @@ ObjString *copyEscapedString(const char *chars, size_t length) {
     return string;
 }
 
-ObjRawString* createRawString(const char *chars, int length) {
-    ObjRawString *string = (ObjRawString*)allocateObject(sizeof(ObjRawString), OBJ_RAW_STRING);
-    string->chars = chars;
-    string->length = length;
-    return string;
-}
-
-int writeRawstring(char *buffer, ObjRawString *string) {
-    return resolveEscapeSequence(string->chars, string->length, buffer);
-}
-
-static uint64_t hashString(const char *value) {
-    uint64_t hash = 0;
-    while (*value) {
-        hash = (hash * 31) + (unsigned char)(*value); 
-        value++;  
-    }
-    return hash;
-}
-
-uint32_t getStringHash(ObjString *string) {
-    if (!string->isHashed) {
-        string->hash = hashString(string->chars);
-        string->isHashed = true;
-    }
-    return string->hash;
-}
-
-bool stringEqual(ObjString *a, ObjString *b) {
+static bool compareStrings(ObjString *a, ObjString *b) {
     if (a->length != b->length)
         return false;
     if (a->isInterned && b->isInterned)
@@ -109,39 +82,67 @@ bool stringEqual(ObjString *a, ObjString *b) {
     return strcmp(a->chars, b->chars) == 0;
 }
 
-bool stringNotEqual(ObjString *a, ObjString *b) {
-    return !stringEqual(a, b);
+Value stringEqual(Value a, Value b) {
+    if (IS_STRING(b))
+        return BOOL_VAL(compareStrings(AS_STRING(a), AS_STRING(b)));
+    return NOT_IMPLEMENTED_VAL;
 }
 
-bool stringGreater(ObjString *a, ObjString *b) {
-    return strcmp(a->chars, b->chars) > 0;
+Value stringNotEqual(Value a, Value b) {
+    if (IS_STRING(b))
+        return BOOL_VAL(!compareStrings(AS_STRING(a), AS_STRING(b)));
+    return NOT_IMPLEMENTED_VAL;
 }
 
-bool stringGreaterEqual(ObjString *a, ObjString *b) {
-    return strcmp(a->chars, b->chars) >= 0;
+Value stringGreater(Value a, Value b) {
+    if (IS_STRING(b))
+        return BOOL_VAL(strcmp(AS_CHARS(a), AS_CHARS(b)) > 0);
+    return NOT_IMPLEMENTED_VAL;
 }
 
-bool stringLess(ObjString *a, ObjString *b) {
-    return strcmp(a->chars, b->chars) < 0;
+Value stringGreaterEqual(Value a, Value b) {
+    if (IS_STRING(b))
+        return BOOL_VAL(strcmp(AS_CHARS(a), AS_CHARS(b)) >= 0);
+    return NOT_IMPLEMENTED_VAL;
 }
 
-bool stringLessEqual(ObjString *a, ObjString *b) {
-    return strcmp(a->chars, b->chars) <= 0;
+Value stringLess(Value a, Value b) {
+    if (IS_STRING(b))
+        return BOOL_VAL(strcmp(AS_CHARS(a), AS_CHARS(b)) < 0);
+    return NOT_IMPLEMENTED_VAL;
 }
 
-ObjString *stringAdd(ObjString *a, ObjString *b) {
-    int length = a->length + b->length;
+Value stringLessEqual(Value a, Value b) {
+    if (IS_STRING(b))
+        return BOOL_VAL(strcmp(AS_CHARS(a), AS_CHARS(b)) <= 0);
+    return NOT_IMPLEMENTED_VAL;
+}
+
+Value stringAdd(Value a, Value b) {
+    if (!IS_STRING(b))
+        return NOT_IMPLEMENTED_VAL;
+    
+    ObjString *s1 = AS_STRING(a);
+    ObjString *s2 = AS_STRING(b);
+
+    int length = s1->length + s2->length;
 
     ObjString *result = allocateString(length);
 
-    memcpy(result->chars, a->chars, a->length);
-    memcpy(result->chars + a->length, b->chars, b->length);
+    memcpy(result->chars, s1->chars, s1->length);
+    memcpy(result->chars + s1->length, s2->chars, s2->length);
     result->chars[length] = '\0';
 
-    return result;
+    return STRING_VAL(result);
 }
 
-ObjString *stringMultiply(ObjString *string, int scalar) {
+Value stringMultiply(Value a, Value b) {
+    if (!IS_INT(b))
+        return NOT_IMPLEMENTED_VAL;
+    
+    ObjString *string = AS_STRING(a);
+    long long scalar = AS_INT(b);
+
     size_t oldLength = string->length;
     size_t newLength = oldLength * scalar;
 
@@ -150,7 +151,7 @@ ObjString *stringMultiply(ObjString *string, int scalar) {
     for (int i = 0; i < scalar; i++)
         memcpy(result->chars + i * oldLength, string->chars, oldLength);
 
-    return result;
+    return STRING_VAL(result);
 }
 
 OptValue stringGetField(Value string, ObjString *name) {
@@ -163,35 +164,53 @@ OptValue stringGetField(Value string, ObjString *name) {
 }
 
 Value stringGetAt(ObjString *string, Value index) {
-    if (!isInt(index))
-        reportRuntimeError("Index must be integer number");
+    // if (!isInt(index))
+    //     reportRuntimeError("Index must be integer number");
     
-    int i = asInt(index);
+    // int i = asInt(index);
     
-    int length = string->length; 
-    if (i >= length || i < -length)
-        reportRuntimeError("Index is out of range");
-    if (i < 0)
-        i += length;
+    // int length = string->length; 
+    // if (i >= length || i < -length)
+    //     reportRuntimeError("Index is out of range");
+    // if (i < 0)
+    //     i += length;
     
-    const char chr = string->chars[i];
-    ObjString *result = copyString(&chr, 1);
+    // const char chr = string->chars[i];
+    // ObjString *result = copyString(&chr, 1);
 
-    return OBJ_VAL(result);
+    // return OBJ_VAL(result);
 }
 
-int stringLen(ObjString *string) {
-    return string->length;
+static uint64_t hashString(const char *value) {
+    uint64_t hash = 0;
+    while (*value) {
+        hash = (hash * 31) + (unsigned char)(*value); 
+        value++;  
+    }
+    return hash;
 }
 
-bool stringToBool(ObjString *string) {
-    return (bool)stringLen(string);
+uint64_t stringHash(Value value) {
+    ObjString *string = AS_STRING(value);
+    if (!string->isHashed) {
+        string->hash = hashString(string->chars);
+        string->isHashed = true;
+    }
+    return string->hash;
 }
 
-int stringToInt(ObjString *string) {
-    return atoi(string->chars);
+int stringLen(Value string) {
+    return AS_STRING(string)->length;
 }
 
-double stringToFloat(ObjString *string) {
-    return atof(string->chars);
+bool stringToBool(Value string) {
+    return stringLen(string);
+}
+
+int stringToInt(Value string) {
+    return atoi(AS_CHARS(string));
+}
+
+double stringToFloat(Value string) {
+    return atof(AS_CHARS(string));
 }

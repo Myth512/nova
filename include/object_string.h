@@ -3,25 +3,20 @@
 
 #include "object.h"
 
-#define IS_STRING(value)        isObjType(value, OBJ_STRING)
+#define STRING_VAL(string)      ((Value){.type=VAL_STRING, .as.object=string})
 
-#define AS_STRING(value)        ((ObjString*)AS_OBJ(value))
-#define AS_CSTRING(value)       (((ObjString*)AS_OBJ(value))->chars)
-#define AS_RAW_STRING(value)    ((ObjRawString*)AS_OBJ(value))
+#define IS_STRING(value)        ((value).type == VAL_STRING) 
+
+#define AS_STRING(value)        ((ObjString*)((value).as.object))
+#define AS_CHARS(value)         (((ObjString*)((value).as.object))->chars)
 
 struct ObjString {
     Obj obj;
     int length;
-    uint32_t hash;
+    uint64_t hash;
     bool isHashed;
     bool isInterned;
     char chars[];
-};
-
-struct ObjRawString {
-    Obj obj;
-    int length;
-    const char *chars;
 };
 
 ObjString *allocateString(size_t length);
@@ -30,27 +25,27 @@ ObjString *copyString(const char *chars, size_t length);
 
 ObjString *copyEscapedString(const char *chars, size_t length);
 
-ObjRawString* createRawString(const char *chars, int length);
+Value stringEqual(Value a, Value b);
 
-bool stringEqual(ObjString *a, ObjString *b);
+Value stringNotEqual(Value a, Value b);
 
-bool stringNotEqual(ObjString *a, ObjString *b);
+Value stringGreater(Value, Value b);
 
-bool stringGreater(ObjString *a, ObjString *b);
+Value stringGreaterEqual(Value a, Value b);
 
-bool stringGreaterEqual(ObjString *a, ObjString *b);
+Value stringLess(Value a, Value b);
 
-bool stringLess(ObjString *a, ObjString *b);
+Value stringLessEqual(Value a, Value b);
 
-bool stringLessEqual(ObjString *a, ObjString *b);
+Value stringAdd(Value a, Value b);
 
-ObjString *stringAdd(ObjString *a, ObjString *b);
-
-ObjString *stringMultiply(ObjString *string, int scalar);
+Value stringMultiply(Value a, Value b);
 
 OptValue stringGetField(Value string, ObjString *name);
 
 Value stringGetAt(ObjString *string, Value index);
+
+uint64_t stringHash(Value value);
 
 int stringLen(ObjString *string);
 
@@ -59,9 +54,5 @@ bool stringToBool(ObjString *string);
 int stringToInt(ObjString *string);
 
 double stringToFloat(ObjString *string);
-
-int writeRawstring(char *buffer, ObjRawString *string);
-
-uint32_t getStringHash(ObjString *string);
 
 #endif

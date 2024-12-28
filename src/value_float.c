@@ -8,7 +8,7 @@ Value floatEqual(Value a, Value b) {
         return BOOL_VAL(AS_FLOAT(a) == AS_INT(b));
     if (b.type == VAL_FLOAT)
         return BOOL_VAL(AS_FLOAT(a) == AS_FLOAT(b));
-    return BOOL_VAL(false);
+    return NOT_IMPLEMENTED_VAL;
 }
 
 Value floatNotEqual(Value a, Value b) {
@@ -16,7 +16,7 @@ Value floatNotEqual(Value a, Value b) {
         return BOOL_VAL(AS_FLOAT(a) != AS_INT(b));
     if (b.type == VAL_FLOAT)
         return BOOL_VAL(AS_FLOAT(a) != AS_FLOAT(b));
-    return BOOL_VAL(true);
+    return NOT_IMPLEMENTED_VAL;
 }
 
 Value floatGreater(Value a, Value b) {
@@ -24,7 +24,7 @@ Value floatGreater(Value a, Value b) {
         return BOOL_VAL(AS_FLOAT(a) > AS_INT(b));
     if (b.type == VAL_FLOAT)
         return BOOL_VAL(AS_FLOAT(a) > AS_FLOAT(b));
-    operatorNotImplemented(">", a, b);
+    return NOT_IMPLEMENTED_VAL;
 }
 
 Value floatGreaterEqual(Value a, Value b) {
@@ -32,7 +32,7 @@ Value floatGreaterEqual(Value a, Value b) {
         return BOOL_VAL(AS_FLOAT(a) >= AS_INT(b));
     if (b.type == VAL_FLOAT)
         return BOOL_VAL(AS_FLOAT(a) >= AS_FLOAT(b));
-    operatorNotImplemented(">=", a, b);
+    return NOT_IMPLEMENTED_VAL;
 }
 
 Value floatLess(Value a, Value b) {
@@ -40,7 +40,7 @@ Value floatLess(Value a, Value b) {
         return BOOL_VAL(AS_FLOAT(a) < AS_INT(b));
     if (b.type == VAL_FLOAT)
         return BOOL_VAL(AS_FLOAT(a) < AS_FLOAT(b));
-    operatorNotImplemented("<", a, b);
+    return NOT_IMPLEMENTED_VAL;
 }
 
 Value floatLessEqual(Value a, Value b) {
@@ -48,7 +48,7 @@ Value floatLessEqual(Value a, Value b) {
         return BOOL_VAL(AS_FLOAT(a) <= AS_INT(b));
     if (b.type == VAL_FLOAT)
         return BOOL_VAL(AS_FLOAT(a) <= AS_FLOAT(b));
-    operatorNotImplemented("<=", a, b);
+    return NOT_IMPLEMENTED_VAL;
 }
 
 Value floatAdd(Value a, Value b) {
@@ -56,7 +56,7 @@ Value floatAdd(Value a, Value b) {
         return FLOAT_VAL(AS_FLOAT(a) + AS_INT(b));
     if (b.type == VAL_FLOAT)
         return FLOAT_VAL(AS_FLOAT(a) + AS_FLOAT(b));
-    operatorNotImplemented("+", a, b);
+    return NOT_IMPLEMENTED_VAL;
 }
 
 Value floatSubtract(Value a, Value b) {
@@ -64,7 +64,7 @@ Value floatSubtract(Value a, Value b) {
         return FLOAT_VAL(AS_FLOAT(a) - AS_INT(b));
     if (b.type == VAL_FLOAT)
         return FLOAT_VAL(AS_FLOAT(a) - AS_FLOAT(b));
-    operatorNotImplemented("*", a, b);
+    return NOT_IMPLEMENTED_VAL;
 }
 
 Value floatMultiply(Value a, Value b) {
@@ -72,7 +72,7 @@ Value floatMultiply(Value a, Value b) {
         return FLOAT_VAL(AS_FLOAT(a) * AS_INT(b));
     if (b.type == VAL_FLOAT)
         return FLOAT_VAL(AS_FLOAT(a) * AS_FLOAT(b));
-    operatorNotImplemented("*", a, b);
+    return NOT_IMPLEMENTED_VAL;
 }
 
 Value floatTrueDivide(Value a, Value b) {
@@ -86,7 +86,7 @@ Value floatTrueDivide(Value a, Value b) {
             reportRuntimeError("Division by zero");
         return FLOAT_VAL(AS_FLOAT(a) / AS_FLOAT(b));
     }
-    operatorNotImplemented("/", a, b);
+    return NOT_IMPLEMENTED_VAL;
 }
 
 Value floatFloorDivide(Value a, Value b) {
@@ -100,7 +100,7 @@ Value floatFloorDivide(Value a, Value b) {
             reportRuntimeError("Division by zero");
         return FLOAT_VAL((long long)(AS_FLOAT(a) / AS_FLOAT(b)));
     }
-    operatorNotImplemented("//", a, b);
+    return NOT_IMPLEMENTED_VAL;
 }
 
 Value floatModulo(Value a, Value b) {
@@ -114,7 +114,7 @@ Value floatModulo(Value a, Value b) {
             reportRuntimeError("Division by zero");
         return FLOAT_VAL(fmod(AS_FLOAT(a), AS_FLOAT(b)));
     }
-    operatorNotImplemented("%%", a, b);
+    return NOT_IMPLEMENTED_VAL;
 }
 
 Value floatPower(Value a, Value b) {
@@ -122,7 +122,7 @@ Value floatPower(Value a, Value b) {
         return FLOAT_VAL(pow(AS_FLOAT(a), AS_INT(b)));
     if (b.type == VAL_FLOAT)
         return FLOAT_VAL(pow(AS_FLOAT(a), AS_FLOAT(b)));
-    operatorNotImplemented("**", a, b);
+    return NOT_IMPLEMENTED_VAL;
 }
 
 Value floatPositive(Value a) {

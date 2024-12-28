@@ -5,125 +5,90 @@
 #include "vm.h"
 
 Value intEqual(Value a, Value b) {
-    if (b.type == VAL_INT)
+    if (b.type == VAL_INT || b.type == VAL_BOOL)
         return BOOL_VAL(AS_INT(a) == AS_INT(b));
-    if (b.type == VAL_FLOAT)
-        return BOOL_VAL(AS_INT(a) == AS_FLOAT(b));
-    return BOOL_VAL(false);
+    return NOT_IMPLEMENTED_VAL;
 }
 
 Value intNotEqual(Value a, Value b) {
     if (b.type == VAL_INT || b.type == VAL_BOOL)
         return BOOL_VAL(AS_INT(a) != AS_INT(b));
-    if (b.type == VAL_FLOAT)
-        return BOOL_VAL(AS_INT(a) != AS_FLOAT(b));
-    return BOOL_VAL(true);
+    return NOT_IMPLEMENTED_VAL;
 }
 
 Value intGreater(Value a, Value b) {
     if (b.type == VAL_INT || b.type == VAL_BOOL)
         return BOOL_VAL(AS_INT(a) > AS_INT(b));
-    if (b.type == VAL_FLOAT)
-        return BOOL_VAL(AS_INT(a) > AS_FLOAT(b));
-    operatorNotImplemented(">", a, b);
+    return NOT_IMPLEMENTED_VAL;
 }
 
 Value intGreaterEqual(Value a, Value b) {
-    if (b.type == VAL_INT)
+    if (b.type == VAL_INT || b.type == VAL_BOOL)
         return BOOL_VAL(AS_INT(a) >= AS_INT(b));
-    if (b.type == VAL_FLOAT)
-        return BOOL_VAL(AS_INT(a) >= AS_FLOAT(b));
-    operatorNotImplemented(">=", a, b);
+    return NOT_IMPLEMENTED_VAL;
 }
 
 Value intLess(Value a, Value b) {
-    if (b.type == VAL_INT)
+    if (b.type == VAL_INT || b.type == VAL_BOOL)
         return BOOL_VAL(AS_INT(a) < AS_INT(b));
-    if (b.type == VAL_FLOAT)
-        return BOOL_VAL(AS_INT(a) < AS_FLOAT(b));
-    operatorNotImplemented("<", a, b);
+    return NOT_IMPLEMENTED_VAL;
 }
 
 Value intLessEqual(Value a, Value b) {
-    if (b.type == VAL_INT)
+    if (b.type == VAL_INT || b.type == VAL_BOOL)
         return BOOL_VAL(AS_INT(a) <= AS_INT(b));
-    if (b.type == VAL_FLOAT)
-        return BOOL_VAL(AS_INT(a) <= AS_FLOAT(b));
-    operatorNotImplemented("<=", a, b);
+    return NOT_IMPLEMENTED_VAL;
 }
 
 Value intAdd(Value a, Value b) {
-    if (b.type == VAL_INT)
+    if (b.type == VAL_INT || b.type == VAL_BOOL)
         return INT_VAL(AS_INT(a) + AS_INT(b));
-    if (b.type == VAL_FLOAT)
-        return FLOAT_VAL(AS_INT(a) + AS_FLOAT(b));
-    operatorNotImplemented("+", a, b);
+    return NOT_IMPLEMENTED_VAL;
 }
 
 Value intSubtract(Value a, Value b) {
-    if (b.type == VAL_INT)
+    if (b.type == VAL_INT || b.type == VAL_BOOL)
         return INT_VAL(AS_INT(a) - AS_INT(b));
-    if (b.type == VAL_FLOAT)
-        return FLOAT_VAL(AS_INT(a) - AS_FLOAT(b));
-    operatorNotImplemented("-", a, b);
+    return NOT_IMPLEMENTED_VAL;
 }
 
 Value intMultiply(Value a, Value b) {
-    if (b.type == VAL_INT)
+    if (b.type == VAL_INT || b.type == VAL_BOOL)
         return INT_VAL(AS_INT(a) * AS_INT(b));
-    if (b.type == VAL_FLOAT)
-        return FLOAT_VAL(AS_INT(a) * AS_FLOAT(b));
-    operatorNotImplemented("*", a, b);
+    return NOT_IMPLEMENTED_VAL;
 }
 
 Value intTrueDivide(Value a, Value b) {
-    if (b.type == VAL_INT) {
+    if (b.type == VAL_INT || b.type == VAL_BOOL) {
         if (AS_INT(b) == 0)
             reportRuntimeError("Division by zero");
         return FLOAT_VAL(AS_INT(a) / AS_INT(b));
     }
-    if (b.type == VAL_FLOAT) {
-        if (AS_FLOAT(b) == 0)
-            reportRuntimeError("Division by zero");
-        return FLOAT_VAL(AS_INT(a) / AS_FLOAT(b));
-    }
-    operatorNotImplemented("/", a, b);
+    return NOT_IMPLEMENTED_VAL;
 }
 
 Value intFloorDivide(Value a, Value b) {
-    if (b.type == VAL_INT) {
+    if (b.type == VAL_INT || b.type == VAL_BOOL) {
         if (AS_INT(b) == 0)
             reportRuntimeError("Division by zero");
         return INT_VAL(AS_INT(a) / AS_INT(b));
     }
-    if (b.type == VAL_FLOAT) {
-        if (AS_FLOAT(b) == 0)
-            reportRuntimeError("Division by zero");
-        return FLOAT_VAL((long long)(AS_INT(a) / AS_FLOAT(b)));
-    }
-    operatorNotImplemented("//", a, b);
+    return NOT_IMPLEMENTED_VAL;
 }
 
 Value intModulo(Value a, Value b) {
-    if (b.type == VAL_INT) {
+    if (b.type == VAL_INT || b.type == VAL_BOOL) {
         if (AS_INT(b) == 0)
             reportRuntimeError("Division by zero");
         return INT_VAL(AS_INT(a) % AS_INT(b));
     }
-    if (b.type == VAL_FLOAT) {
-        if (AS_FLOAT(b) == 0)
-            reportRuntimeError("Division by zero");
-        return FLOAT_VAL(fmod(AS_INT(a), AS_FLOAT(b)));
-    }
-    operatorNotImplemented("%%", a, b);
+    return NOT_IMPLEMENTED_VAL;
 }
 
 Value intPower(Value a, Value b) {
-    if (b.type == VAL_INT)
+    if (b.type == VAL_INT || b.type == VAL_BOOL)
         return INT_VAL(pow(AS_INT(a), AS_INT(b)));
-    if (b.type == VAL_FLOAT)
-        return FLOAT_VAL(pow(AS_INT(a), AS_FLOAT(b)));
-    operatorNotImplemented("**", a, b);
+    return NOT_IMPLEMENTED_VAL;
 }
 
 Value intPositive(Value a) {
@@ -135,21 +100,21 @@ Value intNegative(Value a) {
 }
 
 Value intAnd(Value a, Value b) {
-    if (b.type == VAL_INT)
+    if (b.type == VAL_INT || b.type == VAL_BOOL)
         return INT_VAL(AS_INT(a) & AS_INT(b));
-    operatorNotImplemented("&", a, b);
+    return NOT_IMPLEMENTED_VAL;
 }
 
 Value intXor(Value a, Value b) {
-    if (b.type == VAL_INT)
+    if (b.type == VAL_INT || b.type == VAL_BOOL)
         return INT_VAL(AS_INT(a) ^ AS_INT(b));
-    operatorNotImplemented("^", a, b);
+    return NOT_IMPLEMENTED_VAL;
 }
 
 Value intOr(Value a, Value b) {
-    if (b.type == VAL_INT)
+    if (b.type == VAL_INT || b.type == VAL_BOOL)
         return INT_VAL(AS_INT(a) | AS_INT(b));
-    operatorNotImplemented("|", a, b);
+    return NOT_IMPLEMENTED_VAL;
 }
 
 Value intInvert(Value a) {
@@ -157,15 +122,15 @@ Value intInvert(Value a) {
 }
 
 Value intLeftShift(Value a, Value b) {
-    if (b.type == VAL_INT)
+    if (b.type == VAL_INT || b.type == VAL_BOOL)
         return INT_VAL(AS_INT(a) << AS_INT(b));
-    operatorNotImplemented("<<", a, b);
+    return NOT_IMPLEMENTED_VAL;
 }
 
 Value intRightShift(Value a, Value b) {
-    if (b.type == VAL_INT)
+    if (b.type == VAL_INT || b.type == VAL_BOOL)
         return INT_VAL(AS_INT(a) >> AS_INT(b));
-    operatorNotImplemented(">>", a, b);
+    return NOT_IMPLEMENTED_VAL;
 }
 
 uint64_t intHash(Value value) {

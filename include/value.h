@@ -14,7 +14,18 @@ typedef enum {
     VAL_BOOL,
     VAL_INT,
     VAL_FLOAT,
-    VAL_OBJ
+    VAL_NOT_IMPLEMENTED,
+    VAL_STRING,
+    VAL_LIST,
+    VAL_TUPLE,
+    VAL_FUNCTION,
+    VAL_CLOSURE,
+    VAL_UPVALUE,
+    VAL_NATIVE,
+    VAL_CLASS,
+    VAL_METHOD,
+    VAL_NATIVE_METHOD,
+    VAL_INSTANCE,
 } ValueType;
 
 typedef struct {
@@ -22,7 +33,7 @@ typedef struct {
     union {
         double floating;
         long long integer;
-        Obj *obj;
+        Obj *object;
     } as;
 } Value;
 
@@ -31,19 +42,13 @@ typedef struct {
     Value value;
 } OptValue;
 
-#define BOOL_VAL(value)     ((Value){VAL_BOOL, {.integer=value}})
-#define NONE_VAL             ((Value){VAL_NONE, {.integer=0}})
-#define UNDEFINED_VAL       ((Value){VAL_UNDEFINED, {.integer=0}})
-#define OBJ_VAL(object)     ((Value){VAL_OBJ, {.obj=(Obj*)object}})
+#define NONE_VAL             ((Value){VAL_NONE})
+#define UNDEFINED_VAL       ((Value){VAL_UNDEFINED})
+#define NOT_IMPLEMENTED_VAL ((Value){VAL_NOT_IMPLEMENTED})
 
-#define IS_BOOL(value)      ((value).type == VAL_BOOL)
 #define IS_NONE(value)      ((value).type == VAL_NONE)
+#define IS_NOT_IMPLEMENTED(value)  ((value).type == VAL_NOT_IMPLEMENTED)
 #define IS_UNDEFINED(value) ((value).type == VAL_UNDEFINED)
-#define IS_OBJ(value)       ((value).type == VAL_OBJ)
-
-#define AS_BOOL(value)      ((value).as.integer)
-#define AS_OBJ(value)       ((value).as.obj)
-
 
 const char* decodeValueType(Value value);
 

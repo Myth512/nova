@@ -11,9 +11,8 @@
 #include "table.h"
 #include "common.h"
 
-Obj* allocateObject(size_t size, ObjType type) {
+Obj* allocateObject(size_t size) {
     Obj *object = (Obj*)reallocate(NULL, 0, size);
-    object->type = type;
     object->next = vm.objects;
     object->isMarked = false;
     vm.objects = object;

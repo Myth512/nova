@@ -1,4 +1,5 @@
 #include "value_none.h"
+#include "value_int.h"
 
 Value noneEqual(Value a, Value b) {
     return BOOL_VAL(b.type == VAL_NONE);
