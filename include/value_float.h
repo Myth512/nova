@@ -10,6 +10,30 @@
 
 #define AS_FLOAT(value)     ((value).as.floating)
 
+#define FLOAT_METHODS (ValueMethods) { \
+    .eq = Float_Equal,                 \
+    .ne = Float_NotEqual,              \
+    .gt = Float_Greater,               \
+    .ge = Float_GreaterEqual,          \
+    .lt = Float_Less,                  \
+    .le = Float_LessEqual,             \
+    .add = Float_Add,                  \
+    .sub = Float_Subtract,             \
+    .mul = Float_Multiply,             \
+    .truediv = Float_TrueDivide,       \
+    .floordiv = Float_FloorDivide,     \
+    .mod = Float_Modulo,               \
+    .pow = Float_Power,                \
+    .pos = Float_Positive,             \
+    .neg = Float_Negative,             \
+    .hash =Float_Hash,                 \
+    .toBool = Float_ToBool,            \
+    .toInt = Float_ToInt,              \
+    .toFloat = Float_ToFloat,          \
+    .str = Float_ToStr,                \
+    .repr = Float_ToStr                \
+}
+
 Value Float_Equal(Value a, Value b);
 
 Value Float_NotEqual(Value a, Value b);

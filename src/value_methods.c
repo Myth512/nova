@@ -8,11 +8,11 @@
 #define GET_METHOD(value, name) MethodTable[(value).type].name
 
 ValueMethods MethodTable[] = {
-    [VAL_NONE]   = {None_Equal,   None_NotEqual,   NULL,           NULL,                NULL,        NULL,             NULL,       NULL,           NULL,             NULL,              NULL,              NULL,         NULL,        NULL,           NULL,           NULL,    NULL,    NULL,   NULL,       NULL,          NULL,           None_Hash,   NULL,       None_ToBool,   None_ToInt,   None_ToFloat,   None_ToStr,   None_ToStr},
-    [VAL_BOOL]   = {Int_Equal,    Int_NotEqual,    Int_Greater,    Int_GreaterEqual,    Int_Less,    Int_LessEqual,    Int_Add,    Int_Subtract,   Int_Multiply,     Int_TrueDivide,    Int_FloorDivide,   Int_Modulo,   Int_Power,   Int_Positive,   Int_Negative,   Int_And, Int_Xor, Int_Or, Int_Invert, Int_LeftShift, Int_RightShift, Int_Hash,    NULL,       Int_ToBool,    Int_ToInt,    Int_ToFloat,    Bool_ToStr,   Bool_ToStr},
-    [VAL_INT]    = {Int_Equal,    Int_NotEqual,    Int_Greater,    Int_GreaterEqual,    Int_Less,    Int_LessEqual,    Int_Add,    Int_Subtract,   Int_Multiply,     Int_TrueDivide,    Int_FloorDivide,   Int_Modulo,   Int_Power,   Int_Positive,   Int_Negative,   Int_And, Int_Xor, Int_Or, Int_Invert, Int_LeftShift, Int_RightShift, Int_Hash,    NULL,       Int_ToBool,    Int_ToInt,    Int_ToFloat,    Int_ToStr,    Int_ToStr},
-    [VAL_FLOAT]  = {Float_Equal,  Float_NotEqual,  Float_Greater,  Float_GreaterEqual,  Float_Less,  Float_LessEqual,  Float_Add,  Float_Subtract, Float_Multiply,   Float_TrueDivide,  Float_FloorDivide, Float_Modulo, Float_Power, Float_Positive, Float_Negative, NULL,    NULL,    NULL,   NULL,       NULL,          NULL,           Float_Hash,  NULL,       Float_ToBool,  Float_ToInt,  Float_ToFloat,  Float_ToStr,  Float_ToStr},
-    [VAL_STRING] = {String_Equal, String_NotEqual, String_Greater, String_GreaterEqual, String_Less, String_LessEqual, String_Add, NULL,           String_Multiply,  NULL,              NULL,              NULL,         NULL,        NULL,           NULL,           NULL,    NULL,    NULL,   NULL,       NULL,          NULL,           String_Hash, String_Len, String_ToBool, String_ToInt, String_ToFloat, String_ToStr, String_ToStr} 
+    [VAL_NONE]   = NONE_METHODS, 
+    [VAL_BOOL]   = BOOL_METHODS,
+    [VAL_INT]    = INT_METHODS, 
+    [VAL_FLOAT]  = FLOAT_METHODS,
+    [VAL_STRING] = STRING_METHODS 
 };
 
 void *checkForNull(void *p) {
@@ -152,7 +152,7 @@ Value valueRightShift(Value a, Value b) {
     return binaryMethod(a, b, GET_METHOD(a, rshift), GET_METHOD(b, rshift), ">>");
 }
 
-OptValue valueGetAttribute(Value obj, ObjString *name) {
+Value valueGetAttribute(Value obj, ObjString *name) {
 
 }
 

@@ -3,6 +3,17 @@
 
 #include "value.h"
 
+#define NONE_METHODS (ValueMethods) { \
+    .eq = None_Equal,                 \
+    .ne = None_NotEqual,              \
+    .hash = None_Hash,                \
+    .toBool = None_ToBool,            \
+    .toInt = None_ToInt,              \
+    .toFloat = None_ToFloat,          \
+    .str = None_ToStr,                \
+    .repr = None_ToStr                \
+}
+
 Value None_Equal(Value a, Value b);
 
 Value None_NotEqual(Value a, Value b);

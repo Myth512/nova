@@ -3,26 +3,25 @@
 #include "py_list.h"
 %}
 
-struct ListMethod {
-	const char *name;
-	Value (*method)(int, Value*);	
-}
+struct GperfMethod
+
+%readonly-tables
+%struct-type
+%define lookup-function-name in_list_set
 
 %%
-append, pyListAppend 
-pop, novaArrayPop
-insert, novaArrayInsert
-reverse, novaArrayReverse
-sort, novaArraySort
-_eq_, novaArrayEqual
-_ne_, novaArrayNotEqual
-_gt_, novaArrayGreater
-_ge_, novaArrayGreaterEqual
-_lt_, novaArrayLess
-_le_, novaArrayLessEqual
-_add_, novaArrayAdd
-_mul_, novaArrayMultiply
-_getat_, novaArrayGetAt
-_setat_, novaArraySetAt
-_len_, novaArrayLen
+append, PyList_Append 
+pop, PyList_Pop
+insert, PyList_Insert
+reverse, PyList_Reverse
+sort, PyList_Sort
+__eq__, PyList_Equal
+__ne__, PyList_NotEqual
+__gt__, PyList_Greater
+__ge__, PyList_GreaterEqual
+__lt__, PyList_Less
+__le__, PyList_LessEqual
+__add__, PyList_Add
+__mul__, PyList_Multiply
+__len__, PyList_Len
 %%

@@ -12,6 +12,66 @@
 #define AS_BOOL(value)      ((bool)((value).as.integer))
 #define AS_INT(value)       ((value).as.integer)
 
+#define BOOL_METHODS (ValueMethods) { \
+    .eq = Int_Equal,                  \
+    .ne = Int_NotEqual,               \
+    .gt = Int_Greater,                \
+    .ge = Int_GreaterEqual,           \
+    .lt = Int_Less,                   \
+    .le = Int_LessEqual,              \
+    .add = Int_Add,                   \
+    .sub =Int_Subtract,               \
+    .mul = Int_Multiply,              \
+    .truediv = Int_TrueDivide,        \
+    .floordiv = Int_FloorDivide,      \
+    .mod = Int_Modulo,                \
+    .pow = Int_Power,                 \
+    .pos = Int_Positive,              \
+    .neg = Int_Negative,              \
+    .and = Int_And,                   \
+    .xor = Int_Xor,                   \
+    .or = Int_Or,                     \
+    .invert = Int_Invert,             \
+    .lshift = Int_LeftShift,          \
+    .rshift = Int_RightShift,         \
+    .hash = Int_Hash,                 \
+    .toBool = Int_ToBool,             \
+    .toInt = Int_ToInt,               \
+    .toFloat = Int_ToFloat,           \
+    .str = Bool_ToStr,                \
+    .repr = Bool_ToStr                \
+}
+
+#define INT_METHODS (ValueMethods) { \
+    .eq = Int_Equal,                 \
+    .ne = Int_NotEqual,              \
+    .gt = Int_Greater,               \
+    .ge = Int_GreaterEqual,          \
+    .lt = Int_Less,                  \
+    .le = Int_LessEqual,             \
+    .add = Int_Add,                  \
+    .sub = Int_Subtract,             \
+    .mul = Int_Multiply,             \
+    .truediv = Int_TrueDivide,       \
+    .floordiv = Int_FloorDivide,     \
+    .mod = Int_Modulo,               \
+    .pow = Int_Power,                \
+    .pos = Int_Positive,             \
+    .neg = Int_Negative,             \
+    .and = Int_And,                  \
+    .xor = Int_Xor,                  \
+    .or = Int_Or,                    \
+    .invert = Int_Invert,            \
+    .lshift = Int_LeftShift,         \
+    .rshift = Int_RightShift,        \
+    .hash = Int_Hash,                \
+    .toBool = Int_ToBool,            \
+    .toInt = Int_ToInt,              \
+    .toFloat = Int_ToFloat,          \
+    .str = Int_ToStr,                \
+    .repr = Int_ToStr                \
+}
+
 Value Int_Equal(Value a, Value b);
 
 Value Int_NotEqual(Value a, Value b);

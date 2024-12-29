@@ -1,25 +1,23 @@
 %{
 #include <string.h>
-#include "nova_string.h"
+#include "py_string.h"
 %}
 
-struct StringMethod {
-	const char *name;
-	Value (*method)(int, Value*);	
-}
+struct GperfMethod
+
+%readonly-tables
+%struct-type
+%define lookup-function-name in_string_set
 
 %%
-reverse, novaStringReverse
-replace, novaStringReplace
-_eq_, novaStringEqual
-_ne_, novaStringNotEqual
-_gt_, novaStringGreater
-_ge_, novaStringGreaterEqual
-_lt_, novaStringLess
-_le_, novaStringLessEqual
-_add_, novaStringAdd
-_mul_, novaStringMultiply
-_getat_, novaStringGetAt
-_len_, novaStringLen
-_hash_, novaStringHash
+__eq__, PyString_Equal
+__ne__, PyString_NotEqual
+__gt__, PyString_Greater
+__ge__, PyString_GreaterEqual
+__lt__, PyString_Less
+__le__, PyString_LessEqual
+__add__, PyString_Add
+__mul__, PyString_Multiply
+__hash__, PyString_Hash
+__len__, PyString_Len
 %%

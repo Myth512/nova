@@ -10,6 +10,24 @@
 #define AS_STRING(value)        ((ObjString*)((value).as.object))
 #define AS_CHARS(value)         (((ObjString*)((value).as.object))->chars)
 
+#define STRING_METHODS (ValueMethods){ \
+    .eq = String_Equal,                \
+    .ne = String_NotEqual,             \
+    .gt = String_Greater,              \
+    .ge = String_GreaterEqual,         \
+    .lt = String_Less,                 \
+    .le = String_LessEqual,            \
+    .add = String_Add,                 \
+    .mul = String_Multiply,            \
+    .hash = String_Hash,               \
+    .len = String_Len,                 \
+    .toBool = String_ToBool,           \
+    .toInt = String_ToInt,             \
+    .toFloat = String_ToFloat,         \
+    .str = String_ToStr,               \
+    .repr = String_ToStr,              \
+}
+
 struct ObjString {
     Obj obj;
     int length;

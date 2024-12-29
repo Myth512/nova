@@ -44,6 +44,11 @@ typedef struct {
     Value value;
 } OptValue;
 
+typedef struct GperfMethod {
+	const char *name;
+	Value (*method)(int, Value*);	
+} GperfMethod;
+
 typedef Value (*BinaryMethod)(Value, Value);
 typedef Value (*UnaryMethod)(Value);
 

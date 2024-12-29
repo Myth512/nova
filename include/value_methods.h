@@ -51,7 +51,7 @@ Value valueLeftShift(Value a, Value b);
 
 Value valueRightShift(Value a, Value b);
 
-OptValue valueGetAttribute(Value obj, ObjString *name);
+Value valueGetAttribute(Value obj, ObjString *name);
 
 void valueSetAttribute(Value obj, ObjString *name, Value value);
 
