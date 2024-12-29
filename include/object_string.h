@@ -3,7 +3,7 @@
 
 #include "object.h"
 
-#define STRING_VAL(string)      ((Value){.type=VAL_STRING, .as.object=string})
+#define STRING_VAL(string)      ((Value){.type=VAL_STRING, .as.object=(Obj*)string})
 
 #define IS_STRING(value)        ((value).type == VAL_STRING) 
 
@@ -54,5 +54,7 @@ bool stringToBool(ObjString *string);
 int stringToInt(ObjString *string);
 
 double stringToFloat(ObjString *string);
+
+int stringToStr(Value value, char *buffer, size_t size);
 
 #endif

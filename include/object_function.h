@@ -8,10 +8,10 @@
 #define IS_FUNCTION(value)      isObjType(value, OBJ_FUNCTION)
 #define IS_NATIVE(value)        isObjType(value, OBJ_NATIVE)
 
-#define AS_CLOSURE(value)       ((ObjClosure*)AS_OBJ(value))
-#define AS_FUNCTION(value)      ((ObjFunction*)AS_OBJ(value))
-#define AS_NATIVE(value)        ((ObjNative*)AS_OBJ(value))
-#define AS_UPVALUE(value)       ((ObjUpvalue*)AS_OBJ(value))
+#define AS_CLOSURE(value)       ((ObjClosure*)value.as.object)
+#define AS_FUNCTION(value)      ((ObjFunction*)value.as.object)
+#define AS_NATIVE(value)        ((ObjNative*)value.as.object)
+#define AS_UPVALUE(value)       ((ObjUpvalue*)value.as.object)
 
 typedef struct ObjUpvalue {
     Obj obj;

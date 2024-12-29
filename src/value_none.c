@@ -24,3 +24,7 @@ long long noneToInt(Value value) {
 double noneToFloat(Value value) {
     return 0;
 }
+
+int noneToStr(Value value, char *buffer, size_t size) {
+    writeToBuffer(buffer, size, "None");
+}

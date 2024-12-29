@@ -1,15 +1,15 @@
 %{
 #include <string.h>
-#include "nova_array.h"
+#include "py_list.h"
 %}
 
-struct ArrayMethod {
+struct ListMethod {
 	const char *name;
 	Value (*method)(int, Value*);	
 }
 
 %%
-push, novaArrayPush
+append, pyListAppend 
 pop, novaArrayPop
 insert, novaArrayInsert
 reverse, novaArrayReverse

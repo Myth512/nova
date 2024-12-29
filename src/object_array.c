@@ -12,7 +12,7 @@ static int min(int a, int b) {
 }
 
 ObjArray* allocateArray(int size) {
-    ObjArray *array = (ObjArray*)allocateObject(sizeof(ObjArray), OBJ_ARRAY);
+    ObjArray *array = (ObjArray*)allocateObject(sizeof(ObjArray));
     array->vec.size = size; 
     array->vec.capacity = size; 
     array->vec.values = NULL;
@@ -72,19 +72,19 @@ static bool inequality(ObjArray *a, ObjArray *b, bool (*numFunc)(double, double)
 }
 
 bool arrayGreater(ObjArray *a, ObjArray *b) {
-    return inequality(a, b, greater, valueGreater);
+    // return inequality(a, b, greater, valueGreater);
 }
 
 bool arrayGreaterEqual(ObjArray *a, ObjArray *b) {
-    return inequality(a, b, greaterEqual, valueGreaterEqual);
+    // return inequality(a, b, greaterEqual, valueGreaterEqual);
 }
 
 bool arrayLess(ObjArray *a, ObjArray *b) {
-    return inequality(a, b, less, valueLess);
+    // return inequality(a, b, less, valueLess);
 }
 
 bool arrayLessEqual(ObjArray *a, ObjArray *b) {
-    return inequality(a, b, lessEqual, valueLessEqual);
+    // return inequality(a, b, lessEqual, valueLessEqual);
 }
 
 ObjArray *arrayAdd(ObjArray *a, ObjArray *b) {

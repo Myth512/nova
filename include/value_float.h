@@ -48,8 +48,6 @@ long long floatToInt(Value value);
 
 double floatToFloat(Value value);
 
-ObjString *floatToStr(Value value);
-
-ObjString *floatToRepr(Value value);
+int floatToStr(Value value, char *buffer, const size_t size);
 
 #endif

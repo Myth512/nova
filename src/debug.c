@@ -3,6 +3,7 @@
 #include "debug.h"
 #include "object.h"
 #include "value.h"
+#include "value_utils.h"
 #include "object_function.h"
 
 static const char *TokenTypeToString[] = {

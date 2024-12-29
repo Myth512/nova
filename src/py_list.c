@@ -1,4 +1,4 @@
-#include "nova_array.h"
+#include "py_list.h"
 #include "object.h"
 #include "object_array.h"
 #include "error.h"
@@ -7,7 +7,7 @@
 Value novaArrayPush(int argc, Value *argv) {
     ObjArray *array = AS_ARRAY(argv[0]);
     pushValue(&array->vec, argv[1]);
-    return NIL_VAL;
+    return NONE_VAL;
 }
 
 Value novaArrayPop(int argc, Value *argv) {
@@ -21,13 +21,13 @@ Value novaArrayInsert(int argc, Value *argv) {
     ObjArray *array = AS_ARRAY(argv[0]);
     int index = AS_NUMBER(argv[1]);
     insertValue(&array->vec, index, argv[2]);
-    return NIL_VAL;
+    return NONE_VAL;
 }
 
 Value novaArrayReverse(int argc, Value *argv) {
     ObjArray *array = AS_ARRAY(argv[0]);
     reverseValueVec(&array->vec);
-    return NIL_VAL;
+    return NONE_VAL;
 }
 
 static void swap(ObjArray* array, int l, int r) {
@@ -38,24 +38,24 @@ static void swap(ObjArray* array, int l, int r) {
 
 // Hoare partition
 static int partition(ObjArray *array, int l, int r, bool reverse) {
-    bool (*leftFunc)(Value, Value) = valueLessEqual;
-    bool (*rightFunc)(Value, Value) = valueGreaterEqual;
-    if (reverse) {
-        leftFunc = valueGreaterEqual;
-        rightFunc = valueLessEqual;
-    }
+    // bool (*leftFunc)(Value, Value) = valueLessEqual;
+    // bool (*rightFunc)(Value, Value) = valueGreaterEqual;
+    // if (reverse) {
+    //     leftFunc = valueGreaterEqual;
+    //     rightFunc = valueLessEqual;
+    // }
 
-    Value pivot = array->vec.values[r];
-    int p = r;
-    while (l < r) {
-        while (l < r && leftFunc(array->vec.values[l], pivot))
-            l++;
-        while (l < r && rightFunc(array->vec.values[r], pivot))
-            r--;
-        swap(array, l, r);
-    }
-    swap(array, l, p);
-    return l;
+    // Value pivot = array->vec.values[r];
+    // int p = r;
+    // while (l < r) {
+    //     while (l < r && leftFunc(array->vec.values[l], pivot))
+    //         l++;
+    //     while (l < r && rightFunc(array->vec.values[r], pivot))
+    //         r--;
+    //     swap(array, l, r);
+    // }
+    // swap(array, l, p);
+    // return l;
 }
 
 static void quicksort(ObjArray *array, int left, int right, bool reverse) {
@@ -81,7 +81,7 @@ Value novaArraySort(int argc, Value *argv) {
 
     ObjArray *array = AS_ARRAY(argv[0]);
     quicksort(array, 0, array->vec.size - 1, reverse);
-    return NIL_VAL;
+    return NONE_VAL;
 }
 
 // bool compareArrays(ObjArray *a, ObjArray *b) {

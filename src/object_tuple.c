@@ -3,7 +3,7 @@
 #include "object_tuple.h"
 
 ObjTuple* allocateTuple(size_t size) {
-    ObjTuple *tuple = (ObjTuple*)allocateObject(sizeof(ObjTuple) + size * sizeof(Value), OBJ_TUPLE);
+    ObjTuple *tuple = (ObjTuple*)allocateObject(sizeof(ObjTuple) + size * sizeof(Value));
     tuple->size = size;
     return tuple;
 }

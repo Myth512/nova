@@ -46,23 +46,23 @@ void* reallocate(void *pointer, size_t oldSize, size_t newSize) {
     return newPointer;
 }
 
-static void freeObject(Obj *object) {
+static void freeObject(Value object) {
     #ifdef DEBUG_LOG_GC
         printf("free %p, type %s, data ", object, decodeObjType(OBJ_VAL(object)));
         printObject(OBJ_VAL(object));
         printf("\n");
     #endif
-    switch (object->type) {
-        case OBJ_CLOSURE: {
-            ObjClosure *closure = (ObjClosure*)object;
+    switch (object.type) {
+        case VAL_CLOSURE: {
+            ObjClosure *closure = AS_CLOSURE(object);
             FREE_VEC(ObjUpvalue*, closure->upvalues, closure->upvalueCount);
             FREE(ObjClosure, closure);
             break;
         }
-        case OBJ_FUNCTION: {
-            ObjFunction *function = (ObjFunction*)object;
+        case VAL_FUNCTION: {
+            ObjFunction *function = AS_FUNCTION(object);
             freeCodeVec(&function->code);
-            FREE(ObjFunction, object);
+            FREE(ObjFunction, function);
             break;
         }
         case OBJ_NATIVE:

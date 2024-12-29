@@ -162,10 +162,6 @@ double floatToFloat(Value value) {
     return AS_FLOAT(value);
 }
 
-ObjString *floatToStr(Value value) {
-
-}
-
-ObjString *floatToRepr(Value value) {
-
+int floatToStr(Value value, char *buffer, size_t size) {
+    writeToBuffer(buffer, size, "%g", AS_FLOAT(value));
 }

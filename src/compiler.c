@@ -7,6 +7,8 @@
 #include "scanner.h"
 #include "debug.h"
 #include "common.h"
+#include "value_int.h"
+#include "value_float.h"
 #include "object.h"
 #include "object_string.h"
 #include "object_array.h"
@@ -328,7 +330,7 @@ static ObjFunction* endCompiler() {
     ObjArray *names = allocateArray(current->localCount);
     for (int i = 0; i < current->localCount; i++) {
         Token name = current->locals[i].name;
-        names->vec.values[i] = OBJ_VAL(copyString(name.start, name.length));
+        names->vec.values[i] = STRING_VAL(copyString(name.start, name.length));
     }
     function->localNames = names;
 
@@ -384,21 +386,24 @@ static void number(bool canAssign, bool allowTuple) {
     (void)canAssign;
 
     double value = strtod(parser.current.start, NULL);
-    emitConstant(NUMBER_VAL(value));
+    if ((long long)value == value)
+        emitConstant(INT_VAL(value));
+    else
+        emitConstant(FLOAT_VAL(value));
     advance();
 }
 
 static void string(bool canAssign, bool allowTuple) {
     (void)canAssign;
 
-    emitConstant(OBJ_VAL(copyEscapedString(parser.current.start, parser.current.length)));
+    emitConstant(STRING_VAL(copyEscapedString(parser.current.start, parser.current.length)));
     advance();
 }
 
 static void rstring(bool canAssign, bool allowTuple) {
     (void)canAssign;
 
-    emitConstant(OBJ_VAL(copyString(parser.current.start, parser.current.length)));
+    emitConstant(STRING_VAL(copyString(parser.current.start, parser.current.length)));
     advance();
 }
 
@@ -548,7 +553,7 @@ static bool identifierEqual(Token *a, Token *b) {
 }
 
 static uint8_t identifierConstant(Token *name) {
-    return createConstant(OBJ_VAL(copyString(name->start, name->length)));
+    return createConstant(STRING_VAL(copyString(name->start, name->length)));
 }
 
 static void expressionStatement() {
@@ -926,7 +931,7 @@ static void function(FunctionType type) {
 
     ObjFunction *function = endCompiler();
 
-    emitBytes(OP_CLOSURE, createConstant(OBJ_VAL(function)), (Token){0});
+    emitBytes(OP_CLOSURE, createConstant(STRING_VAL(function)), (Token){0});
 
     for (int i = 0; i < function->upvalueCount; i++) {
         emitByte(compiler.upvalues[i].isLocal ? 1 : 0, (Token){0});

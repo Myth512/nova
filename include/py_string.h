@@ -1,5 +1,5 @@
-#ifndef NOVA_STRING_H
-#define NOVA_STRING_H
+#ifndef PY_STRING_H
+#define PY_STRING_H
 
 #include "value.h"
 

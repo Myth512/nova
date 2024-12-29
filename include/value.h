@@ -47,8 +47,10 @@ typedef struct {
 #define NOT_IMPLEMENTED_VAL ((Value){VAL_NOT_IMPLEMENTED})
 
 #define IS_NONE(value)      ((value).type == VAL_NONE)
-#define IS_NOT_IMPLEMENTED(value)  ((value).type == VAL_NOT_IMPLEMENTED)
 #define IS_UNDEFINED(value) ((value).type == VAL_UNDEFINED)
+#define IS_NOT_IMPLEMENTED(value)  ((value).type == VAL_NOT_IMPLEMENTED)
+
+int writeToBuffer(char *buffer, const size_t size, const char *format, ...);
 
 const char* decodeValueType(Value value);
 

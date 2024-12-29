@@ -8,7 +8,6 @@
 typedef Value (*BinaryMethod)(Value, Value);
 typedef Value (*UnaryMethod)(Value);
 
-#define GET_UNARY_METHOD(type, name) (UnaryMethod)checkForNull((void*)MethodTable[type].name)
 #define GET_METHOD(value, name) MethodTable[(value).type].name
 
 typedef struct {
@@ -38,16 +37,16 @@ typedef struct {
     bool (*toBool)(Value);
     long long (*toInt)(Value);
     double (*toFloat)(Value);
-    ObjString (*toStr)(Value);
-    ObjString (*toRepr)(Value);
+    int (*str)(Value, char*, size_t);
+    int (*repr)(Value, char*, size_t);
 } ValueMethods;
 
 const ValueMethods MethodTable[] = {
-    [VAL_NONE]   = {noneEqual,   noneNotEqual,   NULL,          NULL,               NULL,       NULL,            NULL,      NULL,          NULL,            NULL,             NULL,             NULL,        NULL,       NULL,          NULL,          NULL,   NULL,   NULL,  NULL,      NULL,         NULL,          noneHash,   NULL,      noneToBool,  noneToInt,    noneToFloat,   NULL,       NULL},
-    [VAL_BOOL]   = {intEqual,    intNotEqual,    intGreater,    intGreaterEqual,    intLess,    intLessEqual,    intAdd,    intSubtract,   intMultiply,     intTrueDivide,    intFloorDivide,   intModulo,   intPower,   intPositive,   intNegative,   intAnd, intXor, intOr, intInvert, intLeftShift, intRightShift, intHash,    NULL,      intToBool,   intToInt,     intToFloat,    NULL,       NULL},
-    [VAL_INT]    = {intEqual,    intNotEqual,    intGreater,    intGreaterEqual,    intLess,    intLessEqual,    intAdd,    intSubtract,   intMultiply,     intTrueDivide,    intFloorDivide,   intModulo,   intPower,   intPositive,   intNegative,   intAnd, intXor, intOr, intInvert, intLeftShift, intRightShift, intHash,    NULL,      intToBool,   intToInt,     intToFloat,    intToStr,   intToRepr},
-    [VAL_FLOAT]  = {floatEqual,  floatNotEqual,  floatGreater,  floatGreaterEqual,  floatLess,  floatLessEqual,  floatAdd,  floatSubtract, floatMultiply,   floatTrueDivide,  floatFloorDivide, floatModulo, floatPower, floatPositive, floatNegative, NULL,   NULL,   NULL,  NULL,      NULL,         NULL,          floatHash,  NULL,      floatToBool, floatToInt,   floatToFloat,  floatToStr, floatToRepr},
-    [VAL_STRING] = {stringEqual, stringNotEqual, stringGreater, stringGreaterEqual, stringLess, stringLessEqual, stringAdd, NULL,          stringMultiply,  NULL,             NULL,             NULL,        NULL,       NULL,          NULL,          NULL,   NULL,   NULL,  NULL,      NULL,         NULL,          stringHash, stringLen, stringToBool, stringToInt, stringToFloat, NULL,       NULL}
+    [VAL_NONE]   = {noneEqual,   noneNotEqual,   NULL,          NULL,               NULL,       NULL,            NULL,      NULL,          NULL,            NULL,             NULL,             NULL,        NULL,       NULL,          NULL,          NULL,   NULL,   NULL,  NULL,      NULL,         NULL,          noneHash,   NULL,      noneToBool,   noneToInt,   noneToFloat,   noneToStr,   noneToStr},
+    [VAL_BOOL]   = {intEqual,    intNotEqual,    intGreater,    intGreaterEqual,    intLess,    intLessEqual,    intAdd,    intSubtract,   intMultiply,     intTrueDivide,    intFloorDivide,   intModulo,   intPower,   intPositive,   intNegative,   intAnd, intXor, intOr, intInvert, intLeftShift, intRightShift, intHash,    NULL,      intToBool,    intToInt,    intToFloat,    boolToStr,   boolToStr},
+    [VAL_INT]    = {intEqual,    intNotEqual,    intGreater,    intGreaterEqual,    intLess,    intLessEqual,    intAdd,    intSubtract,   intMultiply,     intTrueDivide,    intFloorDivide,   intModulo,   intPower,   intPositive,   intNegative,   intAnd, intXor, intOr, intInvert, intLeftShift, intRightShift, intHash,    NULL,      intToBool,    intToInt,    intToFloat,    intToStr,    intToStr},
+    [VAL_FLOAT]  = {floatEqual,  floatNotEqual,  floatGreater,  floatGreaterEqual,  floatLess,  floatLessEqual,  floatAdd,  floatSubtract, floatMultiply,   floatTrueDivide,  floatFloorDivide, floatModulo, floatPower, floatPositive, floatNegative, NULL,   NULL,   NULL,  NULL,      NULL,         NULL,          floatHash,  NULL,      floatToBool,  floatToInt,  floatToFloat,  floatToStr,  floatToStr},
+    [VAL_STRING] = {stringEqual, stringNotEqual, stringGreater, stringGreaterEqual, stringLess, stringLessEqual, stringAdd, NULL,          stringMultiply,  NULL,             NULL,             NULL,        NULL,       NULL,          NULL,          NULL,   NULL,   NULL,  NULL,      NULL,         NULL,          stringHash, stringLen, stringToBool, stringToInt, stringToFloat, stringToStr, stringToStr}
 };
 
 void *checkForNull(void *p) {
@@ -230,7 +229,7 @@ uint64_t valueId(Value value) {
         case VAL_NOT_IMPLEMENTED:
             return &value;
         default:
-            return value.as.obj;
+            return value.as.object;
     }
 }
 
@@ -254,12 +253,34 @@ double valueToFloat(Value value) {
     return method(value);
 }
 
+int valueWrite(Value value, char *buffer, size_t size) {
+    int (*str)(Value, char*, size_t) = GET_METHOD(value, str);
+    return str(value, buffer, size);
+}
+
+int valuePrint(Value value) {
+    int (*str)(Value, char*, size_t) = GET_METHOD(value, str);
+    return str(value, NULL, 0);
+}
+
 ObjString *valueToStr(Value value) {
-    ObjString *(*method)(Value) = checkForNull(MethodTable[value.type].toStr);
-    return method(value);
+    const size_t size = 256;
+    char buffer[size];
+
+    int (*str)(Value, char*, size_t) = GET_METHOD(value, str);
+    int length = str(value, buffer, size);
+
+    ObjString *string = copyString(buffer, length);
+    return string;
 }
 
 ObjString *valueToRepr(Value value) {
-    ObjString *(*method)(Value) = checkForNull(MethodTable[value.type].toRepr);
-    return method(value);
+    const size_t size = 256;
+    char buffer[size];
+
+    int (*repr)(Value, char*, size_t) = GET_METHOD(value, repr);
+    int length = repr(value, buffer, size);
+
+    ObjString *string = copyString(buffer, length);
+    return string;
 }

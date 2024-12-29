@@ -5,7 +5,6 @@
 #include "string_methods.h"
 #include "value_int.h"
 #include "object_class.h"
-#include "vm.h"
 
 ObjString *allocateString(size_t length) {
     size_t size = sizeof(ObjString) + length + 1;
@@ -213,4 +212,8 @@ int stringToInt(Value string) {
 
 double stringToFloat(Value string) {
     return atof(AS_CHARS(string));
+}
+
+int stringToStr(Value value, char *buffer, size_t size) {
+    writeToBuffer(buffer, size, "%s", AS_CHARS(value));
 }

@@ -15,4 +15,6 @@ long long noneToInt(Value value);
 
 double noneToFloat(Value value);
 
+int noneToStr(Value value, char *buffer, size_t size);
+
 #endif

@@ -9,7 +9,7 @@
 #define IS_BOOL(value)      ((value).type == VAL_BOOL)
 #define IS_INT(value)       ((value).type == VAL_INT)
 
-#define AS_BOOL(value)      ((value).as.integer)
+#define AS_BOOL(value)      ((bool)((value).as.integer))
 #define AS_INT(value)       ((value).as.integer)
 
 Value intEqual(Value a, Value b);
@@ -62,8 +62,8 @@ long long intToInt(Value value);
 
 double intToFloat(Value value);
 
-ObjString *intToStr(Value value);
+int intToStr(Value value, char *buffer, const size_t size);
 
-ObjString *intToRepr(Value value);
+int boolToStr(Value value, char *buffer, const size_t size);
 
 #endif

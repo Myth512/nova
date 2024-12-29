@@ -1,5 +1,6 @@
 #include <math.h>
 
+#include "value.h"
 #include "value_int.h"
 #include "value_float.h"
 #include "vm.h"
@@ -157,10 +158,10 @@ double intToFloat(Value value) {
     return AS_INT(value);
 }
 
-ObjString *intToStr(Value value) {
-
+int intToStr(Value value, char *buffer, const size_t size) {
+    writeToBuffer(buffer, size, "%lld", AS_INT(value));
 }
 
-ObjString *intToRepr(Value value) {
-
+int boolToStr(Value value, char *buffer, const size_t size) {
+    writeToBuffer(buffer, size, "%s", AS_BOOL(value) ? "True" : "False");
 }
