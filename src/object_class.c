@@ -1,16 +1,18 @@
 #include "object_class.h"
 #include "object_string.h"
+#include "value_int.h"
+#include "value_methods.h"
 #include "vm.h"
 
 ObjClass *createClass(ObjString *name) {
-    ObjClass *class = (ObjClass*)allocateObject(sizeof(ObjClass));
+    ObjClass *class = (ObjClass*)allocateObject(sizeof(ObjClass), VAL_CLASS);
     class->name = name;
     initTable(&class->methods);
     return class;
 }
 
 ObjInstance *createInstance(ObjClass *class) {
-    ObjInstance *instance = (ObjInstance*)allocateObject(sizeof(ObjInstance));
+    ObjInstance *instance = (ObjInstance*)allocateObject(sizeof(ObjInstance), VAL_INSTANCE);
     instance->class = class;
     instance->isInitiazed = false;
     initTable(&instance->fields);
@@ -18,14 +20,14 @@ ObjInstance *createInstance(ObjClass *class) {
 }
 
 ObjMethod *createMethod(Value reciever, ObjClosure *function) {
-    ObjMethod *method = (ObjMethod*)allocateObject(sizeof(ObjMethod));
+    ObjMethod *method = (ObjMethod*)allocateObject(sizeof(ObjMethod), VAL_METHOD);
     method->reciever = reciever;
     method->method = function;
     return method;
 }
 
 ObjNativeMethod *createNativeMethod(Value reciever, NativeFn function, const char *name) {
-    ObjNativeMethod *native = (ObjNativeMethod*)allocateObject(sizeof(ObjNativeMethod));
+    ObjNativeMethod *native = (ObjNativeMethod*)allocateObject(sizeof(ObjNativeMethod), VAL_NATIVE_METHOD);
     native->reciever = reciever;
     native->name = name;
     native->method = function;
@@ -159,7 +161,7 @@ OptValue instanceGetField(Value obj, ObjString *name) {
 
     if (tableGet(&instance->class->methods, name, &value)) {
         ObjMethod *method = createMethod(obj, AS_CLOSURE(value));
-        return (OptValue){.hasValue=true, .value=OBJ_VAL(method)};
+        return (OptValue){.hasValue=true, .value={.type=VAL_METHOD, .as.object=(Obj*)method}};
     }
 
     return (OptValue){.hasValue=false};
@@ -184,13 +186,13 @@ void instanceSetAt(Value obj, Value key, Value value) {
 }
 
 int instanceLen(Value value) {
-    OptValue result = callNovaMethod(value, vm.magicStrings.len);
-    if (result.hasValue) {
-        if (isInt(result.value))
-            return asInt(result.value);
-        reportRuntimeError("Return type must be <type int>");
-    }
-    functionNotImplemented("len", value);
+    // OptValue result = callNovaMethod(value, vm.magicStrings.len);
+    // if (result.hasValue) {
+    //     if (isInt(result.value))
+    //         return asInt(result.value);
+    //     reportRuntimeError("Return type must be <type int>");
+    // }
+    // functionNotImplemented("len", value);
 }
 
 bool instanceToBool(Value value) {
@@ -204,21 +206,21 @@ bool instanceToBool(Value value) {
 }
 
 int instanceToInt(Value value) {
-    OptValue result = callNovaMethod(value, vm.magicStrings.int_);
-    if (result.hasValue) {
-        if (isInt(result.value))
-            return asInt(result.value);
-        reportRuntimeError("Return type must be <type int>");
-    }
-    functionNotImplemented("int", value);
+    // OptValue result = callNovaMethod(value, vm.magicStrings.int_);
+    // if (result.hasValue) {
+    //     if (isInt(result.value))
+    //         return asInt(result.value);
+    //     reportRuntimeError("Return type must be <type int>");
+    // }
+    // functionNotImplemented("int", value);
 }
 
 double instanceToFloat(Value value) {
-    OptValue result = callNovaMethod(value, vm.magicStrings.float_);
-    if (result.hasValue) {
-        if (IS_NUMBER(result.value))
-            return AS_NUMBER(result.value);
-        reportRuntimeError("Return type must be <type number>");
-    }
-    functionNotImplemented("float", value);
+    // OptValue result = callNovaMethod(value, vm.magicStrings.float_);
+    // if (result.hasValue) {
+    //     if (IS_NUMBER(result.value))
+    //         return AS_NUMBER(result.value);
+    //     reportRuntimeError("Return type must be <type number>");
+    // }
+    // functionNotImplemented("float", value);
 }

@@ -8,10 +8,15 @@
 #include "code.h"
 
 struct Obj {
+    ValueType type;
     bool isMarked;
     struct Obj *next;
 };
 
-Obj* allocateObject(size_t size);
+#define OBJ_VAL(value)      ((Value){.type=((Obj*)value)->type, .as.object=(Obj*)value})
+
+Obj* allocateObject(size_t size, ValueType);
+
+bool isObject(Value value);
 
 #endif

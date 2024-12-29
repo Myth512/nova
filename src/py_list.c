@@ -18,10 +18,10 @@ Value novaArrayPop(int argc, Value *argv) {
 }
 
 Value novaArrayInsert(int argc, Value *argv) {
-    ObjArray *array = AS_ARRAY(argv[0]);
-    int index = AS_NUMBER(argv[1]);
-    insertValue(&array->vec, index, argv[2]);
-    return NONE_VAL;
+    // ObjArray *array = AS_ARRAY(argv[0]);
+    // int index = AS_NUMBER(argv[1]);
+    // insertValue(&array->vec, index, argv[2]);
+    // return NONE_VAL;
 }
 
 Value novaArrayReverse(int argc, Value *argv) {
@@ -68,20 +68,20 @@ static void quicksort(ObjArray *array, int left, int right, bool reverse) {
 }
 
 Value novaArraySort(int argc, Value *argv) {
-    bool reverse = false;
-    if (argc == 1) {
-        if (IS_BOOL(argv[1])) {
-            reverse = AS_BOOL(argv[1]);
-        } else {
-            reportRuntimeError("Reverse must be boolean");
-        }
-    } else if (argc > 1) {
-        reportRuntimeError("At most 1 arguments");
-    }
+    // bool reverse = false;
+    // if (argc == 1) {
+    //     if (IS_BOOL(argv[1])) {
+    //         reverse = AS_BOOL(argv[1]);
+    //     } else {
+    //         reportRuntimeError("Reverse must be boolean");
+    //     }
+    // } else if (argc > 1) {
+    //     reportRuntimeError("At most 1 arguments");
+    // }
 
-    ObjArray *array = AS_ARRAY(argv[0]);
-    quicksort(array, 0, array->vec.size - 1, reverse);
-    return NONE_VAL;
+    // ObjArray *array = AS_ARRAY(argv[0]);
+    // quicksort(array, 0, array->vec.size - 1, reverse);
+    // return NONE_VAL;
 }
 
 // bool compareArrays(ObjArray *a, ObjArray *b) {

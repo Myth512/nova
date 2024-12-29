@@ -5,6 +5,7 @@
 
 #include "native.h"
 #include "value.h"
+#include "value_methods.h"
 #include "object.h"
 #include "object_string.h"
 #include "vm.h"

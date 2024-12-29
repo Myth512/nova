@@ -5,6 +5,8 @@
 
 #include "vm.h"
 #include "debug.h"
+#include "value_int.h"
+#include "value_methods.h"
 #include "object.h"
 #include "object_string.h"
 #include "object_array.h"
@@ -138,9 +140,9 @@ static bool call(ObjClosure *closure, int argc, bool isMethod) {
 }
 
 static void defineNative(const char *name, NativeFn function) {
-    push(OBJ_VAL(copyString(name, (int)strlen(name))));
+    push(STRING_VAL(copyString(name, (int)strlen(name))));
     ObjNative *native = createNative(function, name);
-    push(OBJ_VAL(native));
+    push(NATIVE_VAL(native));
     tableSet(&vm.globals, AS_STRING(vm.stack[0]), vm.stack[1]);
     pop();
     pop();
@@ -163,51 +165,49 @@ static void defineNatives() {
 }
 
 static bool callValueInternal(Value callee, int argc) {
-    if (IS_OBJ(callee)) {
-        switch (OBJ_TYPE(callee)) {
-            case OBJ_METHOD: {
-                ObjMethod *method = AS_METHOD(callee);
-                insert(argc, method->reciever);
-                return call(method->method, argc + 1, true);
-            }
-            case OBJ_NATIVE_METHOD: {
-                ObjNativeMethod *method = AS_NATIVE_METHOD(callee);
-                insert(argc, method->reciever);
-                NativeFn native = method->method;
-                Value result = native(argc, vm.top - argc - 1);
-                vm.top -= argc + 1;
-                push(result);
-                return true;
-            }
-            case OBJ_CLASS: {
-                ObjClass *class = AS_CLASS(callee);
-                insert(argc, OBJ_VAL(createInstance(class)));
-                Value initializer;
-                if (tableGet(&class->methods, vm.magicStrings.init, &initializer)) {
-                    return call(AS_CLOSURE(initializer), argc + 1, true);
-                } else if (argc != 0) {
-                    reportRuntimeError("Expect 0 arguments but got %d", argc);
-                    return false;
-                }
-                return true;
-            }
-            case OBJ_CLOSURE: {
-                ObjClosure *closure = AS_CLOSURE(callee);
-                int minArity = closure->function->minArity;
-                int maxArity = closure->function->maxArity;
-                for (int i = argc; i < maxArity; i++)
-                    push(closure->function->defaults->vec.values[i - minArity]);
-                return call(AS_CLOSURE(callee), argc < maxArity ? maxArity : argc, false);
-            }
-            case OBJ_NATIVE:
-                NativeFn native = AS_NATIVE(callee)->function;
-                Value result = native(argc, vm.top - argc);
-                vm.top -= argc + 1;
-                push(result);
-                return true;
-            default:
-                break;
+    switch (callee.type) {
+        case VAL_METHOD: {
+            ObjMethod *method = AS_METHOD(callee);
+            insert(argc, method->reciever);
+            return call(method->method, argc + 1, true);
         }
+        case VAL_NATIVE_METHOD: {
+            ObjNativeMethod *method = AS_NATIVE_METHOD(callee);
+            insert(argc, method->reciever);
+            NativeFn native = method->method;
+            Value result = native(argc, vm.top - argc - 1);
+            vm.top -= argc + 1;
+            push(result);
+            return true;
+        }
+        case VAL_CLASS: {
+            ObjClass *class = AS_CLASS(callee);
+            insert(argc, INSTANCE_VAL(createInstance(class)));
+            Value initializer;
+            if (tableGet(&class->methods, vm.magicStrings.init, &initializer)) {
+                return call(AS_CLOSURE(initializer), argc + 1, true);
+            } else if (argc != 0) {
+                reportRuntimeError("Expect 0 arguments but got %d", argc);
+                return false;
+            }
+            return true;
+        }
+        case VAL_CLOSURE: {
+            ObjClosure *closure = AS_CLOSURE(callee);
+            int minArity = closure->function->minArity;
+            int maxArity = closure->function->maxArity;
+            for (int i = argc; i < maxArity; i++)
+                push(closure->function->defaults->vec.values[i - minArity]);
+            return call(AS_CLOSURE(callee), argc < maxArity ? maxArity : argc, false);
+        }
+        case VAL_NATIVE:
+            NativeFn native = AS_NATIVE(callee)->function;
+            Value result = native(argc, vm.top - argc);
+            vm.top -= argc + 1;
+            push(result);
+            return true;
+        default:
+            break;
     }
     reportRuntimeError("Can only call functions and classes");
     return false;
@@ -262,7 +262,7 @@ static void buildFormattedString() {
     size_t spaceLeft = bufferSize;
     int size = sizeof(ObjString) + bufferSize;
 
-    ObjString *string = (ObjString*)allocateObject(size, OBJ_STRING);
+    ObjString *string = (ObjString*)allocateObject(size, VAL_STRING);
     string->isInterned = false;
     string->isHashed = false;
 
@@ -291,49 +291,43 @@ static void buildFormattedString() {
     for (int i = 0; i < partCount; i++)
         pop();
 
-    push(OBJ_VAL(string));
+    push(STRING_VAL(string));
 }
 
 static void buildArray() {
-    size_t size = READ_BYTE();
-    ObjArray *array = allocateArray(size);
+    // size_t size = READ_BYTE();
+    // ObjArray *array = allocateArray(size);
 
-    for (int i = 0; i < size; i++) {
-        Value value = peek(size - i - 1);
-        array->vec.values[i] = value;
-    }
+    // for (int i = 0; i < size; i++) {
+    //     Value value = peek(size - i - 1);
+    //     array->vec.values[i] = value;
+    // }
     
-    for (int i = 0; i < size; i++)
-        pop();
+    // for (int i = 0; i < size; i++)
+    //     pop();
     
-    push(OBJ_VAL(array));
+    // push((array));
 }
 
 static void buildTuple() {
-    size_t size = READ_BYTE();
-    ObjTuple *tuple = allocateTuple(size);
+    // size_t size = READ_BYTE();
+    // ObjTuple *tuple = allocateTuple(size);
 
-    for (int i = 0; i < size; i++) {
-        Value value = peek(size - i - 1);
-        tuple->values[i] = value;
-    }
+    // for (int i = 0; i < size; i++) {
+    //     Value value = peek(size - i - 1);
+    //     tuple->values[i] = value;
+    // }
     
-    for (int i = 0; i < size; i++)
-        pop();
+    // for (int i = 0; i < size; i++)
+    //     pop();
     
-    push(OBJ_VAL(tuple));
+    // push(OBJ_VAL(tuple));
 }
 
-static void arithmetic(Value (*func)(Value, Value)) {
+static void binary(Value (*func)(Value, Value)) {
     Value b = pop();
     Value a = pop();
     push(func(a, b));
-}
-
-static void equality(bool (*func)(Value, Value)) {
-    Value b = pop();
-    Value a = pop();
-    push(BOOL_VAL(func(a, b)));
 }
 
 static void unary(Value (*func)(Value)) {
@@ -355,43 +349,43 @@ static void setLocal() {
 }
 
 static void getAt(bool popValues) {
-    Value key;
-    Value object;
+    // Value key;
+    // Value object;
     
-    if (popValues) {
-        key = pop();
-        object = pop();
-    } else {
-        key = peek(0);
-        object = peek(1);
-    }
+    // if (popValues) {
+    //     key = pop();
+    //     object = pop();
+    // } else {
+    //     key = peek(0);
+    //     object = peek(1);
+    // }
 
-    push(valueGetAt(object, key));
+    // push(valueGetAt(object, key));
 }
 
 static void setAt() {
-    Value value = pop();
-    Value key = pop();
-    Value object = peek(0);
+    // Value value = pop();
+    // Value key = pop();
+    // Value object = peek(0);
 
-    valueSetAt(object, key, value);
+    // valueSetAt(object, key, value);
 }
 
 static void getProperty() {
-    Value obj = pop();
-    ObjString *name = READ_STRING();
-    OptValue result = valueGetField(obj, name);
-    if (result.hasValue)
-        push(result.value);
-    else
-        reportRuntimeError("Object of %s does not have field %s", decodeValueType(obj), name->chars);
+    // Value obj = pop();
+    // ObjString *name = READ_STRING();
+    // OptValue result = valueGetField(obj, name);
+    // if (result.hasValue)
+    //     push(result.value);
+    // else
+    //     reportRuntimeError("Object of %s does not have field %s", decodeValueType(obj), name->chars);
 }
 
 static void setProperty() {
-    Value obj = peek(1);
-    ObjString *name = READ_STRING();
-    Value value = pop();
-    valueSetField(obj, name, value);
+    // Value obj = peek(1);
+    // ObjString *name = READ_STRING();
+    // Value value = pop();
+    // valueSetField(obj, name, value);
 }
 
 static Value run() {
@@ -410,8 +404,8 @@ static Value run() {
                 Value constant = READ_CONSTANT();
                 push(constant);
                 break;
-            case OP_NIL:
-                push(NIL_VAL);
+            case OP_NONE:
+                push(NONE_VAL);
                 break;
             case OP_POP:
                 pop();
@@ -462,46 +456,46 @@ static Value run() {
                 push(BOOL_VAL(true));
                 break;
             case OP_EQUAL:
-                equality(valueEqual);
+                binary(valueEqual);
                 break;
             case OP_NOT_EQUAL:
-                equality(valueNotEqual);
+                binary(valueNotEqual);
                 break;
             case OP_GREATER:
-                equality(valueGreater);
+                binary(valueGreater);
                 break;
             case OP_GREATER_EQUAL:
-                equality(valueGreaterEqual);
+                binary(valueGreaterEqual);
                 break;
             case OP_LESS:
-                equality(valueLess);
+                binary(valueLess);
                 break;
             case OP_LESS_EQUAL:
-                equality(valueLessEqual);
+                binary(valueLessEqual);
                 break;
             case OP_ADD:
-                arithmetic(valueAdd); 
+                binary(valueAdd); 
                 break;
             case OP_SUBTRUCT:
-                arithmetic(valueSubtract);
+                binary(valueSubtract);
                 break;
             case OP_MULTIPLY:
-                arithmetic(valueMultiply);
+                binary(valueMultiply);
                 break;
             case OP_DIVIDE:
-                arithmetic(valueDivide);
+                binary(valueTrueDivide);
                 break;
             case OP_MOD:
-                arithmetic(valueModulo);
+                binary(valueModulo);
                 break;
             case OP_POWER:
-                arithmetic(valuePower);
+                binary(valuePower);
                 break;
             case OP_NOT:
                 push(BOOL_VAL(!valueToBool(pop())));
                 break;
             case OP_NEGATE:
-                unary(valueNegate);
+                unary(valueNegative);
                 break;
             case OP_BUILD_FSTRING:
                 buildFormattedString();
@@ -555,7 +549,7 @@ static Value run() {
             case OP_CALL: {
                 int argc = READ_BYTE();
                 if (!callValue(peek(argc), argc))
-                    return NIL_VAL;
+                    return NONE_VAL;
                 break;
             }
             case OP_CLOSURE: {
@@ -563,7 +557,7 @@ static Value run() {
                 Value defaults = pop();
                 function->defaults = AS_ARRAY(defaults);
                 ObjClosure *closure = createClosure(function);
-                push(OBJ_VAL(closure));
+                push(CLOSURE_VAL(closure));
                 for (int i = 0; i < closure->upvalueCount; i++) {
                     uint8_t isLocal = READ_BYTE();
                     uint8_t index = READ_BYTE();
@@ -618,36 +612,36 @@ Value callNovaValue(Value callee, int argc) {
 }
 
 OptValue callNovaMethod(Value obj, ObjString *methodName) {
-    OptValue method = valueGetField(obj, methodName);
-    if (method.hasValue) {
-        push(NIL_VAL);
-        Value value = callNovaValue(method.value, 0);;
-        return (OptValue){.hasValue=true, .value=value};
-    }
-    return (OptValue){.hasValue=false};
+    // OptValue method = valueGetField(obj, methodName);
+    // if (method.hasValue) {
+    //     push(NIL_VAL);
+    //     Value value = callNovaValue(method.value, 0);;
+    //     return (OptValue){.hasValue=true, .value=value};
+    // }
+    // return (OptValue){.hasValue=false};
 }
 
 OptValue callNovaMethod1arg(Value obj, ObjString *methodName, Value arg) {
-    OptValue method = valueGetField(obj, methodName);
-    if (method.hasValue) {
-        push(NIL_VAL);
-        push(arg);
-        Value value = callNovaValue(method.value, 1);
-        return (OptValue){.hasValue=true, .value=value};
-    }
-    return (OptValue){.hasValue=false};
+    // OptValue method = valueGetField(obj, methodName);
+    // if (method.hasValue) {
+    //     push(NIL_VAL);
+    //     push(arg);
+    //     Value value = callNovaValue(method.value, 1);
+    //     return (OptValue){.hasValue=true, .value=value};
+    // }
+    // return (OptValue){.hasValue=false};
 }
 
 OptValue callNovaMethod2args(Value obj, ObjString *methodName, Value arg1, Value arg2) {
-    OptValue method = valueGetField(obj, methodName);
-    if (method.hasValue) {
-        push(NIL_VAL);
-        push(arg1);
-        push(arg2);
-        Value value = callNovaValue(method.value, 1);
-        return (OptValue){.hasValue=true, .value=value};
-    }
-    return (OptValue){.hasValue=false};
+    // OptValue method = valueGetField(obj, methodName);
+    // if (method.hasValue) {
+    //     push(NIL_VAL);
+    //     push(arg1);
+    //     push(arg2);
+    //     Value value = callNovaValue(method.value, 1);
+    //     return (OptValue){.hasValue=true, .value=value};
+    // }
+    // return (OptValue){.hasValue=false};
 }
 
 void initMagicStrings() {

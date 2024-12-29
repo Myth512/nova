@@ -3,18 +3,18 @@
 
 #include "value.h"
 
-Value noneEqual(Value a, Value b);
+Value None_Equal(Value a, Value b);
 
-Value noneNotEqual(Value a, Value b);
+Value None_NotEqual(Value a, Value b);
 
-uint64_t noneHash(Value value);
+uint64_t None_Hash(Value value);
 
-bool noneToBool(Value value);
+bool None_ToBool(Value value);
 
-long long noneToInt(Value value);
+long long None_ToInt(Value value);
 
-double noneToFloat(Value value);
+double None_ToFloat(Value value);
 
-int noneToStr(Value value, char *buffer, size_t size);
+int None_ToStr(Value value, char *buffer, size_t size);
 
 #endif

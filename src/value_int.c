@@ -5,61 +5,61 @@
 #include "value_float.h"
 #include "vm.h"
 
-Value intEqual(Value a, Value b) {
+Value Int_Equal(Value a, Value b) {
     if (b.type == VAL_INT || b.type == VAL_BOOL)
         return BOOL_VAL(AS_INT(a) == AS_INT(b));
     return NOT_IMPLEMENTED_VAL;
 }
 
-Value intNotEqual(Value a, Value b) {
+Value Int_NotEqual(Value a, Value b) {
     if (b.type == VAL_INT || b.type == VAL_BOOL)
         return BOOL_VAL(AS_INT(a) != AS_INT(b));
     return NOT_IMPLEMENTED_VAL;
 }
 
-Value intGreater(Value a, Value b) {
+Value Int_Greater(Value a, Value b) {
     if (b.type == VAL_INT || b.type == VAL_BOOL)
         return BOOL_VAL(AS_INT(a) > AS_INT(b));
     return NOT_IMPLEMENTED_VAL;
 }
 
-Value intGreaterEqual(Value a, Value b) {
+Value Int_GreaterEqual(Value a, Value b) {
     if (b.type == VAL_INT || b.type == VAL_BOOL)
         return BOOL_VAL(AS_INT(a) >= AS_INT(b));
     return NOT_IMPLEMENTED_VAL;
 }
 
-Value intLess(Value a, Value b) {
+Value Int_Less(Value a, Value b) {
     if (b.type == VAL_INT || b.type == VAL_BOOL)
         return BOOL_VAL(AS_INT(a) < AS_INT(b));
     return NOT_IMPLEMENTED_VAL;
 }
 
-Value intLessEqual(Value a, Value b) {
+Value Int_LessEqual(Value a, Value b) {
     if (b.type == VAL_INT || b.type == VAL_BOOL)
         return BOOL_VAL(AS_INT(a) <= AS_INT(b));
     return NOT_IMPLEMENTED_VAL;
 }
 
-Value intAdd(Value a, Value b) {
+Value Int_Add(Value a, Value b) {
     if (b.type == VAL_INT || b.type == VAL_BOOL)
         return INT_VAL(AS_INT(a) + AS_INT(b));
     return NOT_IMPLEMENTED_VAL;
 }
 
-Value intSubtract(Value a, Value b) {
+Value Int_Subtract(Value a, Value b) {
     if (b.type == VAL_INT || b.type == VAL_BOOL)
         return INT_VAL(AS_INT(a) - AS_INT(b));
     return NOT_IMPLEMENTED_VAL;
 }
 
-Value intMultiply(Value a, Value b) {
+Value Int_Multiply(Value a, Value b) {
     if (b.type == VAL_INT || b.type == VAL_BOOL)
         return INT_VAL(AS_INT(a) * AS_INT(b));
     return NOT_IMPLEMENTED_VAL;
 }
 
-Value intTrueDivide(Value a, Value b) {
+Value Int_TrueDivide(Value a, Value b) {
     if (b.type == VAL_INT || b.type == VAL_BOOL) {
         if (AS_INT(b) == 0)
             reportRuntimeError("Division by zero");
@@ -68,7 +68,7 @@ Value intTrueDivide(Value a, Value b) {
     return NOT_IMPLEMENTED_VAL;
 }
 
-Value intFloorDivide(Value a, Value b) {
+Value Int_FloorDivide(Value a, Value b) {
     if (b.type == VAL_INT || b.type == VAL_BOOL) {
         if (AS_INT(b) == 0)
             reportRuntimeError("Division by zero");
@@ -77,7 +77,7 @@ Value intFloorDivide(Value a, Value b) {
     return NOT_IMPLEMENTED_VAL;
 }
 
-Value intModulo(Value a, Value b) {
+Value Int_Modulo(Value a, Value b) {
     if (b.type == VAL_INT || b.type == VAL_BOOL) {
         if (AS_INT(b) == 0)
             reportRuntimeError("Division by zero");
@@ -86,55 +86,55 @@ Value intModulo(Value a, Value b) {
     return NOT_IMPLEMENTED_VAL;
 }
 
-Value intPower(Value a, Value b) {
+Value Int_Power(Value a, Value b) {
     if (b.type == VAL_INT || b.type == VAL_BOOL)
         return INT_VAL(pow(AS_INT(a), AS_INT(b)));
     return NOT_IMPLEMENTED_VAL;
 }
 
-Value intPositive(Value a) {
+Value Int_Positive(Value a) {
     return a; 
 }
 
-Value intNegative(Value a) {
+Value Int_Negative(Value a) {
     return INT_VAL(-AS_INT(a));
 }
 
-Value intAnd(Value a, Value b) {
+Value Int_And(Value a, Value b) {
     if (b.type == VAL_INT || b.type == VAL_BOOL)
         return INT_VAL(AS_INT(a) & AS_INT(b));
     return NOT_IMPLEMENTED_VAL;
 }
 
-Value intXor(Value a, Value b) {
+Value Int_Xor(Value a, Value b) {
     if (b.type == VAL_INT || b.type == VAL_BOOL)
         return INT_VAL(AS_INT(a) ^ AS_INT(b));
     return NOT_IMPLEMENTED_VAL;
 }
 
-Value intOr(Value a, Value b) {
+Value Int_Or(Value a, Value b) {
     if (b.type == VAL_INT || b.type == VAL_BOOL)
         return INT_VAL(AS_INT(a) | AS_INT(b));
     return NOT_IMPLEMENTED_VAL;
 }
 
-Value intInvert(Value a) {
+Value Int_Invert(Value a) {
     return INT_VAL(~AS_INT(a));
 }
 
-Value intLeftShift(Value a, Value b) {
+Value Int_LeftShift(Value a, Value b) {
     if (b.type == VAL_INT || b.type == VAL_BOOL)
         return INT_VAL(AS_INT(a) << AS_INT(b));
     return NOT_IMPLEMENTED_VAL;
 }
 
-Value intRightShift(Value a, Value b) {
+Value Int_RightShift(Value a, Value b) {
     if (b.type == VAL_INT || b.type == VAL_BOOL)
         return INT_VAL(AS_INT(a) >> AS_INT(b));
     return NOT_IMPLEMENTED_VAL;
 }
 
-uint64_t intHash(Value value) {
+uint64_t Int_Hash(Value value) {
     uint64_t hash = (uint64_t)AS_INT(value);
     
     hash ^= (hash >> 33);
@@ -146,22 +146,22 @@ uint64_t intHash(Value value) {
     return hash;
 }
 
-bool intToBool(Value value) {
+bool Int_ToBool(Value value) {
     return AS_INT(value);
 }
 
-long long intToInt(Value value) {
+long long Int_ToInt(Value value) {
     return AS_INT(value);
 }
 
-double intToFloat(Value value) {
+double Int_ToFloat(Value value) {
     return AS_INT(value);
 }
 
-int intToStr(Value value, char *buffer, const size_t size) {
+int Int_ToStr(Value value, char *buffer, const size_t size) {
     writeToBuffer(buffer, size, "%lld", AS_INT(value));
 }
 
-int boolToStr(Value value, char *buffer, const size_t size) {
+int Bool_ToStr(Value value, char *buffer, const size_t size) {
     writeToBuffer(buffer, size, "%s", AS_BOOL(value) ? "True" : "False");
 }

@@ -2,7 +2,7 @@
 #include "memory.h"
 
 ObjUpvalue *createUpvalue(Value *slot) {
-    ObjUpvalue *upvalue = (ObjUpvalue*)allocateObject(sizeof(ObjUpvalue));
+    ObjUpvalue *upvalue = (ObjUpvalue*)allocateObject(sizeof(ObjUpvalue), VAL_UPVALUE);
     upvalue->closed = NONE_VAL;
     upvalue->location = slot;
     upvalue->next = NULL;
@@ -10,7 +10,7 @@ ObjUpvalue *createUpvalue(Value *slot) {
 }
 
 ObjFunction* createFunction() {
-    ObjFunction *function = (ObjFunction*)allocateObject(sizeof(ObjFunction));
+    ObjFunction *function = (ObjFunction*)allocateObject(sizeof(ObjFunction), VAL_FUNCTION);
     function->minArity = 0;
     function->maxArity = 0;
     function->upvalueCount = 0;
@@ -24,7 +24,7 @@ ObjClosure* createClosure(ObjFunction *function) {
     for (int i = 0; i < function->upvalueCount; i++)
         upvalues[i] = NULL;
 
-    ObjClosure *closure = (ObjClosure*)allocateObject(sizeof(ObjClosure));
+    ObjClosure *closure = (ObjClosure*)allocateObject(sizeof(ObjClosure), VAL_CLOSURE);
     closure->function = function;
     closure->upvalues = upvalues;
     closure->upvalueCount = function->upvalueCount;
@@ -32,7 +32,7 @@ ObjClosure* createClosure(ObjFunction *function) {
 }
 
 ObjNative* createNative(NativeFn function, const char *name) {
-    ObjNative *native = (ObjNative*)allocateObject(sizeof(ObjNative));
+    ObjNative *native = (ObjNative*)allocateObject(sizeof(ObjNative), VAL_NATIVE);
     native->function = function;
     native->name = name;
     return native;

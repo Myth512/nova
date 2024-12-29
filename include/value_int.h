@@ -12,58 +12,58 @@
 #define AS_BOOL(value)      ((bool)((value).as.integer))
 #define AS_INT(value)       ((value).as.integer)
 
-Value intEqual(Value a, Value b);
+Value Int_Equal(Value a, Value b);
 
-Value intNotEqual(Value a, Value b);
+Value Int_NotEqual(Value a, Value b);
 
-Value intGreater(Value a, Value b);
+Value Int_Greater(Value a, Value b);
 
-Value intGreaterEqual(Value a, Value b);
+Value Int_GreaterEqual(Value a, Value b);
 
-Value intLess(Value a, Value b);
+Value Int_Less(Value a, Value b);
 
-Value intLessEqual(Value a, Value b);
+Value Int_LessEqual(Value a, Value b);
 
-Value intAdd(Value a, Value b);
+Value Int_Add(Value a, Value b);
 
-Value intSubtract(Value a, Value b);
+Value Int_Subtract(Value a, Value b);
 
-Value intMultiply(Value a, Value b);
+Value Int_Multiply(Value a, Value b);
 
-Value intTrueDivide(Value a, Value b);
+Value Int_TrueDivide(Value a, Value b);
 
-Value intFloorDivide(Value a, Value b);
+Value Int_FloorDivide(Value a, Value b);
 
-Value intModulo(Value a, Value b);
+Value Int_Modulo(Value a, Value b);
 
-Value intPower(Value a, Value b);
+Value Int_Power(Value a, Value b);
 
-Value intPositive(Value a);
+Value Int_Positive(Value a);
 
-Value intNegative(Value a);
+Value Int_Negative(Value a);
 
-Value intAnd(Value a, Value b); 
+Value Int_And(Value a, Value b); 
 
-Value intXor(Value a, Value b);
+Value Int_Xor(Value a, Value b);
 
-Value intOr(Value a, Value b);
+Value Int_Or(Value a, Value b);
 
-Value intInvert(Value a);
+Value Int_Invert(Value a);
 
-Value intLeftShift(Value a, Value b);
+Value Int_LeftShift(Value a, Value b);
 
-Value intRightShift(Value a, Value b);
+Value Int_RightShift(Value a, Value b);
 
-uint64_t intHash(Value value);
+uint64_t Int_Hash(Value value);
 
-bool intToBool(Value value);
+bool Int_ToBool(Value value);
 
-long long intToInt(Value value);
+long long Int_ToInt(Value value);
 
-double intToFloat(Value value);
+double Int_ToFloat(Value value);
 
-int intToStr(Value value, char *buffer, const size_t size);
+int Int_ToStr(Value value, char *buffer, const size_t size);
 
-int boolToStr(Value value, char *buffer, const size_t size);
+int Bool_ToStr(Value value, char *buffer, const size_t size);
 
 #endif

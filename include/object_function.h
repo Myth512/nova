@@ -4,6 +4,8 @@
 #include "object.h"
 #include "object_array.h"
 
+#define CLOSURE_VAL(closure)     ((Value){.type=VAL_CLOSURE, .as.object=(Obj*)closure})
+
 #define IS_CLOSURE(value)       isObjType(value, OBJ_CLOSURE)
 #define IS_FUNCTION(value)      isObjType(value, OBJ_FUNCTION)
 #define IS_NATIVE(value)        isObjType(value, OBJ_NATIVE)

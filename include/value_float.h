@@ -10,44 +10,44 @@
 
 #define AS_FLOAT(value)     ((value).as.floating)
 
-Value floatEqual(Value a, Value b);
+Value Float_Equal(Value a, Value b);
 
-Value floatNotEqual(Value a, Value b);
+Value Float_NotEqual(Value a, Value b);
 
-Value floatGreater(Value a, Value b);
+Value Float_Greater(Value a, Value b);
 
-Value floatGreaterEqual(Value a, Value b);
+Value Float_GreaterEqual(Value a, Value b);
 
-Value floatLess(Value a, Value b);
+Value Float_Less(Value a, Value b);
 
-Value floatLessEqual(Value a, Value b);
+Value Float_LessEqual(Value a, Value b);
 
-Value floatAdd(Value a, Value b);
+Value Float_Add(Value a, Value b);
 
-Value floatSubtract(Value a, Value b);
+Value Float_Subtract(Value a, Value b);
 
-Value floatMultiply(Value a, Value b);
+Value Float_Multiply(Value a, Value b);
 
-Value floatTrueDivide(Value a, Value b);
+Value Float_TrueDivide(Value a, Value b);
 
-Value floatFloorDivide(Value a, Value b);
+Value Float_FloorDivide(Value a, Value b);
 
-Value floatModulo(Value a, Value b);
+Value Float_Modulo(Value a, Value b);
 
-Value floatPower(Value a, Value b);
+Value Float_Power(Value a, Value b);
 
-Value floatPositive(Value a);
+Value Float_Positive(Value a);
 
-Value floatNegative(Value a);
+Value Float_Negative(Value a);
 
-uint64_t floatHash(Value value);
+uint64_t Float_Hash(Value value);
 
-bool floatToBool(Value value);
+bool Float_ToBool(Value value);
 
-long long floatToInt(Value value);
+long long Float_ToInt(Value value);
 
-double floatToFloat(Value value);
+double Float_ToFloat(Value value);
 
-int floatToStr(Value value, char *buffer, const size_t size);
+int Float_ToStr(Value value, char *buffer, const size_t size);
 
 #endif

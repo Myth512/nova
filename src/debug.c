@@ -3,7 +3,7 @@
 #include "debug.h"
 #include "object.h"
 #include "value.h"
-#include "value_utils.h"
+#include "value_methods.h"
 #include "object_function.h"
 
 static const char *TokenTypeToString[] = {
@@ -167,8 +167,8 @@ int printInstruction(CodeVec *vec, int offset) {
     switch (opcode) {
         case OP_CONSTANT:
             return constantInstruction("CONSTANT", vec, offset);
-        case OP_NIL:
-            return simpleInstruction("NIL", offset);
+        case OP_NONE:
+            return simpleInstruction("NONE", offset);
         case OP_POP:
             return simpleInstruction("POP", offset);
         case OP_FALSE:

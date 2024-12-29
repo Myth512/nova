@@ -28,6 +28,7 @@ int writeToBuffer(char *buffer, const size_t size, const char *format, ...) {
 }
 
 const char* decodeValueType(Value value) {
+    return "type";
     // switch (value.type) {
     //     case VAL_BOOL:
     //         return "<type bool>";

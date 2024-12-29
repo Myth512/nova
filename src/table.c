@@ -4,6 +4,8 @@
 
 #include "table.h"
 #include "memory.h"
+#include "value_methods.h"
+#include "value_int.h"
 #include "object_string.h"
 
 #define TABLE_MAX_LOAD 0.75
@@ -20,19 +22,19 @@ void freeTable(Table *table) {
 }
 
 static Entry* findEntry(Entry *entries, int capacity, ObjString *key) {
-    uint32_t index = getStringHash(key) % capacity; 
+    uint32_t index = String_Hash(STRING_VAL(key)) % capacity; 
     Entry *tombstone = NULL;
 
     while (true) {
         Entry *entry = &entries[index];
         if (entry->key == NULL) {
-            if (IS_NIL(entry->value)) {
+            if (IS_NONE(entry->value)) {
                 return tombstone != NULL ? tombstone : entry;
             } else {
                 if (tombstone == NULL)
                     tombstone = entry;
             }
-        } else if (stringEqual(key, entry->key)) {
+        } else if (valueToBool(String_Equal(STRING_VAL(key), STRING_VAL(entry->key)))) {
             return entry;
         }
         
@@ -44,7 +46,7 @@ static void adjustCapacity(Table *table, int capacity) {
     Entry *entries = ALLOCATE(Entry, capacity);
     for (int i = 0; i < capacity; i++) {
         entries[i].key = NULL;
-        entries[i].value = NIL_VAL;
+        entries[i].value = NONE_VAL;
     }
 
     table->size = 0; 
@@ -72,7 +74,7 @@ bool tableSet(Table *table, ObjString *key, Value value) {
 
     Entry *entry = findEntry(table->entries, table->capacity, key);
     bool isNewKey = entry->key == NULL;
-    if (isNewKey && IS_NIL(entry->value))
+    if (isNewKey && IS_NONE(entry->value))
         table->size++;
 
     entry->key = key;

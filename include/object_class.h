@@ -4,15 +4,18 @@
 #include "object.h"
 #include "object_function.h"
 
+#define NATIVE_VAL(native)      ((Value){.type=VAL_NATIVE, .as.object=(Obj*)native})
+#define INSTANCE_VAL(instance)      ((Value){.type=VAL_INSTANCE, .as.object=(Obj*)instance})
+
 #define IS_CLASS(value)         isObjType(value, OBJ_CLASS)
 #define IS_INSTANCE(value)      isObjType(value, OBJ_INSTANCE)
 #define IS_METHOD(value)        isObjType(value, OBJ_METHOD)
 #define IS_NATIVE_METHOD(value) isObjType(value, OBJ_NATIVE_METHOD)
 
-#define AS_CLASS(value)         ((ObjClass*)AS_OBJ(value))
-#define AS_INSTANCE(value)      ((ObjInstance*)AS_OBJ(value))
-#define AS_METHOD(value)        ((ObjMethod*)AS_OBJ(value))
-#define AS_NATIVE_METHOD(value) ((ObjNativeMethod*)AS_OBJ(value))
+#define AS_CLASS(value)         ((ObjClass*)value.as.object)
+#define AS_INSTANCE(value)      ((ObjInstance*)value.as.object)
+#define AS_METHOD(value)        ((ObjMethod*)value.as.object)
+#define AS_NATIVE_METHOD(value) ((ObjNativeMethod*)value.as.object)
 
 typedef struct {
     Obj obj;

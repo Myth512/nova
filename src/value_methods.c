@@ -1,52 +1,18 @@
-#include "value_utils.h"
+#include "value_methods.h"
 #include "value_none.h"
 #include "value_int.h"
 #include "value_float.h"
 #include "object_string.h"
 #include "vm.h"
 
-typedef Value (*BinaryMethod)(Value, Value);
-typedef Value (*UnaryMethod)(Value);
-
 #define GET_METHOD(value, name) MethodTable[(value).type].name
 
-typedef struct {
-    BinaryMethod eq;
-    BinaryMethod ne;
-    BinaryMethod gt;
-    BinaryMethod ge;
-    BinaryMethod lt;
-    BinaryMethod le;
-    BinaryMethod add;
-    BinaryMethod sub;
-    BinaryMethod mul;
-    BinaryMethod truediv;
-    BinaryMethod floordiv;
-    BinaryMethod mod;
-    BinaryMethod pow;
-    UnaryMethod pos;
-    UnaryMethod neg;
-    BinaryMethod and;
-    BinaryMethod xor;
-    BinaryMethod or;
-    UnaryMethod invert;
-    BinaryMethod lshift;
-    BinaryMethod rshift;
-    uint64_t (*hash)(Value);
-    long long (*len)(Value);
-    bool (*toBool)(Value);
-    long long (*toInt)(Value);
-    double (*toFloat)(Value);
-    int (*str)(Value, char*, size_t);
-    int (*repr)(Value, char*, size_t);
-} ValueMethods;
-
-const ValueMethods MethodTable[] = {
-    [VAL_NONE]   = {noneEqual,   noneNotEqual,   NULL,          NULL,               NULL,       NULL,            NULL,      NULL,          NULL,            NULL,             NULL,             NULL,        NULL,       NULL,          NULL,          NULL,   NULL,   NULL,  NULL,      NULL,         NULL,          noneHash,   NULL,      noneToBool,   noneToInt,   noneToFloat,   noneToStr,   noneToStr},
-    [VAL_BOOL]   = {intEqual,    intNotEqual,    intGreater,    intGreaterEqual,    intLess,    intLessEqual,    intAdd,    intSubtract,   intMultiply,     intTrueDivide,    intFloorDivide,   intModulo,   intPower,   intPositive,   intNegative,   intAnd, intXor, intOr, intInvert, intLeftShift, intRightShift, intHash,    NULL,      intToBool,    intToInt,    intToFloat,    boolToStr,   boolToStr},
-    [VAL_INT]    = {intEqual,    intNotEqual,    intGreater,    intGreaterEqual,    intLess,    intLessEqual,    intAdd,    intSubtract,   intMultiply,     intTrueDivide,    intFloorDivide,   intModulo,   intPower,   intPositive,   intNegative,   intAnd, intXor, intOr, intInvert, intLeftShift, intRightShift, intHash,    NULL,      intToBool,    intToInt,    intToFloat,    intToStr,    intToStr},
-    [VAL_FLOAT]  = {floatEqual,  floatNotEqual,  floatGreater,  floatGreaterEqual,  floatLess,  floatLessEqual,  floatAdd,  floatSubtract, floatMultiply,   floatTrueDivide,  floatFloorDivide, floatModulo, floatPower, floatPositive, floatNegative, NULL,   NULL,   NULL,  NULL,      NULL,         NULL,          floatHash,  NULL,      floatToBool,  floatToInt,  floatToFloat,  floatToStr,  floatToStr},
-    [VAL_STRING] = {stringEqual, stringNotEqual, stringGreater, stringGreaterEqual, stringLess, stringLessEqual, stringAdd, NULL,          stringMultiply,  NULL,             NULL,             NULL,        NULL,       NULL,          NULL,          NULL,   NULL,   NULL,  NULL,      NULL,         NULL,          stringHash, stringLen, stringToBool, stringToInt, stringToFloat, stringToStr, stringToStr}
+ValueMethods MethodTable[] = {
+    [VAL_NONE]   = {None_Equal,   None_NotEqual,   NULL,           NULL,                NULL,        NULL,             NULL,       NULL,           NULL,             NULL,              NULL,              NULL,         NULL,        NULL,           NULL,           NULL,    NULL,    NULL,   NULL,       NULL,          NULL,           None_Hash,   NULL,       None_ToBool,   None_ToInt,   None_ToFloat,   None_ToStr,   None_ToStr},
+    [VAL_BOOL]   = {Int_Equal,    Int_NotEqual,    Int_Greater,    Int_GreaterEqual,    Int_Less,    Int_LessEqual,    Int_Add,    Int_Subtract,   Int_Multiply,     Int_TrueDivide,    Int_FloorDivide,   Int_Modulo,   Int_Power,   Int_Positive,   Int_Negative,   Int_And, Int_Xor, Int_Or, Int_Invert, Int_LeftShift, Int_RightShift, Int_Hash,    NULL,       Int_ToBool,    Int_ToInt,    Int_ToFloat,    Bool_ToStr,   Bool_ToStr},
+    [VAL_INT]    = {Int_Equal,    Int_NotEqual,    Int_Greater,    Int_GreaterEqual,    Int_Less,    Int_LessEqual,    Int_Add,    Int_Subtract,   Int_Multiply,     Int_TrueDivide,    Int_FloorDivide,   Int_Modulo,   Int_Power,   Int_Positive,   Int_Negative,   Int_And, Int_Xor, Int_Or, Int_Invert, Int_LeftShift, Int_RightShift, Int_Hash,    NULL,       Int_ToBool,    Int_ToInt,    Int_ToFloat,    Int_ToStr,    Int_ToStr},
+    [VAL_FLOAT]  = {Float_Equal,  Float_NotEqual,  Float_Greater,  Float_GreaterEqual,  Float_Less,  Float_LessEqual,  Float_Add,  Float_Subtract, Float_Multiply,   Float_TrueDivide,  Float_FloorDivide, Float_Modulo, Float_Power, Float_Positive, Float_Negative, NULL,    NULL,    NULL,   NULL,       NULL,          NULL,           Float_Hash,  NULL,       Float_ToBool,  Float_ToInt,  Float_ToFloat,  Float_ToStr,  Float_ToStr},
+    [VAL_STRING] = {String_Equal, String_NotEqual, String_Greater, String_GreaterEqual, String_Less, String_LessEqual, String_Add, NULL,           String_Multiply,  NULL,              NULL,              NULL,         NULL,        NULL,           NULL,           NULL,    NULL,    NULL,   NULL,       NULL,          NULL,           String_Hash, String_Len, String_ToBool, String_ToInt, String_ToFloat, String_ToStr, String_ToStr} 
 };
 
 void *checkForNull(void *p) {
@@ -155,11 +121,11 @@ Value valuePower(Value a, Value b) {
 }
 
 Value valuePositive(Value a) {
-    return unaryMethod(a, GET_METHOD(a, pos), '+');
+    return unaryMethod(a, GET_METHOD(a, pos), "+");
 }
 
 Value valueNegative(Value a) {
-    return unaryMethod(a, GET_METHOD(a, neg), '-');
+    return unaryMethod(a, GET_METHOD(a, neg), "-");
 }
 
 Value valueAnd(Value a, Value b) {
@@ -175,7 +141,7 @@ Value valueOr(Value a, Value b) {
 }
 
 Value valueInvert(Value a) {
-    return unaryMethod(a, GET_METHOD(a, invert), '~');
+    return unaryMethod(a, GET_METHOD(a, invert), "~");
 }
 
 Value valueLeftShift(Value a, Value b) {
@@ -227,9 +193,9 @@ uint64_t valueId(Value value) {
         case VAL_FLOAT:
         case VAL_UNDEFINED:
         case VAL_NOT_IMPLEMENTED:
-            return &value;
+            return (uint64_t)&value;
         default:
-            return value.as.object;
+            return (uint64_t)value.as.object;
     }
 }
 
@@ -260,6 +226,8 @@ int valueWrite(Value value, char *buffer, size_t size) {
 
 int valuePrint(Value value) {
     int (*str)(Value, char*, size_t) = GET_METHOD(value, str);
+    if (str == NULL)
+        return printf("TODO");
     return str(value, NULL, 0);
 }
 

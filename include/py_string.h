@@ -3,30 +3,30 @@
 
 #include "value.h"
 
-Value novaStringReverse(int argc, Value *argv);
+Value PyString_Reverse(int argc, Value *argv);
 
-Value novaStringReplace(int argc, Value *argv);
+Value PyString_Replace(int argc, Value *argv);
 
-Value novaStringEqual(int argc, Value *argv);
+Value PyString_Equal(int argc, Value *argv);
 
-Value novaStringNotEqual(int argc, Value *argv);
+Value PyString_NotEqual(int argc, Value *argv);
 
-Value novaStringGreater(int argc, Value *argv);
+Value PyString_Greater(int argc, Value *argv);
 
-Value novaStringGreaterEqual(int argc, Value *argv);
+Value PyString_GreaterEqual(int argc, Value *argv);
 
-Value novaStringLess(int argc, Value *argv);
+Value PyString_Less(int argc, Value *argv);
 
-Value novaStringLessEqual(int argc, Value *argv);
+Value PyString_LessEqual(int argc, Value *argv);
 
-Value novaStringAdd(int argc, Value *argv);
+Value PyString_Add(int argc, Value *argv);
 
-Value novaStringMultiply(int argc, Value *argv);
+Value PyString_Multiply(int argc, Value *argv);
 
-Value novaStringGetAt(int argc, Value *argv);
+Value PyString_GetAt(int argc, Value *argv);
 
-Value novaStringLen(int argc, Value *argv);
+Value PyString_Len(int argc, Value *argv);
 
-Value novaStringHash(int argc, Value *argv);
+Value PyString_Hash(int argc, Value *argv);
 
 #endif

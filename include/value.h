@@ -9,12 +9,14 @@ typedef struct Obj Obj;
 typedef struct ObjString ObjString;
 
 typedef enum {
+    // Values
     VAL_UNDEFINED,
     VAL_NONE,
     VAL_BOOL,
     VAL_INT,
     VAL_FLOAT,
     VAL_NOT_IMPLEMENTED,
+    // Objects
     VAL_STRING,
     VAL_LIST,
     VAL_TUPLE,
@@ -41,6 +43,40 @@ typedef struct {
     bool hasValue;
     Value value;
 } OptValue;
+
+typedef Value (*BinaryMethod)(Value, Value);
+typedef Value (*UnaryMethod)(Value);
+
+typedef struct {
+    BinaryMethod eq;
+    BinaryMethod ne;
+    BinaryMethod gt;
+    BinaryMethod ge;
+    BinaryMethod lt;
+    BinaryMethod le;
+    BinaryMethod add;
+    BinaryMethod sub;
+    BinaryMethod mul;
+    BinaryMethod truediv;
+    BinaryMethod floordiv;
+    BinaryMethod mod;
+    BinaryMethod pow;
+    UnaryMethod pos;
+    UnaryMethod neg;
+    BinaryMethod and;
+    BinaryMethod xor;
+    BinaryMethod or;
+    UnaryMethod invert;
+    BinaryMethod lshift;
+    BinaryMethod rshift;
+    uint64_t (*hash)(Value);
+    long long (*len)(Value);
+    bool (*toBool)(Value);
+    long long (*toInt)(Value);
+    double (*toFloat)(Value);
+    int (*str)(Value, char*, size_t);
+    int (*repr)(Value, char*, size_t);
+} ValueMethods;
 
 #define NONE_VAL             ((Value){VAL_NONE})
 #define UNDEFINED_VAL       ((Value){VAL_UNDEFINED})

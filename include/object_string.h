@@ -25,36 +25,36 @@ ObjString *copyString(const char *chars, size_t length);
 
 ObjString *copyEscapedString(const char *chars, size_t length);
 
-Value stringEqual(Value a, Value b);
+Value String_Equal(Value a, Value b);
 
-Value stringNotEqual(Value a, Value b);
+Value String_NotEqual(Value a, Value b);
 
-Value stringGreater(Value, Value b);
+Value String_Greater(Value, Value b);
 
-Value stringGreaterEqual(Value a, Value b);
+Value String_GreaterEqual(Value a, Value b);
 
-Value stringLess(Value a, Value b);
+Value String_Less(Value a, Value b);
 
-Value stringLessEqual(Value a, Value b);
+Value String_LessEqual(Value a, Value b);
 
-Value stringAdd(Value a, Value b);
+Value String_Add(Value a, Value b);
 
-Value stringMultiply(Value a, Value b);
+Value String_Multiply(Value a, Value b);
 
-OptValue stringGetField(Value string, ObjString *name);
+OptValue String_GetField(Value string, ObjString *name);
 
-Value stringGetAt(ObjString *string, Value index);
+Value String_GetAt(ObjString *string, Value index);
 
-uint64_t stringHash(Value value);
+uint64_t String_Hash(Value value);
 
-int stringLen(ObjString *string);
+long long String_Len(Value string);
 
-bool stringToBool(ObjString *string);
+bool String_ToBool(Value string);
 
-int stringToInt(ObjString *string);
+long long String_ToInt(Value string);
 
-double stringToFloat(ObjString *string);
+double String_ToFloat(Value string);
 
-int stringToStr(Value value, char *buffer, size_t size);
+int String_ToStr(Value value, char *buffer, size_t size);
 
 #endif

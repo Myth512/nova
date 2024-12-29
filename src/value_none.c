@@ -1,30 +1,30 @@
 #include "value_none.h"
 #include "value_int.h"
 
-Value noneEqual(Value a, Value b) {
+Value None_Equal(Value a, Value b) {
     return BOOL_VAL(b.type == VAL_NONE);
 }
 
-Value noneNotEqual(Value a, Value b) {
+Value None_NotEqual(Value a, Value b) {
     return BOOL_VAL(b.type != VAL_NONE);
 }
 
-uint64_t noneHash(Value value) {
+uint64_t None_Hash(Value value) {
     return 4238894112;
 }
 
-bool noneToBool(Value value) {
+bool None_ToBool(Value value) {
     return false;
 }
 
-long long noneToInt(Value value) {
+long long None_ToInt(Value value) {
     return 0;
 }
 
-double noneToFloat(Value value) {
+double None_ToFloat(Value value) {
     return 0;
 }
 
-int noneToStr(Value value, char *buffer, size_t size) {
+int None_ToStr(Value value, char *buffer, size_t size) {
     writeToBuffer(buffer, size, "None");
 }

@@ -5,7 +5,7 @@
 
 #define IS_TUPLE(value)         isObjType(value, OBJ_TUPLE)
 
-#define AS_TUPLE(value)         ((ObjTuple*)AS_OBJ(value))
+#define AS_TUPLE(value)         ((ObjTuple*)value.as.object)
 
 typedef struct {
     Obj obj;
@@ -15,7 +15,7 @@ typedef struct {
 
 ObjTuple* allocateTuple(size_t size);
 
-int tupleWrite(ObjTuple *tuple, char *buffer, const size_t size);
+int ObjTuple_Write(ObjTuple *tuple, char *buffer, const size_t size);
 
 int tuplePrint(ObjTuple *tuple);
 

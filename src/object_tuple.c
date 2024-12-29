@@ -1,9 +1,10 @@
 #include <stdio.h>
 
+#include "value_methods.h"
 #include "object_tuple.h"
 
 ObjTuple* allocateTuple(size_t size) {
-    ObjTuple *tuple = (ObjTuple*)allocateObject(sizeof(ObjTuple) + size * sizeof(Value));
+    ObjTuple *tuple = (ObjTuple*)allocateObject(sizeof(ObjTuple) + size * sizeof(Value), VAL_TUPLE);
     tuple->size = size;
     return tuple;
 }

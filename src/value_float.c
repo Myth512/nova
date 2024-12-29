@@ -1,9 +1,11 @@
+#include <math.h>
+
 #include "value.h"
 #include "value_int.h"
 #include "value_float.h"
 #include "vm.h"
 
-Value floatEqual(Value a, Value b) {
+Value Float_Equal(Value a, Value b) {
     if (b.type == VAL_INT)
         return BOOL_VAL(AS_FLOAT(a) == AS_INT(b));
     if (b.type == VAL_FLOAT)
@@ -11,7 +13,7 @@ Value floatEqual(Value a, Value b) {
     return NOT_IMPLEMENTED_VAL;
 }
 
-Value floatNotEqual(Value a, Value b) {
+Value Float_NotEqual(Value a, Value b) {
     if (b.type == VAL_INT)
         return BOOL_VAL(AS_FLOAT(a) != AS_INT(b));
     if (b.type == VAL_FLOAT)
@@ -19,7 +21,7 @@ Value floatNotEqual(Value a, Value b) {
     return NOT_IMPLEMENTED_VAL;
 }
 
-Value floatGreater(Value a, Value b) {
+Value Float_Greater(Value a, Value b) {
     if (b.type == VAL_INT)
         return BOOL_VAL(AS_FLOAT(a) > AS_INT(b));
     if (b.type == VAL_FLOAT)
@@ -27,7 +29,7 @@ Value floatGreater(Value a, Value b) {
     return NOT_IMPLEMENTED_VAL;
 }
 
-Value floatGreaterEqual(Value a, Value b) {
+Value Float_GreaterEqual(Value a, Value b) {
     if (b.type == VAL_INT)
         return BOOL_VAL(AS_FLOAT(a) >= AS_INT(b));
     if (b.type == VAL_FLOAT)
@@ -35,7 +37,7 @@ Value floatGreaterEqual(Value a, Value b) {
     return NOT_IMPLEMENTED_VAL;
 }
 
-Value floatLess(Value a, Value b) {
+Value Float_Less(Value a, Value b) {
     if (b.type == VAL_INT)
         return BOOL_VAL(AS_FLOAT(a) < AS_INT(b));
     if (b.type == VAL_FLOAT)
@@ -43,7 +45,7 @@ Value floatLess(Value a, Value b) {
     return NOT_IMPLEMENTED_VAL;
 }
 
-Value floatLessEqual(Value a, Value b) {
+Value Float_LessEqual(Value a, Value b) {
     if (b.type == VAL_INT)
         return BOOL_VAL(AS_FLOAT(a) <= AS_INT(b));
     if (b.type == VAL_FLOAT)
@@ -51,7 +53,7 @@ Value floatLessEqual(Value a, Value b) {
     return NOT_IMPLEMENTED_VAL;
 }
 
-Value floatAdd(Value a, Value b) {
+Value Float_Add(Value a, Value b) {
     if (b.type == VAL_INT)
         return FLOAT_VAL(AS_FLOAT(a) + AS_INT(b));
     if (b.type == VAL_FLOAT)
@@ -59,7 +61,7 @@ Value floatAdd(Value a, Value b) {
     return NOT_IMPLEMENTED_VAL;
 }
 
-Value floatSubtract(Value a, Value b) {
+Value Float_Subtract(Value a, Value b) {
     if (b.type == VAL_INT)
         return FLOAT_VAL(AS_FLOAT(a) - AS_INT(b));
     if (b.type == VAL_FLOAT)
@@ -67,7 +69,7 @@ Value floatSubtract(Value a, Value b) {
     return NOT_IMPLEMENTED_VAL;
 }
 
-Value floatMultiply(Value a, Value b) {
+Value Float_Multiply(Value a, Value b) {
     if (b.type == VAL_INT)
         return FLOAT_VAL(AS_FLOAT(a) * AS_INT(b));
     if (b.type == VAL_FLOAT)
@@ -75,7 +77,7 @@ Value floatMultiply(Value a, Value b) {
     return NOT_IMPLEMENTED_VAL;
 }
 
-Value floatTrueDivide(Value a, Value b) {
+Value Float_TrueDivide(Value a, Value b) {
     if (b.type == VAL_INT) {
         if (AS_INT(b) == 0)
             reportRuntimeError("Division by zero");
@@ -89,7 +91,7 @@ Value floatTrueDivide(Value a, Value b) {
     return NOT_IMPLEMENTED_VAL;
 }
 
-Value floatFloorDivide(Value a, Value b) {
+Value Float_FloorDivide(Value a, Value b) {
     if (b.type == VAL_INT) {
         if (AS_INT(b) == 0)
             reportRuntimeError("Division by zero");
@@ -103,7 +105,7 @@ Value floatFloorDivide(Value a, Value b) {
     return NOT_IMPLEMENTED_VAL;
 }
 
-Value floatModulo(Value a, Value b) {
+Value Float_Modulo(Value a, Value b) {
     if (b.type == VAL_INT) {
         if (AS_INT(b) == 0)
             reportRuntimeError("Division by zero");
@@ -117,7 +119,7 @@ Value floatModulo(Value a, Value b) {
     return NOT_IMPLEMENTED_VAL;
 }
 
-Value floatPower(Value a, Value b) {
+Value Float_Power(Value a, Value b) {
     if (b.type == VAL_INT)
         return FLOAT_VAL(pow(AS_FLOAT(a), AS_INT(b)));
     if (b.type == VAL_FLOAT)
@@ -125,15 +127,15 @@ Value floatPower(Value a, Value b) {
     return NOT_IMPLEMENTED_VAL;
 }
 
-Value floatPositive(Value a) {
+Value Float_Positive(Value a) {
     return a;
 }
 
-Value floatNegative(Value a) {
+Value Float_Negative(Value a) {
     return FLOAT_VAL(-AS_FLOAT(a));
 }
 
-uint64_t floatHash(Value value) {
+uint64_t Float_Hash(Value value) {
     union {
         double d;
         uint64_t i;
@@ -150,18 +152,18 @@ uint64_t floatHash(Value value) {
     return hash;
 }
 
-bool floatToBool(Value value) {
+bool Float_ToBool(Value value) {
     return AS_FLOAT(value);
 }
 
-long long floatToInt(Value value) {
+long long Float_ToInt(Value value) {
     return AS_FLOAT(value);
 }
 
-double floatToFloat(Value value) {
+double Float_ToFloat(Value value) {
     return AS_FLOAT(value);
 }
 
-int floatToStr(Value value, char *buffer, size_t size) {
+int Float_ToStr(Value value, char *buffer, size_t size) {
     writeToBuffer(buffer, size, "%g", AS_FLOAT(value));
 }

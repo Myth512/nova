@@ -18,46 +18,46 @@ static Value binary(int argc, Value *argv, char *name, Value (*func)(Value, Valu
     return res;
 }
 
-Value pyStringReverse(int argc, Value *argv) {
+Value PyString_Reverse(int argc, Value *argv) {
 
 }
 
-Value pyStringReplace(int argc, Value *argv) {
+Value PyString_Replace(int argc, Value *argv) {
 
 }
 
-Value pyStringEqual(int argc, Value *argv) {
-    return binary(argc, argv, "==", stringEqual);
+Value PyString_Equal(int argc, Value *argv) {
+    return binary(argc, argv, "==", String_Equal);
 }
 
-Value pyStringNotEqual(int argc, Value *argv) {
-    return binary(argc, argv, "!=", stringNotEqual);
+Value PyString_NotEqual(int argc, Value *argv) {
+    return binary(argc, argv, "!=", String_NotEqual);
 }
 
-Value pyStringGreater(int argc, Value *argv) {
-    return binary(argc, argv, ">", stringGreater);
+Value PyString_Greater(int argc, Value *argv) {
+    return binary(argc, argv, ">", String_Greater);
 }
 
-Value pyStringGreaterEqual(int argc, Value *argv) {
-    return binary(argc, argv, ">=", stringGreaterEqual);
+Value PyString_GreaterEqual(int argc, Value *argv) {
+    return binary(argc, argv, ">=", String_GreaterEqual);
 }
 
-Value pyStringLess(int argc, Value *argv) {
-    return binary(argc, argv, "<", stringLess);
+Value PyString_Less(int argc, Value *argv) {
+    return binary(argc, argv, "<", String_Less);
 }
 
-Value pyStringLessEqual(int argc, Value *argv) {
-    return binary(argc, argv, "<=", stringLessEqual);
+Value PyString_LessEqual(int argc, Value *argv) {
+    return binary(argc, argv, "<=", String_LessEqual);
 }
 
-Value pyStringAdd(int argc, Value *argv) {
-    return binary(argc, argv, "+", stringAdd);
+Value PyString_Add(int argc, Value *argv) {
+    return binary(argc, argv, "+", String_Add);
 }
 
-Value pyStringMultiply(int argc, Value *argv) {
-    return binary(argc, argv, "*", stringMultiply);
+Value PyString_Multiply(int argc, Value *argv) {
+    return binary(argc, argv, "*", String_Multiply);
 }
 
-Value pyStringGetAt(int argc, Value *argv) {
+Value PyString_GetAt(int argc, Value *argv) {
 
 }

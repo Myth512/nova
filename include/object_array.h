@@ -6,7 +6,7 @@
 
 #define IS_ARRAY(value)         isObjType(value, OBJ_ARRAY)
 
-#define AS_ARRAY(value)         ((ObjArray*)AS_OBJ(value))
+#define AS_ARRAY(value)         ((ObjArray*)value.as.object)
 
 typedef struct {
     Obj obj;

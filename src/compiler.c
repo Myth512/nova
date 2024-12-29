@@ -284,7 +284,7 @@ static void emitReturn() {
     if (current->type == TYPE_INITIALIZER) {
         emitBytes(OP_GET_LOCAL, 0, (Token){0});
     } else {
-        emitByte(OP_NIL, (Token){0});
+        emitByte(OP_NONE, (Token){0});
     }
     emitByte(OP_RETURN, (Token){0});
 }
@@ -374,7 +374,7 @@ static void literal(bool canAssign, bool allowTuple) {
             emitByte(OP_FALSE, parser.current);
             break;
         case TOKEN_NONE:
-            emitByte(OP_NIL, parser.current);
+            emitByte(OP_NONE, parser.current);
             break;
         default:
             return;
