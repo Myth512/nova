@@ -482,20 +482,44 @@ static Value run() {
             case OP_MULTIPLY:
                 binary(valueMultiply);
                 break;
-            case OP_DIVIDE:
+            case OP_POWER:
+                binary(valuePower);
+                break;
+            case OP_TRUE_DIVIDE:
                 binary(valueTrueDivide);
+                break;
+            case OP_FLOOR_DIVIDE:
+                binary(valueFloorDivide);
                 break;
             case OP_MOD:
                 binary(valueModulo);
                 break;
-            case OP_POWER:
-                binary(valuePower);
+            case OP_POSITIVE:
+                unary(valuePositive);
+                break;
+            case OP_NEGATIVE:
+                unary(valueNegative);
+                break;
+            case OP_BITWISE_AND:
+                binary(valueAnd);
+                break;
+            case OP_BITWISE_XOR:
+                binary(valueXor);
+                break;
+            case OP_BITWISE_OR:
+                binary(valueOr);
+                break;
+            case OP_LEFT_SHIFT:
+                binary(valueLeftShift);
+                break;
+            case OP_RIGHT_SHIFT:
+                binary(valueRightShift);
+                break;
+            case OP_INVERT:
+                unary(valueInvert);
                 break;
             case OP_NOT:
                 push(BOOL_VAL(!valueToBool(pop())));
-                break;
-            case OP_NEGATE:
-                unary(valueNegative);
                 break;
             case OP_BUILD_FSTRING:
                 buildFormattedString();

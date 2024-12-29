@@ -199,16 +199,32 @@ int printInstruction(CodeVec *vec, int offset) {
             return simpleInstruction("SUBTRUCT", offset);
         case OP_MULTIPLY:
             return simpleInstruction("MULTIPLY", offset);
-        case OP_DIVIDE:
-            return simpleInstruction("DIVIDE", offset);
-        case OP_MOD:
-            return simpleInstruction("MOD", offset);
         case OP_POWER:
             return simpleInstruction("POWER", offset);
+        case OP_TRUE_DIVIDE:
+            return simpleInstruction("TRUE DIVIDE", offset);
+        case OP_FLOOR_DIVIDE:
+            return simpleInstruction("FLOOR DIVIDE", offset);
+        case OP_MOD:
+            return simpleInstruction("MOD", offset);
+        case OP_POSITIVE:
+            return simpleInstruction("POSITIVE", offset);
+        case OP_NEGATIVE:
+            return simpleInstruction("NEGATIVE", offset);
+        case OP_BITWISE_AND:
+            return simpleInstruction("AND", offset);
+        case OP_BITWISE_XOR:
+            return simpleInstruction("XOR", offset);
+        case OP_BITWISE_OR:
+            return simpleInstruction("OR", offset);
+        case OP_LEFT_SHIFT:
+            return simpleInstruction("LEFT SHIFT", offset);
+        case OP_RIGHT_SHIFT:
+            return simpleInstruction("RIGHT SHIFT", offset);
+        case OP_INVERT:
+            return simpleInstruction("INVERT", offset);
         case OP_NOT:
             return simpleInstruction("NOT", offset);
-        case OP_NEGATE:
-            return simpleInstruction("NEGATE", offset);
         case OP_EQUAL:
             return simpleInstruction("EQUAL", offset);
         case OP_NOT_EQUAL:

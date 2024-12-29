@@ -319,6 +319,8 @@ Token scanToken() {
         case '/':
             if (match('='))
                 return createToken(TOKEN_SLASH_EQUAL);
+            if (match('/'))
+                return createToken(TOKEN_DOUBLE_SLASH);
             return createToken(TOKEN_SLASH);
         case '%':
             if (match('='))
@@ -362,7 +364,7 @@ Token scanToken() {
         case '>':
             if (match('='))
                 return createToken(TOKEN_GREATER_EQUAL);
-            if (match('<')) {
+            if (match('>')) {
                 if (match('='))
                     return createToken(TOKEN_RIGHT_SHIFT_EQUAL);
                 return createToken(TOKEN_RIGHT_SHIFT);

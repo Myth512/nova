@@ -57,14 +57,18 @@ typedef struct ClassCompiler {
 typedef enum {
     PREC_NONE,
     PREC_ASSIGNMENT,
-    PREC_OR,
-    PREC_AND,
-    PREC_EQUALITY,
+    PREC_BOOL_OR,
+    PREC_BOOL_AND,
+    PREC_NOT,
     PREC_COMPARISON,
+    PREC_BITWISE_OR,
+    PREC_BITWISE_XOR,
+    PREC_BITWISE_AND,
+    PREC_SHIFT,
     PREC_TERM,
     PREC_FACTOR,
-    PREC_POWER,
     PREC_UNARY,
+    PREC_POWER,
     PREC_CALL,
     PREC_PRIMARY
 } Precedence;
@@ -117,57 +121,43 @@ static void dot(bool canAssign, bool allowTuple);
 
 static void statement(int breakPointer, int continuePointer);
 
-ParseRule rules[] = {
-  [TOKEN_LEFT_PAREN]    = {grouping, call,   PREC_CALL},
-  [TOKEN_RIGHT_PAREN]   = {NULL,     NULL,   PREC_NONE},
-  [TOKEN_LEFT_BRACE]    = {NULL,     NULL,   PREC_NONE}, 
-  [TOKEN_RIGHT_BRACE]   = {NULL,     NULL,   PREC_NONE},
-  [TOKEN_LEFT_BRACKET]  = {array,    at,     PREC_CALL},
-  [TOKEN_RIGHT_BRACKET] = {NULL,     NULL,   PREC_NONE},
-  [TOKEN_COMMA]         = {NULL,     tuple,  PREC_PRIMARY},
-  [TOKEN_DOT]           = {NULL,     dot,    PREC_CALL},
-  [TOKEN_PLUS]          = {unary,    binary, PREC_TERM},
-  [TOKEN_MINUS]         = {unary,    binary, PREC_TERM},
-  [TOKEN_STAR]          = {NULL,     binary, PREC_FACTOR},
-  [TOKEN_CARET]         = {NULL,     binary, PREC_POWER},
-  [TOKEN_SLASH]         = {NULL,     binary, PREC_FACTOR},
-  [TOKEN_PERCENT]       = {NULL,     binary, PREC_FACTOR},
-  [TOKEN_NOT]           = {unary,    NULL,   PREC_NONE},
-  [TOKEN_PLUS_EQUAL]    = {NULL,     NULL,   PREC_NONE},
-  [TOKEN_MINUS_EQUAL]   = {NULL,     NULL,   PREC_NONE},
-  [TOKEN_STAR_EQUAL]    = {NULL,     NULL,   PREC_NONE},
-  [TOKEN_CARET_EQUAL]   = {NULL,     NULL,   PREC_NONE},
-  [TOKEN_SLASH_EQUAL]   = {NULL,     NULL,   PREC_NONE},
-  [TOKEN_PERCENT_EQUAL] = {NULL,     NULL,   PREC_NONE},
-  [TOKEN_EQUAL]         = {NULL,     NULL,   PREC_NONE},
-  [TOKEN_DOUBLE_EQUAL]  = {NULL,     binary, PREC_EQUALITY},
-  [TOKEN_BANG_EQUAL]    = {NULL,     binary, PREC_EQUALITY},
-  [TOKEN_COLON_EQUAL]   = {NULL,     NULL,   PREC_NONE},
-  [TOKEN_GREATER]       = {NULL,     binary, PREC_EQUALITY},
-  [TOKEN_GREATER_EQUAL] = {NULL,     binary, PREC_EQUALITY},
-  [TOKEN_LESS]          = {NULL,     binary, PREC_EQUALITY},
-  [TOKEN_LESS_EQUAL]    = {NULL,     binary, PREC_EQUALITY},
-  [TOKEN_IDENTIFIER]    = {variable, NULL,   PREC_NONE},
-  [TOKEN_STRING]        = {string,   NULL,   PREC_NONE},
-  [TOKEN_RSTRING]       = {rstring,  NULL,   PREC_NONE},
-  [TOKEN_FSTRING]       = {fstring,  NULL,   PREC_NONE},
-  [TOKEN_NUMBER]        = {number,   NULL,   PREC_NONE},
-  [TOKEN_IF]            = {NULL,     NULL,   PREC_NONE},
-  [TOKEN_ELIF]          = {NULL,     NULL,   PREC_NONE},
-  [TOKEN_ELSE]          = {NULL,     NULL,   PREC_NONE},
-  [TOKEN_FOR]           = {NULL,     NULL,   PREC_NONE},
-  [TOKEN_AND]           = {NULL,     and,    PREC_AND},
-  [TOKEN_OR]            = {NULL,     or,     PREC_OR},
-  [TOKEN_TRUE]          = {literal,  NULL,   PREC_NONE},
-  [TOKEN_FALSE]         = {literal,  NULL,   PREC_NONE},
-  [TOKEN_NONE]          = {literal,  NULL,   PREC_NONE},
-  [TOKEN_DEF]           = {NULL,     NULL,   PREC_NONE},
-  [TOKEN_RETURN]        = {NULL,     NULL,   PREC_NONE},
-  [TOKEN_CLASS]         = {NULL,     NULL,   PREC_NONE},
-  [TOKEN_NEWLINE]       = {NULL,     NULL,   PREC_NONE},
-  [TOKEN_ERROR]         = {NULL,     NULL,   PREC_NONE},
-  [TOKEN_EOF]           = {NULL,     NULL,   PREC_NONE},
-  };
+ParseRule rules[TOKEN_COUNT] = {
+    [TOKEN_LEFT_PAREN]    = {grouping, call,   PREC_CALL},
+    [TOKEN_LEFT_BRACKET]  = {array,    at,     PREC_CALL},
+    [TOKEN_RIGHT_BRACKET] = {NULL,     NULL,   PREC_NONE},
+    [TOKEN_COMMA]         = {NULL,     tuple,  PREC_PRIMARY},
+    [TOKEN_DOT]           = {NULL,     dot,    PREC_CALL},
+    [TOKEN_DOUBLE_EQUAL]  = {NULL,     binary, PREC_COMPARISON},
+    [TOKEN_BANG_EQUAL]    = {NULL,     binary, PREC_COMPARISON},
+    [TOKEN_GREATER]       = {NULL,     binary, PREC_COMPARISON},
+    [TOKEN_GREATER_EQUAL] = {NULL,     binary, PREC_COMPARISON},
+    [TOKEN_LESS]          = {NULL,     binary, PREC_COMPARISON},
+    [TOKEN_LESS_EQUAL]    = {NULL,     binary, PREC_COMPARISON},
+    [TOKEN_PLUS]          = {unary,    binary, PREC_TERM},
+    [TOKEN_MINUS]         = {unary,    binary, PREC_TERM},
+    [TOKEN_STAR]          = {NULL,     binary, PREC_FACTOR},
+    [TOKEN_DOUBLE_STAR]   = {NULL,     binary, PREC_POWER},
+    [TOKEN_SLASH]         = {NULL,     binary, PREC_FACTOR},
+    [TOKEN_DOUBLE_SLASH]  = {NULL,     binary, PREC_FACTOR},
+    [TOKEN_PERCENT]       = {NULL,     binary, PREC_FACTOR},
+    [TOKEN_AMPERSAND]     = {NULL,     binary, PREC_BITWISE_AND},
+    [TOKEN_CARET]         = {NULL,     binary, PREC_BITWISE_XOR},
+    [TOKEN_PIPE]          = {NULL,     binary, PREC_BITWISE_OR},
+    [TOKEN_LEFT_SHIFT]    = {NULL,     binary, PREC_SHIFT},
+    [TOKEN_RIGHT_SHIFT]   = {NULL,     binary, PREC_SHIFT},
+    [TOKEN_TILDE]         = {unary,    NULL,   PREC_UNARY},
+    [TOKEN_NOT]           = {unary,    NULL,   PREC_NONE},
+    [TOKEN_IDENTIFIER]    = {variable, NULL,   PREC_NONE},
+    [TOKEN_STRING]        = {string,   NULL,   PREC_NONE},
+    [TOKEN_RSTRING]       = {rstring,  NULL,   PREC_NONE},
+    [TOKEN_FSTRING]       = {fstring,  NULL,   PREC_NONE},
+    [TOKEN_NUMBER]        = {number,   NULL,   PREC_NONE},
+    [TOKEN_AND]           = {NULL,     and,    PREC_BOOL_AND},
+    [TOKEN_OR]            = {NULL,     or,     PREC_BOOL_OR},
+    [TOKEN_TRUE]          = {literal,  NULL,   PREC_NONE},
+    [TOKEN_FALSE]         = {literal,  NULL,   PREC_NONE},
+    [TOKEN_NONE]          = {literal,  NULL,   PREC_NONE},
+};
 
 static ParseRule* getRule(TokenType type) {
     return &rules[type];
@@ -484,9 +474,13 @@ static void unary(bool canAssign, bool allowTuple) {
 
     switch (operator.type) {
         case TOKEN_PLUS:
-            return;
+            emitByte(OP_POSITIVE, operator);
+            break;
         case TOKEN_MINUS:
-            emitByte(OP_NEGATE, operator);
+            emitByte(OP_NEGATIVE, operator);
+            break;
+        case TOKEN_TILDE:
+            emitByte(OP_INVERT, operator);
             break;
         case TOKEN_NOT:
             emitByte(OP_NOT, operator);
@@ -531,14 +525,32 @@ static void binary(bool canAssign, bool allowTuple) {
         case TOKEN_STAR:
             emitByte(OP_MULTIPLY, operator);
             break;
-        case TOKEN_CARET:
+        case TOKEN_DOUBLE_STAR:
             emitByte(OP_POWER, operator);
             break;
         case TOKEN_SLASH:
-            emitByte(OP_DIVIDE, operator);
+            emitByte(OP_TRUE_DIVIDE, operator);
+            break;
+        case TOKEN_DOUBLE_SLASH:
+            emitByte(OP_FLOOR_DIVIDE, operator);
             break;
         case TOKEN_PERCENT:
             emitByte(OP_MOD, operator);
+            break;
+        case TOKEN_AMPERSAND:
+            emitByte(OP_BITWISE_AND, operator);
+            break;
+        case TOKEN_CARET:
+            emitByte(OP_BITWISE_XOR, operator);
+            break;
+        case TOKEN_PIPE:
+            emitByte(OP_BITWISE_OR, operator);
+            break;
+        case TOKEN_LEFT_SHIFT:
+            emitByte(OP_LEFT_SHIFT, operator);
+            break;
+        case TOKEN_RIGHT_SHIFT:
+            emitByte(OP_RIGHT_SHIFT, operator);
             break;
         default:
             return;
@@ -714,7 +726,7 @@ static void assignment(uint8_t getOp, uint8_t setOp, int arg, Token operator) {
             emitByte(OP_MULTIPLY, operator);
             break;
         case TOKEN_SLASH_EQUAL:
-            emitByte(OP_DIVIDE, operator);
+            // emitByte(OP_DIVIDE, operator);
             break;
         case TOKEN_CARET_EQUAL:
             emitByte(OP_POWER, operator);
@@ -759,7 +771,7 @@ static void and(bool canAssign, bool allowTuple) {
     int endJump = emitJump(OP_JUMP_FALSE);
 
     emitByte(OP_POP, (Token){0});
-    parseExpression(PREC_AND, false, true);
+    parseExpression(PREC_BOOL_AND, false, true);
 
     patchJump(endJump);
 }
@@ -771,7 +783,7 @@ static void or(bool canAssign, bool allowTuple){
     int endJump = emitJump(OP_JUMP_TRUE);
 
     emitByte(OP_POP, (Token){0});
-    parseExpression(PREC_OR, false, true);
+    parseExpression(PREC_BOOL_OR, false, true);
 
     patchJump(endJump);
 }
