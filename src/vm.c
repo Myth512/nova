@@ -12,6 +12,7 @@
 #include "object_array.h"
 #include "object_tuple.h"
 #include "object_class.h"
+#include "object_instance.h"
 #include "object_function.h"
 #include "memory.h"
 #include "compiler.h"
@@ -156,12 +157,13 @@ static void defineNatives() {
     defineNative("max", maxNative);
     defineNative("type", typeNative);
     defineNative("len", novaLen);
-    defineNative("addr", novaAddr);
-    defineNative("bool", novaBool);
-    defineNative("int", novaInt);
-    defineNative("float", novaFloat);
-    defineNative("str", novaStr);
     defineNative("input", novaInput);
+}
+
+static void defineNativeClass(const char *name, ValueType type) {
+    ObjString *n = copyString(name, strlen(name));
+    ObjNativeClass *class = createNativeClass(n, type);
+    tableSet(&vm.globals, n, OBJ_VAL(class));
 }
 
 static bool callValueInternal(Value callee, int argc) {
@@ -182,7 +184,7 @@ static bool callValueInternal(Value callee, int argc) {
         }
         case VAL_CLASS: {
             ObjClass *class = AS_CLASS(callee);
-            insert(argc, INSTANCE_VAL(createInstance(class)));
+            insert(argc, OBJ_VAL(createInstance(class)));
             Value initializer;
             if (tableGet(&class->methods, vm.magicStrings.init, &initializer)) {
                 return call(AS_CLOSURE(initializer), argc + 1, true);
@@ -191,6 +193,10 @@ static bool callValueInternal(Value callee, int argc) {
                 return false;
             }
             return true;
+        }
+        case VAL_NATIVE_CLASS: {
+            ObjClass *class = AS_NATIVE_CLASS(callee);
+            valeuIn
         }
         case VAL_CLOSURE: {
             ObjClosure *closure = AS_CLOSURE(callee);
@@ -717,6 +723,7 @@ void initVM() {
     initTable(&vm.strings);
     initMagicStrings();
     defineNatives();
+    defineNativeClass("int", VAL_INT);
 }
 
 void freeVM() {

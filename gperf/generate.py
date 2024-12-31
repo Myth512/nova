@@ -20,14 +20,27 @@ operations_dict = {
     'invert': 'Invert',
     'lshift': 'LeftShift',
     'rshift': 'RightShift',
+    'getattr': 'GetAttr',
+    'setattr': 'SetAttr',
+    'delattr': 'DelAttr',
+    'getitem': 'GetItem',
+    'setitem': 'SetItem',
+    'delitem': 'DelItem',
+    'hash': 'Hash',
+    'len': 'Len',
+    'bool': 'ToBool',
+    'int': 'ToInt',
+    'float': 'ToFloat',
+    'str': 'ToStr',
+    'repr': 'ToRepr'
 }
 
 types = {
-    'None': ['eq', 'ne'],
-    'Bool': ['eq', 'ne', 'gt', 'ge', 'lt', 'le', 'add', 'sub', 'mul', 'truediv', 'floordiv', 'mod', 'pow', 'pos', 'neg', 'and', 'xor', 'or', 'invert', 'lshift', 'rshift'],
-    'Int': ['eq', 'ne', 'gt', 'ge', 'lt', 'le', 'add', 'sub', 'mul', 'truediv', 'floordiv', 'mod', 'pow', 'pos', 'neg', 'and', 'xor', 'or', 'invert', 'lshift', 'rshift'],
-    'Float': ['eq', 'ne', 'gt', 'ge', 'lt', 'le', 'add', 'sub', 'mul', 'truediv', 'floordiv', 'mod', 'pow', 'pos', 'neg'],
-    'String': ['eq', 'ne', 'gt', 'ge', 'lt', 'le', 'add', 'mul'],
+    'None': ['eq', 'ne', 'getattr'],
+    'Bool': ['eq', 'ne', 'gt', 'ge', 'lt', 'le', 'add', 'sub', 'mul', 'truediv', 'floordiv', 'mod', 'pow', 'pos', 'neg', 'and', 'xor', 'or', 'invert', 'lshift', 'rshift', 'getattr'],
+    'Int': ['eq', 'ne', 'gt', 'ge', 'lt', 'le', 'add', 'sub', 'mul', 'truediv', 'floordiv', 'mod', 'pow', 'pos', 'neg', 'and', 'xor', 'or', 'invert', 'lshift', 'rshift', 'getattr'],
+    'Float': ['eq', 'ne', 'gt', 'ge', 'lt', 'le', 'add', 'sub', 'mul', 'truediv', 'floordiv', 'mod', 'pow', 'pos', 'neg', 'getattr'],
+    'String': ['eq', 'ne', 'gt', 'ge', 'lt', 'le', 'add', 'mul', 'getattr'],
 }
 
 operator_map = {
@@ -54,26 +67,38 @@ operator_map = {
     'rshift': '>>',
 }
 
-def binary(type, method):
+def binary(type_, method):
     return f'''
-Value Py{type}_{operations_dict[method]}(int argc, Value *argv) {{
+Value Py{type_}_{operations_dict[method]}(int argc, Value *argv) {{
     if (argc != 1)
         reportArityError(1, 1, argc);
-    Value res = {type}_{operations_dict[method]}(argv[0], argv[1]);
+    Value res = {type_}_{operations_dict[method]}(argv[0], argv[1]);
     if (IS_NOT_IMPLEMENTED(res))
         operatorNotImplemented("{operator_map[method]}", argv[0], argv[1]);
     return res;
 }}
 '''
 
-def unary(type, method):
+def unary(type_, method):
     return f'''
-Value Py{type}_{operations_dict[method]}(int argc, Value *argv) {{
+Value Py{type_}_{operations_dict[method]}(int argc, Value *argv) {{
     if (argc != 0)
         reportArityError(0, 0, argc);
-    Value res = {type}_{operations_dict[method]}(argv[0]);
+    Value res = {type_}_{operations_dict[method]}(argv[0]);
     if (IS_NOT_IMPLEMENTED(res))
         operatorNotImplementedUnary("{operator_map[method]}", argv[0]);
+    return res;
+}}
+'''
+
+def getattr_(type_, method):
+    return f'''
+Value Py{type_}_{operations_dict[method]}(int argc, Value *argv) {{
+    if (argc != 1)
+        reportArityError(1, 1, argc);
+    Value res = {type_}_GetAttr(argv[0], AS_STRING(argv[1]));
+    if (IS_NOT_IMPLEMENTED(res))
+        operatorNotImplementedUnary("getattr", argv[0]);
     return res;
 }}
 '''
@@ -86,6 +111,7 @@ def filename(type_):
 def header(type_):
     return f'''%{{
 #include <string.h>
+#include "object_string.h"
 #include "vm.h"
 #include "value.h"
 #include "{filename(type_)}"
@@ -124,6 +150,7 @@ operations_func = {
     'invert': unary,
     'lshift': binary, 
     'rshift': binary, 
+    'getattr': getattr_
 }
 
 

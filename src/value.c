@@ -34,6 +34,16 @@ Value getGperfMethod(Value value, ObjString *name, const struct GperfMethod *(*i
     return OBJ_VAL(createNativeMethod(value, result->method, result->name));
 }
 
+int calculateIndex(int index, int length) {
+    if (index < -length || index >= length)
+        return -1;
+    
+    if (index >= 0)
+        return index;
+    
+    return length + index;
+}
+
 const char* decodeValueType(Value value) {
     return "type";
     // switch (value.type) {

@@ -1,5 +1,6 @@
 %{
 #include <string.h>
+#include "object_string.h"
 #include "vm.h"
 #include "value.h"
 #include "object_string.h"
@@ -76,6 +77,15 @@ Value PyString_Multiply(int argc, Value *argv) {
     return res;
 }
 
+Value PyString_GetAttr(int argc, Value *argv) {
+    if (argc != 1)
+        reportArityError(1, 1, argc);
+    Value res = String_GetAttr(argv[0], AS_STRING(argv[1]));
+    if (IS_NOT_IMPLEMENTED(res))
+        operatorNotImplementedUnary("getattr", argv[0]);
+    return res;
+}
+
 %}
 
 struct GperfMethod
@@ -93,4 +103,5 @@ __lt__, PyString_Less
 __le__, PyString_LessEqual
 __add__, PyString_Add
 __mul__, PyString_Multiply
+__getattr__, PyString_GetAttr
 %%

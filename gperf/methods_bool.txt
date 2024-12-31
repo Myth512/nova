@@ -1,5 +1,6 @@
 %{
 #include <string.h>
+#include "object_string.h"
 #include "vm.h"
 #include "value.h"
 #include "value_bool.h"
@@ -193,6 +194,15 @@ Value PyBool_RightShift(int argc, Value *argv) {
     return res;
 }
 
+Value PyBool_GetAttr(int argc, Value *argv) {
+    if (argc != 1)
+        reportArityError(1, 1, argc);
+    Value res = Bool_GetAttr(argv[0], AS_STRING(argv[1]));
+    if (IS_NOT_IMPLEMENTED(res))
+        operatorNotImplementedUnary("getattr", argv[0]);
+    return res;
+}
+
 %}
 
 struct GperfMethod
@@ -223,4 +233,5 @@ __or__, PyBool_Or
 __invert__, PyBool_Invert
 __lshift__, PyBool_LeftShift
 __rshift__, PyBool_RightShift
+__getattr__, PyBool_GetAttr
 %%

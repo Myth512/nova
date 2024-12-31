@@ -20,7 +20,7 @@
     .lt = Int_Less,                   \
     .le = Int_LessEqual,              \
     .add = Int_Add,                   \
-    .sub =Int_Subtract,               \
+    .sub = Int_Subtract,              \
     .mul = Int_Multiply,              \
     .truediv = Int_TrueDivide,        \
     .floordiv = Int_FloorDivide,      \
@@ -66,6 +66,7 @@
     .lshift = Int_LeftShift,         \
     .rshift = Int_RightShift,        \
     .getattr = Int_GetAttr,          \
+    .init = Int_Init,                \
     .hash = Int_Hash,                \
     .toBool = Int_ToBool,            \
     .toInt = Int_ToInt,              \
@@ -117,6 +118,8 @@ Value Int_LeftShift(Value a, Value b);
 Value Int_RightShift(Value a, Value b);
 
 Value Int_GetAttr(Value obj, ObjString *name);
+
+Value Int_Init(int argc, Value *argv);
 
 uint64_t Int_Hash(Value value);
 

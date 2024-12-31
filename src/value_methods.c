@@ -3,6 +3,7 @@
 #include "value_int.h"
 #include "value_float.h"
 #include "object_string.h"
+#include "object_class.h"
 #include "vm.h"
 
 #define GET_METHOD(value, name) MethodTable[(value).type].name
@@ -12,7 +13,9 @@ ValueMethods MethodTable[] = {
     [VAL_BOOL]   = BOOL_METHODS,
     [VAL_INT]    = INT_METHODS, 
     [VAL_FLOAT]  = FLOAT_METHODS,
-    [VAL_STRING] = STRING_METHODS 
+    [VAL_STRING] = STRING_METHODS,
+    [VAL_CLASS] = CLASS_METHODS,
+    [VAL_NATIVE_CLASS] = NATIVE_CLASS_METHODS
 };
 
 void *checkForNull(void *p) {
@@ -157,23 +160,42 @@ Value valueGetAttr(Value obj, ObjString *name) {
     return method(obj, name);
 }
 
-void valueSetAttribute(Value obj, ObjString *name, Value value) {
-
+void valueSetAttr(Value obj, ObjString *name, Value value) {
+    Value (*method)(Value, ObjString*, Value) = GET_METHOD(obj, setattr);
+    if (method == NULL)
+        reportRuntimeError("read only");
+    method(obj, name, value);
 }
 
-void valueDelAttribute(Value obj, ObjString *name) {
-
+void valueDelAttr(Value obj, ObjString *name) {
+    Value (*method)(Value, ObjString*) = GET_METHOD(obj, delattr);
+    if (method == NULL)
+        reportRuntimeError("read only");
+    method(obj, name);
 }
 
 Value valueGetItem(Value obj, Value key) {
-
+    Value (*method)(Value, Value) = GET_METHOD(obj, getitem);
+    if (method == NULL)
+        reportRuntimeError("not subscriptable");
+    method(obj, key);
 }
 
 void valueSetItem(Value obj, Value key, Value value) {
-
+    Value (*method)(Value, Value, Value) = GET_METHOD(obj, setitem);
+    if (method == NULL)
+        reportRuntimeError("not subscriptable");
+    method(obj, key, value);
 }
 
 void valueDelItem(Value obj, Value key) {
+    Value (*method)(Value, Value) = GET_METHOD(obj, delitem);
+    if (method == NULL)
+        reportRuntimeError("not item deletion");
+    method(obj, key);
+}
+
+Value valueInit(int argc, Value argv) {
 
 }
 

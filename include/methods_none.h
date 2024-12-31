@@ -32,6 +32,7 @@
 #line 1 "gperf/methods_none.txt"
 
 #include <string.h>
+#include "object_string.h"
 #include "vm.h"
 #include "value.h"
 #include "value_none.h"
@@ -54,15 +55,24 @@ Value PyNone_NotEqual(int argc, Value *argv) {
     return res;
 }
 
-#line 27 "gperf/methods_none.txt"
+Value PyNone_GetAttr(int argc, Value *argv) {
+    if (argc != 1)
+        reportArityError(1, 1, argc);
+    Value res = None_GetAttr(argv[0], AS_STRING(argv[1]));
+    if (IS_NOT_IMPLEMENTED(res))
+        operatorNotImplementedUnary("getattr", argv[0]);
+    return res;
+}
+
+#line 37 "gperf/methods_none.txt"
 struct GperfMethod;
 
-#define TOTAL_KEYWORDS 2
+#define TOTAL_KEYWORDS 3
 #define MIN_WORD_LENGTH 6
-#define MAX_WORD_LENGTH 6
-#define MIN_HASH_VALUE 0
-#define MAX_HASH_VALUE 1
-/* maximum key range = 2, duplicates = 0 */
+#define MAX_WORD_LENGTH 11
+#define MIN_HASH_VALUE 6
+#define MAX_HASH_VALUE 11
+/* maximum key range = 6, duplicates = 0 */
 
 #ifdef __GNUC__
 __inline
@@ -71,40 +81,39 @@ __inline
 inline
 #endif
 #endif
-/*ARGSUSED*/
 static unsigned int
 hash (register const char *str, register size_t len)
 {
   static const unsigned char asso_values[] =
     {
-      2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-      2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-      2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-      2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-      2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-      2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-      2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-      2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-      2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-      2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-      2, 1, 2, 2, 2, 2, 2, 2, 2, 2,
-      0, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-      2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-      2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-      2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-      2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-      2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-      2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-      2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-      2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-      2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-      2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-      2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-      2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-      2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-      2, 2, 2, 2, 2, 2
+      12, 12, 12, 12, 12, 12, 12, 12, 12, 12,
+      12, 12, 12, 12, 12, 12, 12, 12, 12, 12,
+      12, 12, 12, 12, 12, 12, 12, 12, 12, 12,
+      12, 12, 12, 12, 12, 12, 12, 12, 12, 12,
+      12, 12, 12, 12, 12, 12, 12, 12, 12, 12,
+      12, 12, 12, 12, 12, 12, 12, 12, 12, 12,
+      12, 12, 12, 12, 12, 12, 12, 12, 12, 12,
+      12, 12, 12, 12, 12, 12, 12, 12, 12, 12,
+      12, 12, 12, 12, 12, 12, 12, 12, 12, 12,
+      12, 12, 12, 12, 12, 12, 12, 12, 12, 12,
+      12,  1, 12,  0, 12, 12, 12, 12, 12, 12,
+       0, 12, 12, 12, 12, 12, 12, 12, 12, 12,
+      12, 12, 12, 12, 12, 12, 12, 12, 12, 12,
+      12, 12, 12, 12, 12, 12, 12, 12, 12, 12,
+      12, 12, 12, 12, 12, 12, 12, 12, 12, 12,
+      12, 12, 12, 12, 12, 12, 12, 12, 12, 12,
+      12, 12, 12, 12, 12, 12, 12, 12, 12, 12,
+      12, 12, 12, 12, 12, 12, 12, 12, 12, 12,
+      12, 12, 12, 12, 12, 12, 12, 12, 12, 12,
+      12, 12, 12, 12, 12, 12, 12, 12, 12, 12,
+      12, 12, 12, 12, 12, 12, 12, 12, 12, 12,
+      12, 12, 12, 12, 12, 12, 12, 12, 12, 12,
+      12, 12, 12, 12, 12, 12, 12, 12, 12, 12,
+      12, 12, 12, 12, 12, 12, 12, 12, 12, 12,
+      12, 12, 12, 12, 12, 12, 12, 12, 12, 12,
+      12, 12, 12, 12, 12, 12
     };
-  return asso_values[(unsigned char)str[2]];
+  return len + asso_values[(unsigned char)str[2]];
 }
 
 const struct GperfMethod *
@@ -112,10 +121,14 @@ in_none_set (register const char *str, register size_t len)
 {
   static const struct GperfMethod wordlist[] =
     {
-#line 35 "gperf/methods_none.txt"
+      {""}, {""}, {""}, {""}, {""}, {""},
+#line 45 "gperf/methods_none.txt"
       {"__ne__", PyNone_NotEqual},
-#line 34 "gperf/methods_none.txt"
-      {"__eq__", PyNone_Equal}
+#line 44 "gperf/methods_none.txt"
+      {"__eq__", PyNone_Equal},
+      {""}, {""}, {""},
+#line 46 "gperf/methods_none.txt"
+      {"__getattr__", PyNone_GetAttr}
     };
 
   if (len <= MAX_WORD_LENGTH && len >= MIN_WORD_LENGTH)
@@ -132,5 +145,5 @@ in_none_set (register const char *str, register size_t len)
     }
   return 0;
 }
-#line 36 "gperf/methods_none.txt"
+#line 47 "gperf/methods_none.txt"
 

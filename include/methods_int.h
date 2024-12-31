@@ -32,6 +32,7 @@
 #line 1 "gperf/methods_int.txt"
 
 #include <string.h>
+#include "object_string.h"
 #include "vm.h"
 #include "value.h"
 #include "value_int.h"
@@ -225,15 +226,24 @@ Value PyInt_RightShift(int argc, Value *argv) {
     return res;
 }
 
-#line 198 "gperf/methods_int.txt"
+Value PyInt_GetAttr(int argc, Value *argv) {
+    if (argc != 1)
+        reportArityError(1, 1, argc);
+    Value res = Int_GetAttr(argv[0], AS_STRING(argv[1]));
+    if (IS_NOT_IMPLEMENTED(res))
+        operatorNotImplementedUnary("getattr", argv[0]);
+    return res;
+}
+
+#line 208 "gperf/methods_int.txt"
 struct GperfMethod;
 
-#define TOTAL_KEYWORDS 21
+#define TOTAL_KEYWORDS 22
 #define MIN_WORD_LENGTH 6
 #define MAX_WORD_LENGTH 12
-#define MIN_HASH_VALUE 6
-#define MAX_HASH_VALUE 67
-/* maximum key range = 62, duplicates = 0 */
+#define MIN_HASH_VALUE 7
+#define MAX_HASH_VALUE 61
+/* maximum key range = 55, duplicates = 0 */
 
 #ifdef __GNUC__
 __inline
@@ -247,32 +257,32 @@ hash (register const char *str, register size_t len)
 {
   static const unsigned char asso_values[] =
     {
-      68, 68, 68, 68, 68, 68, 68, 68, 68, 68,
-      68, 68, 68, 68, 68, 68, 68, 68, 68, 68,
-      68, 68, 68, 68, 68, 68, 68, 68, 68, 68,
-      68, 68, 68, 68, 68, 68, 68, 68, 68, 68,
-      68, 68, 68, 68, 68, 68, 68, 68, 68, 68,
-      68, 68, 68, 68, 68, 68, 68, 68, 68, 68,
-      68, 68, 68, 68, 68, 68, 68, 68, 68, 68,
-      68, 68, 68, 68, 68, 68, 68, 68, 68, 68,
-      68, 68, 68, 68, 68, 68, 68, 68, 68, 68,
-      68, 68, 68, 68, 68,  0, 68, 25,  5, 68,
-       5, 10, 30,  5,  0,  0, 68, 68,  0,  0,
-      10, 25, 25, 25,  5,  0,  0, 15,  0,  5,
-      15, 68, 68, 68, 68, 68, 68, 68, 68, 68,
-      68, 68, 68, 68, 68, 68, 68, 68, 68, 68,
-      68, 68, 68, 68, 68, 68, 68, 68, 68, 68,
-      68, 68, 68, 68, 68, 68, 68, 68, 68, 68,
-      68, 68, 68, 68, 68, 68, 68, 68, 68, 68,
-      68, 68, 68, 68, 68, 68, 68, 68, 68, 68,
-      68, 68, 68, 68, 68, 68, 68, 68, 68, 68,
-      68, 68, 68, 68, 68, 68, 68, 68, 68, 68,
-      68, 68, 68, 68, 68, 68, 68, 68, 68, 68,
-      68, 68, 68, 68, 68, 68, 68, 68, 68, 68,
-      68, 68, 68, 68, 68, 68, 68, 68, 68, 68,
-      68, 68, 68, 68, 68, 68, 68, 68, 68, 68,
-      68, 68, 68, 68, 68, 68, 68, 68, 68, 68,
-      68, 68, 68, 68, 68, 68
+      62, 62, 62, 62, 62, 62, 62, 62, 62, 62,
+      62, 62, 62, 62, 62, 62, 62, 62, 62, 62,
+      62, 62, 62, 62, 62, 62, 62, 62, 62, 62,
+      62, 62, 62, 62, 62, 62, 62, 62, 62, 62,
+      62, 62, 62, 62, 62, 62, 62, 62, 62, 62,
+      62, 62, 62, 62, 62, 62, 62, 62, 62, 62,
+      62, 62, 62, 62, 62, 62, 62, 62, 62, 62,
+      62, 62, 62, 62, 62, 62, 62, 62, 62, 62,
+      62, 62, 62, 62, 62, 62, 62, 62, 62, 62,
+      62, 62, 62, 62, 62, 25, 62,  5, 10, 62,
+       0, 10, 20,  5,  0,  0, 62, 62,  0,  0,
+      10, 20, 15, 20,  5,  0,  0,  0,  0,  5,
+       5, 62, 62, 62, 62, 62, 62, 62, 62, 62,
+      62, 62, 62, 62, 62, 62, 62, 62, 62, 62,
+      62, 62, 62, 62, 62, 62, 62, 62, 62, 62,
+      62, 62, 62, 62, 62, 62, 62, 62, 62, 62,
+      62, 62, 62, 62, 62, 62, 62, 62, 62, 62,
+      62, 62, 62, 62, 62, 62, 62, 62, 62, 62,
+      62, 62, 62, 62, 62, 62, 62, 62, 62, 62,
+      62, 62, 62, 62, 62, 62, 62, 62, 62, 62,
+      62, 62, 62, 62, 62, 62, 62, 62, 62, 62,
+      62, 62, 62, 62, 62, 62, 62, 62, 62, 62,
+      62, 62, 62, 62, 62, 62, 62, 62, 62, 62,
+      62, 62, 62, 62, 62, 62, 62, 62, 62, 62,
+      62, 62, 62, 62, 62, 62, 62, 62, 62, 62,
+      62, 62, 62, 62, 62, 62
     };
   return len + asso_values[(unsigned char)str[4]] + asso_values[(unsigned char)str[3]] + asso_values[(unsigned char)str[2]];
 }
@@ -282,61 +292,64 @@ in_int_set (register const char *str, register size_t len)
 {
   static const struct GperfMethod wordlist[] =
     {
-      {""}, {""}, {""}, {""}, {""}, {""},
-#line 209 "gperf/methods_int.txt"
-      {"__lt__", PyInt_Less},
-      {""}, {""}, {""},
-#line 224 "gperf/methods_int.txt"
-      {"__lshift__", PyInt_LeftShift},
-#line 207 "gperf/methods_int.txt"
-      {"__gt__", PyInt_Greater},
-      {""}, {""}, {""},
-#line 225 "gperf/methods_int.txt"
-      {"__rshift__", PyInt_RightShift},
-#line 210 "gperf/methods_int.txt"
-      {"__le__", PyInt_LessEqual},
-      {""}, {""}, {""},
+      {""}, {""}, {""}, {""}, {""}, {""}, {""},
 #line 223 "gperf/methods_int.txt"
-      {"__invert__", PyInt_Invert},
-#line 208 "gperf/methods_int.txt"
-      {"__ge__", PyInt_GreaterEqual},
-#line 213 "gperf/methods_int.txt"
       {"__mul__", PyInt_Multiply},
-      {""}, {""}, {""},
-#line 206 "gperf/methods_int.txt"
-      {"__ne__", PyInt_NotEqual},
-#line 212 "gperf/methods_int.txt"
-      {"__sub__", PyInt_Subtract},
-      {""}, {""}, {""},
-#line 214 "gperf/methods_int.txt"
+      {""}, {""},
+#line 234 "gperf/methods_int.txt"
+      {"__lshift__", PyInt_LeftShift},
+      {""},
+#line 221 "gperf/methods_int.txt"
+      {"__add__", PyInt_Add},
+      {""}, {""},
+#line 235 "gperf/methods_int.txt"
+      {"__rshift__", PyInt_RightShift},
+#line 224 "gperf/methods_int.txt"
       {"__truediv__", PyInt_TrueDivide},
-#line 219 "gperf/methods_int.txt"
-      {"__neg__", PyInt_Negative},
-      {""}, {""}, {""},
 #line 222 "gperf/methods_int.txt"
-      {"__or__", PyInt_Or},
-#line 216 "gperf/methods_int.txt"
+      {"__sub__", PyInt_Subtract},
+      {""}, {""},
+#line 233 "gperf/methods_int.txt"
+      {"__invert__", PyInt_Invert},
+      {""},
+#line 230 "gperf/methods_int.txt"
+      {"__and__", PyInt_And},
+      {""}, {""}, {""},
+#line 236 "gperf/methods_int.txt"
+      {"__getattr__", PyInt_GetAttr},
+#line 226 "gperf/methods_int.txt"
       {"__mod__", PyInt_Modulo},
       {""}, {""}, {""},
-#line 205 "gperf/methods_int.txt"
-      {"__eq__", PyInt_Equal},
-#line 211 "gperf/methods_int.txt"
-      {"__add__", PyInt_Add},
-      {""}, {""}, {""}, {""},
-#line 220 "gperf/methods_int.txt"
-      {"__and__", PyInt_And},
-      {""}, {""}, {""}, {""},
-#line 221 "gperf/methods_int.txt"
-      {"__xor__", PyInt_Xor},
-      {""}, {""}, {""}, {""},
-#line 218 "gperf/methods_int.txt"
-      {"__pos__", PyInt_Positive},
-      {""}, {""}, {""}, {""},
+#line 219 "gperf/methods_int.txt"
+      {"__lt__", PyInt_Less},
+#line 229 "gperf/methods_int.txt"
+      {"__neg__", PyInt_Negative},
+      {""}, {""}, {""},
 #line 217 "gperf/methods_int.txt"
+      {"__gt__", PyInt_Greater},
+#line 231 "gperf/methods_int.txt"
+      {"__xor__", PyInt_Xor},
+      {""}, {""}, {""},
+#line 220 "gperf/methods_int.txt"
+      {"__le__", PyInt_LessEqual},
+#line 228 "gperf/methods_int.txt"
+      {"__pos__", PyInt_Positive},
+      {""}, {""}, {""},
+#line 218 "gperf/methods_int.txt"
+      {"__ge__", PyInt_GreaterEqual},
+#line 227 "gperf/methods_int.txt"
       {"__pow__", PyInt_Power},
+      {""}, {""}, {""},
+#line 216 "gperf/methods_int.txt"
+      {"__ne__", PyInt_NotEqual},
+#line 225 "gperf/methods_int.txt"
+      {"__floordiv__", PyInt_FloorDivide},
+      {""}, {""}, {""},
+#line 232 "gperf/methods_int.txt"
+      {"__or__", PyInt_Or},
       {""}, {""}, {""}, {""},
 #line 215 "gperf/methods_int.txt"
-      {"__floordiv__", PyInt_FloorDivide}
+      {"__eq__", PyInt_Equal}
     };
 
   if (len <= MAX_WORD_LENGTH && len >= MIN_WORD_LENGTH)
@@ -353,5 +366,5 @@ in_int_set (register const char *str, register size_t len)
     }
   return 0;
 }
-#line 226 "gperf/methods_int.txt"
+#line 237 "gperf/methods_int.txt"
 

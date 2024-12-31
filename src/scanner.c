@@ -278,7 +278,7 @@ Token scanToken() {
     if (isQuote(c)) 
         return scanString(c);
     
-    if ((c == 'r' || c == 'R'))
+    if ((c == 'r' || c == 'R') && isQuote(peek(0)))
         return scanRawString(advance());
     
     if ((c == 'f' || c == 'F') && isQuote(peek(0))) {

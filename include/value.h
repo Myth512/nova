@@ -25,6 +25,7 @@ typedef enum {
     VAL_UPVALUE,
     VAL_NATIVE,
     VAL_CLASS,
+    VAL_NATIVE_CLASS,
     VAL_METHOD,
     VAL_NATIVE_METHOD,
     VAL_INSTANCE,
@@ -76,8 +77,15 @@ typedef struct {
     UnaryMethod invert;
     BinaryMethod lshift;
     BinaryMethod rshift;
+    Value (*init)(int, Value*);
+    Value (*call)(int, Value*);
+    UnaryMethod class;
     Value (*getattr)(Value, ObjString *name);
     Value (*setattr)(Value, ObjString *name, Value);
+    Value (*delattr)(Value, ObjString *name);
+    Value (*getitem)(Value, Value);
+    Value (*setitem)(Value, Value, Value);
+    Value (*delitem)(Value, Value);
     uint64_t (*hash)(Value);
     long long (*len)(Value);
     bool (*toBool)(Value);
@@ -95,29 +103,11 @@ typedef struct {
 #define IS_UNDEFINED(value) ((value).type == VAL_UNDEFINED)
 #define IS_NOT_IMPLEMENTED(value)  ((value).type == VAL_NOT_IMPLEMENTED)
 
-#define UNARY_WRAPPER(func) \
-Value Py##func(int argc, Value *argv) { \
-    if (argc != 0) \
-        reportArityError(0, 0, argc); \
-    Value res = func(argv[0]); \
-    if (IS_NOT_IMPLEMENTED(res))        \
-        operatorNotImplementedUnary("+", argv[0]); \
-    return res; \
-}
-
-#define BINARY_WRAPPER(func) \ 
-Value Py##func(int argc, Value *argv) { \
-    if (argc != 1)                      \
-        reportArityError(1, 1, argc);   \
-    Value res = func(argv[0], argv[1]); \
-    if (IS_NOT_IMPLEMENTED(res))        \
-        operatorNotImplemented("+", argv[0], argv[1]); \
-    return res; \
-}
-
 int writeToBuffer(char *buffer, const size_t size, const char *format, ...);
 
 Value getGperfMethod(Value value, ObjString *name, const struct GperfMethod *(*in_word_set)(register const char*, register size_t));
+
+int calculateIndex(int index, int length);
 
 const char* decodeValueType(Value value);
 

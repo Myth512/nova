@@ -1,5 +1,6 @@
 #include "value_none.h"
 #include "value_int.h"
+#include "methods_none.h"
 
 Value None_Equal(Value a, Value b) {
     return BOOL_VAL(b.type == VAL_NONE);
@@ -7,6 +8,10 @@ Value None_Equal(Value a, Value b) {
 
 Value None_NotEqual(Value a, Value b) {
     return BOOL_VAL(b.type != VAL_NONE);
+}
+
+Value None_GetAttr(Value value, ObjString *name) {
+    return getGperfMethod(value, name, in_none_set);
 }
 
 uint64_t None_Hash(Value value) {

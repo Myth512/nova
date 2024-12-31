@@ -60,19 +60,19 @@ Value String_Add(Value a, Value b);
 
 Value String_Multiply(Value a, Value b);
 
-Value String_GetAttr(Value string, ObjString *name);
+Value String_GetAttr(Value value, ObjString *name);
 
-Value String_GetAt(ObjString *string, Value index);
+Value String_GetItem(Value value, Value key);
 
 uint64_t String_Hash(Value value);
 
-long long String_Len(Value string);
+long long String_Len(Value value);
 
-bool String_ToBool(Value string);
+bool String_ToBool(Value value);
 
-long long String_ToInt(Value string);
+long long String_ToInt(Value value);
 
-double String_ToFloat(Value string);
+double String_ToFloat(Value value);
 
 int String_ToStr(Value value, char *buffer, size_t size);
 

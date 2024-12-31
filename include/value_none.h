@@ -18,6 +18,8 @@ Value None_Equal(Value a, Value b);
 
 Value None_NotEqual(Value a, Value b);
 
+Value None_GetAttr(Value value, ObjString *name);
+
 uint64_t None_Hash(Value value);
 
 bool None_ToBool(Value value);

@@ -154,8 +154,18 @@ Value String_Multiply(Value a, Value b) {
     return STRING_VAL(result);
 }
 
-Value String_GetAttr(Value string, ObjString *name) {
-    return getGperfMethod(string, name, in_string_set);
+Value String_GetAttr(Value value, ObjString *name) {
+    return getGperfMethod(value, name, in_string_set);
+}
+
+Value String_GetItem(Value value, Value key) {
+    if (!IS_INT(key))
+        reportRuntimeError("Indicies only int");
+    int index = calculateIndex(AS_INT(key), AS_STRING(value)->length);
+    if (index == -1)
+        reportRuntimeError("Index is out of bounds");
+    
+    return OBJ_VAL(copyString(AS_STRING(value)->chars + index, 1));
 }
 
 static uint64_t hashString(const char *value) {
@@ -176,20 +186,20 @@ uint64_t String_Hash(Value value) {
     return string->hash;
 }
 
-long long String_Len(Value string) {
-    return AS_STRING(string)->length;
+long long String_Len(Value value) {
+    return AS_STRING(value)->length;
 }
 
-bool String_ToBool(Value string) {
-    return String_Len(string);
+bool String_ToBool(Value value) {
+    return String_Len(value);
 }
 
-long long String_ToInt(Value string) {
-    return atoi(AS_CHARS(string));
+long long String_ToInt(Value value) {
+    return atoi(AS_CHARS(value));
 }
 
-double String_ToFloat(Value string) {
-    return atof(AS_CHARS(string));
+double String_ToFloat(Value value) {
+    return atof(AS_CHARS(value));
 }
 
 int String_ToStr(Value value, char *buffer, size_t size) {

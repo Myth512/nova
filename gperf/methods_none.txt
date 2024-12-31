@@ -1,5 +1,6 @@
 %{
 #include <string.h>
+#include "object_string.h"
 #include "vm.h"
 #include "value.h"
 #include "value_none.h"
@@ -22,6 +23,15 @@ Value PyNone_NotEqual(int argc, Value *argv) {
     return res;
 }
 
+Value PyNone_GetAttr(int argc, Value *argv) {
+    if (argc != 1)
+        reportArityError(1, 1, argc);
+    Value res = None_GetAttr(argv[0], AS_STRING(argv[1]));
+    if (IS_NOT_IMPLEMENTED(res))
+        operatorNotImplementedUnary("getattr", argv[0]);
+    return res;
+}
+
 %}
 
 struct GperfMethod
@@ -33,4 +43,5 @@ struct GperfMethod
 %%
 __eq__, PyNone_Equal
 __ne__, PyNone_NotEqual
+__getattr__, PyNone_GetAttr
 %%

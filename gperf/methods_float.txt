@@ -1,5 +1,6 @@
 %{
 #include <string.h>
+#include "object_string.h"
 #include "vm.h"
 #include "value.h"
 #include "value_float.h"
@@ -139,6 +140,15 @@ Value PyFloat_Negative(int argc, Value *argv) {
     return res;
 }
 
+Value PyFloat_GetAttr(int argc, Value *argv) {
+    if (argc != 1)
+        reportArityError(1, 1, argc);
+    Value res = Float_GetAttr(argv[0], AS_STRING(argv[1]));
+    if (IS_NOT_IMPLEMENTED(res))
+        operatorNotImplementedUnary("getattr", argv[0]);
+    return res;
+}
+
 %}
 
 struct GperfMethod
@@ -163,4 +173,5 @@ __mod__, PyFloat_Modulo
 __pow__, PyFloat_Power
 __pos__, PyFloat_Positive
 __neg__, PyFloat_Negative
+__getattr__, PyFloat_GetAttr
 %%

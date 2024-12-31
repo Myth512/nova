@@ -3,8 +3,10 @@
 #include "value.h"
 #include "value_int.h"
 #include "value_float.h"
+#include "value_methods.h"
 #include "methods_int.h"
 #include "vm.h"
+#include "table.h"
 
 Value Int_Equal(Value a, Value b) {
     if (b.type == VAL_INT || b.type == VAL_BOOL)
@@ -139,8 +141,11 @@ Value Int_GetAttr(Value obj, ObjString *name) {
     return getGperfMethod(obj, name, in_int_set);
 }
 
-Value Int_Class(Value value) {
+Value Int_Init(int argc, Value *argv) {
+    return INT_VAL(valueToInt(argv[0]));
+}
 
+Value Int_Class(Value value) {
 }
 
 uint64_t Int_Hash(Value value) {

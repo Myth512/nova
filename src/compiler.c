@@ -1078,22 +1078,19 @@ static void at(bool canAssign, bool allowTuple) {
 }
 
 static void returnStatement() {
-    // advance(false);
-    // if (current->type == TYPE_TOP_LEVEL)
-    //     reportError("Can't return from top-level code", &parser.current);
+    advance(false);
+    if (current->type == TYPE_TOP_LEVEL)
+        reportError("Can't return from top-level code", &parser.current);
     
-    // if (consumeEOS()) {
-    //     emitReturn();
-    // } else {
-    //     if (current->type == TYPE_INITIALIZER) 
-    //         reportError("Can't return a value from an initializer", &parser.current);
-        
-    //     expression(false);
-    //     if (!consume(TOKEN_LINE_BREAK, false) && !consume(TOKEN_SEMICOLON, false)) {
-    //         reportError("Expect eos after value", &parser.current);
-    //     }
-    //     emitByte(OP_RETURN, parser.current);
-    // }
+    if (consumeEOS()) {
+        emitReturn();
+    } else {
+        expression();
+        if (!consumeEOS()) {
+            reportError("Expect eos after value", &parser.current);
+        }
+        emitByte(OP_RETURN, parser.current);
+    }
 }
 
 static void statement(int breakPointer, int continuePointer) {

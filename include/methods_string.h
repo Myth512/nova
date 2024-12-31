@@ -32,6 +32,7 @@
 #line 1 "gperf/methods_string.txt"
 
 #include <string.h>
+#include "object_string.h"
 #include "vm.h"
 #include "value.h"
 #include "object_string.h"
@@ -108,12 +109,21 @@ Value PyString_Multiply(int argc, Value *argv) {
     return res;
 }
 
-#line 81 "gperf/methods_string.txt"
+Value PyString_GetAttr(int argc, Value *argv) {
+    if (argc != 1)
+        reportArityError(1, 1, argc);
+    Value res = String_GetAttr(argv[0], AS_STRING(argv[1]));
+    if (IS_NOT_IMPLEMENTED(res))
+        operatorNotImplementedUnary("getattr", argv[0]);
+    return res;
+}
+
+#line 91 "gperf/methods_string.txt"
 struct GperfMethod;
 
-#define TOTAL_KEYWORDS 8
+#define TOTAL_KEYWORDS 9
 #define MIN_WORD_LENGTH 6
-#define MAX_WORD_LENGTH 7
+#define MAX_WORD_LENGTH 11
 #define MIN_HASH_VALUE 6
 #define MAX_HASH_VALUE 31
 /* maximum key range = 26, duplicates = 0 */
@@ -141,7 +151,7 @@ hash (register const char *str, register size_t len)
       32, 32, 32, 32, 32, 32, 32, 32, 32, 32,
       32, 32, 32, 32, 32, 32, 32,  5, 32, 32,
        0, 10, 32,  5, 32, 32, 32, 32,  0,  0,
-      15, 32, 32, 10, 32, 32,  0,  0, 32, 32,
+       4, 32, 32, 15, 32, 32,  0,  0, 32, 32,
       32, 32, 32, 32, 32, 32, 32, 32, 32, 32,
       32, 32, 32, 32, 32, 32, 32, 32, 32, 32,
       32, 32, 32, 32, 32, 32, 32, 32, 32, 32,
@@ -166,27 +176,29 @@ in_string_set (register const char *str, register size_t len)
   static const struct GperfMethod wordlist[] =
     {
       {""}, {""}, {""}, {""}, {""}, {""},
-#line 92 "gperf/methods_string.txt"
+#line 102 "gperf/methods_string.txt"
       {"__lt__", PyString_Less},
-#line 95 "gperf/methods_string.txt"
+#line 105 "gperf/methods_string.txt"
       {"__mul__", PyString_Multiply},
       {""}, {""}, {""},
-#line 90 "gperf/methods_string.txt"
+#line 100 "gperf/methods_string.txt"
       {"__gt__", PyString_Greater},
-#line 94 "gperf/methods_string.txt"
+#line 104 "gperf/methods_string.txt"
       {"__add__", PyString_Add},
       {""}, {""}, {""},
-#line 93 "gperf/methods_string.txt"
+#line 103 "gperf/methods_string.txt"
       {"__le__", PyString_LessEqual},
-      {""}, {""}, {""}, {""},
-#line 91 "gperf/methods_string.txt"
+      {""}, {""}, {""},
+#line 99 "gperf/methods_string.txt"
+      {"__ne__", PyString_NotEqual},
+#line 101 "gperf/methods_string.txt"
       {"__ge__", PyString_GreaterEqual},
       {""}, {""}, {""}, {""},
-#line 88 "gperf/methods_string.txt"
-      {"__eq__", PyString_Equal},
+#line 106 "gperf/methods_string.txt"
+      {"__getattr__", PyString_GetAttr},
       {""}, {""}, {""}, {""},
-#line 89 "gperf/methods_string.txt"
-      {"__ne__", PyString_NotEqual}
+#line 98 "gperf/methods_string.txt"
+      {"__eq__", PyString_Equal}
     };
 
   if (len <= MAX_WORD_LENGTH && len >= MIN_WORD_LENGTH)
@@ -203,5 +215,5 @@ in_string_set (register const char *str, register size_t len)
     }
   return 0;
 }
-#line 96 "gperf/methods_string.txt"
+#line 107 "gperf/methods_string.txt"
 
