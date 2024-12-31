@@ -27,6 +27,13 @@ int writeToBuffer(char *buffer, const size_t size, const char *format, ...) {
     return bytesWritten;
 }
 
+Value getGperfMethod(Value value, ObjString *name, const struct GperfMethod *(*in_word_set)(register const char*, register size_t)) {
+    const GperfMethod *result = in_word_set(name->chars, name->length);
+    if (!result)
+        return UNDEFINED_VAL;
+    return OBJ_VAL(createNativeMethod(value, result->method, result->name));
+}
+
 const char* decodeValueType(Value value) {
     return "type";
     // switch (value.type) {

@@ -58,8 +58,8 @@ typedef enum {
     OP_CLOSE_UPVALUE,
     OP_CLASS,
     OP_METHOD,
-    OP_GET_PROPERTY, 
-    OP_SET_PROPERTY,
+    OP_GET_ATTRIBUTE, 
+    OP_SET_ATTRIBUTE,
     OP_RETURN,
 } OpCode;
 

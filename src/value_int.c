@@ -3,6 +3,7 @@
 #include "value.h"
 #include "value_int.h"
 #include "value_float.h"
+#include "methods_int.h"
 #include "vm.h"
 
 Value Int_Equal(Value a, Value b) {
@@ -135,7 +136,7 @@ Value Int_RightShift(Value a, Value b) {
 }
 
 Value Int_GetAttr(Value obj, ObjString *name) {
-    
+    return getGperfMethod(obj, name, in_int_set);
 }
 
 Value Int_Class(Value value) {

@@ -1,0 +1,96 @@
+%{
+#include <string.h>
+#include "vm.h"
+#include "value.h"
+#include "object_string.h"
+
+Value PyString_Equal(int argc, Value *argv) {
+    if (argc != 1)
+        reportArityError(1, 1, argc);
+    Value res = String_Equal(argv[0], argv[1]);
+    if (IS_NOT_IMPLEMENTED(res))
+        operatorNotImplemented("==", argv[0], argv[1]);
+    return res;
+}
+
+Value PyString_NotEqual(int argc, Value *argv) {
+    if (argc != 1)
+        reportArityError(1, 1, argc);
+    Value res = String_NotEqual(argv[0], argv[1]);
+    if (IS_NOT_IMPLEMENTED(res))
+        operatorNotImplemented("!=", argv[0], argv[1]);
+    return res;
+}
+
+Value PyString_Greater(int argc, Value *argv) {
+    if (argc != 1)
+        reportArityError(1, 1, argc);
+    Value res = String_Greater(argv[0], argv[1]);
+    if (IS_NOT_IMPLEMENTED(res))
+        operatorNotImplemented(">", argv[0], argv[1]);
+    return res;
+}
+
+Value PyString_GreaterEqual(int argc, Value *argv) {
+    if (argc != 1)
+        reportArityError(1, 1, argc);
+    Value res = String_GreaterEqual(argv[0], argv[1]);
+    if (IS_NOT_IMPLEMENTED(res))
+        operatorNotImplemented(">=", argv[0], argv[1]);
+    return res;
+}
+
+Value PyString_Less(int argc, Value *argv) {
+    if (argc != 1)
+        reportArityError(1, 1, argc);
+    Value res = String_Less(argv[0], argv[1]);
+    if (IS_NOT_IMPLEMENTED(res))
+        operatorNotImplemented("<", argv[0], argv[1]);
+    return res;
+}
+
+Value PyString_LessEqual(int argc, Value *argv) {
+    if (argc != 1)
+        reportArityError(1, 1, argc);
+    Value res = String_LessEqual(argv[0], argv[1]);
+    if (IS_NOT_IMPLEMENTED(res))
+        operatorNotImplemented("<=", argv[0], argv[1]);
+    return res;
+}
+
+Value PyString_Add(int argc, Value *argv) {
+    if (argc != 1)
+        reportArityError(1, 1, argc);
+    Value res = String_Add(argv[0], argv[1]);
+    if (IS_NOT_IMPLEMENTED(res))
+        operatorNotImplemented("+", argv[0], argv[1]);
+    return res;
+}
+
+Value PyString_Multiply(int argc, Value *argv) {
+    if (argc != 1)
+        reportArityError(1, 1, argc);
+    Value res = String_Multiply(argv[0], argv[1]);
+    if (IS_NOT_IMPLEMENTED(res))
+        operatorNotImplemented("*", argv[0], argv[1]);
+    return res;
+}
+
+%}
+
+struct GperfMethod
+
+%readonly-tables
+%struct-type
+%define lookup-function-name in_string_set
+
+%%
+__eq__, PyString_Equal
+__ne__, PyString_NotEqual
+__gt__, PyString_Greater
+__ge__, PyString_GreaterEqual
+__lt__, PyString_Less
+__le__, PyString_LessEqual
+__add__, PyString_Add
+__mul__, PyString_Multiply
+%%

@@ -5,7 +5,7 @@
 #include "value_int.h"
 #include "object_string.h"
 #include "object_class.h"
-#include "string_methods.h"
+#include "methods_string.h"
 
 ObjString *allocateString(size_t length) {
     size_t size = sizeof(ObjString) + length + 1;
@@ -155,37 +155,7 @@ Value String_Multiply(Value a, Value b) {
 }
 
 Value String_GetAttr(Value string, ObjString *name) {
-    const GperfMethod *result = in_string_set(name->chars, name->length);
-    if (!result)
-        return UNDEFINED_VAL;
-    return OBJ_VAL(createNativeMethod(string, result->method, result->name));
-}
-
-OptValue String_GetField(Value string, ObjString *name) {
-    // const struct StringMethod *result = in_string_set(name->chars, name->length);
-    // if (result) {
-    //     ObjNativeMethod *method = createNativeMethod(string, result->method, result->name);
-    //     return (OptValue){.hasValue=true, .value=OBJ_VAL(method)};
-    // } 
-    // return (OptValue){.hasValue=false};
-}
-
-Value String_GetAt(ObjString *string, Value index) {
-    // if (!isInt(index))
-    //     reportRuntimeError("Index must be integer number");
-    
-    // int i = asInt(index);
-    
-    // int length = string->length; 
-    // if (i >= length || i < -length)
-    //     reportRuntimeError("Index is out of range");
-    // if (i < 0)
-    //     i += length;
-    
-    // const char chr = string->chars[i];
-    // ObjString *result = copyString(&chr, 1);
-
-    // return OBJ_VAL(result);
+    return getGperfMethod(string, name, in_string_set);
 }
 
 static uint64_t hashString(const char *value) {

@@ -95,7 +95,29 @@ typedef struct {
 #define IS_UNDEFINED(value) ((value).type == VAL_UNDEFINED)
 #define IS_NOT_IMPLEMENTED(value)  ((value).type == VAL_NOT_IMPLEMENTED)
 
+#define UNARY_WRAPPER(func) \
+Value Py##func(int argc, Value *argv) { \
+    if (argc != 0) \
+        reportArityError(0, 0, argc); \
+    Value res = func(argv[0]); \
+    if (IS_NOT_IMPLEMENTED(res))        \
+        operatorNotImplementedUnary("+", argv[0]); \
+    return res; \
+}
+
+#define BINARY_WRAPPER(func) \ 
+Value Py##func(int argc, Value *argv) { \
+    if (argc != 1)                      \
+        reportArityError(1, 1, argc);   \
+    Value res = func(argv[0], argv[1]); \
+    if (IS_NOT_IMPLEMENTED(res))        \
+        operatorNotImplemented("+", argv[0], argv[1]); \
+    return res; \
+}
+
 int writeToBuffer(char *buffer, const size_t size, const char *format, ...);
+
+Value getGperfMethod(Value value, ObjString *name, const struct GperfMethod *(*in_word_set)(register const char*, register size_t));
 
 const char* decodeValueType(Value value);
 

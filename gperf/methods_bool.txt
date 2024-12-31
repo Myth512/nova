@@ -1,0 +1,226 @@
+%{
+#include <string.h>
+#include "vm.h"
+#include "value.h"
+#include "value_bool.h"
+
+Value PyBool_Equal(int argc, Value *argv) {
+    if (argc != 1)
+        reportArityError(1, 1, argc);
+    Value res = Bool_Equal(argv[0], argv[1]);
+    if (IS_NOT_IMPLEMENTED(res))
+        operatorNotImplemented("==", argv[0], argv[1]);
+    return res;
+}
+
+Value PyBool_NotEqual(int argc, Value *argv) {
+    if (argc != 1)
+        reportArityError(1, 1, argc);
+    Value res = Bool_NotEqual(argv[0], argv[1]);
+    if (IS_NOT_IMPLEMENTED(res))
+        operatorNotImplemented("!=", argv[0], argv[1]);
+    return res;
+}
+
+Value PyBool_Greater(int argc, Value *argv) {
+    if (argc != 1)
+        reportArityError(1, 1, argc);
+    Value res = Bool_Greater(argv[0], argv[1]);
+    if (IS_NOT_IMPLEMENTED(res))
+        operatorNotImplemented(">", argv[0], argv[1]);
+    return res;
+}
+
+Value PyBool_GreaterEqual(int argc, Value *argv) {
+    if (argc != 1)
+        reportArityError(1, 1, argc);
+    Value res = Bool_GreaterEqual(argv[0], argv[1]);
+    if (IS_NOT_IMPLEMENTED(res))
+        operatorNotImplemented(">=", argv[0], argv[1]);
+    return res;
+}
+
+Value PyBool_Less(int argc, Value *argv) {
+    if (argc != 1)
+        reportArityError(1, 1, argc);
+    Value res = Bool_Less(argv[0], argv[1]);
+    if (IS_NOT_IMPLEMENTED(res))
+        operatorNotImplemented("<", argv[0], argv[1]);
+    return res;
+}
+
+Value PyBool_LessEqual(int argc, Value *argv) {
+    if (argc != 1)
+        reportArityError(1, 1, argc);
+    Value res = Bool_LessEqual(argv[0], argv[1]);
+    if (IS_NOT_IMPLEMENTED(res))
+        operatorNotImplemented("<=", argv[0], argv[1]);
+    return res;
+}
+
+Value PyBool_Add(int argc, Value *argv) {
+    if (argc != 1)
+        reportArityError(1, 1, argc);
+    Value res = Bool_Add(argv[0], argv[1]);
+    if (IS_NOT_IMPLEMENTED(res))
+        operatorNotImplemented("+", argv[0], argv[1]);
+    return res;
+}
+
+Value PyBool_Subtract(int argc, Value *argv) {
+    if (argc != 1)
+        reportArityError(1, 1, argc);
+    Value res = Bool_Subtract(argv[0], argv[1]);
+    if (IS_NOT_IMPLEMENTED(res))
+        operatorNotImplemented("-", argv[0], argv[1]);
+    return res;
+}
+
+Value PyBool_Multiply(int argc, Value *argv) {
+    if (argc != 1)
+        reportArityError(1, 1, argc);
+    Value res = Bool_Multiply(argv[0], argv[1]);
+    if (IS_NOT_IMPLEMENTED(res))
+        operatorNotImplemented("*", argv[0], argv[1]);
+    return res;
+}
+
+Value PyBool_TrueDivide(int argc, Value *argv) {
+    if (argc != 1)
+        reportArityError(1, 1, argc);
+    Value res = Bool_TrueDivide(argv[0], argv[1]);
+    if (IS_NOT_IMPLEMENTED(res))
+        operatorNotImplemented("/", argv[0], argv[1]);
+    return res;
+}
+
+Value PyBool_FloorDivide(int argc, Value *argv) {
+    if (argc != 1)
+        reportArityError(1, 1, argc);
+    Value res = Bool_FloorDivide(argv[0], argv[1]);
+    if (IS_NOT_IMPLEMENTED(res))
+        operatorNotImplemented("//", argv[0], argv[1]);
+    return res;
+}
+
+Value PyBool_Modulo(int argc, Value *argv) {
+    if (argc != 1)
+        reportArityError(1, 1, argc);
+    Value res = Bool_Modulo(argv[0], argv[1]);
+    if (IS_NOT_IMPLEMENTED(res))
+        operatorNotImplemented("%", argv[0], argv[1]);
+    return res;
+}
+
+Value PyBool_Power(int argc, Value *argv) {
+    if (argc != 1)
+        reportArityError(1, 1, argc);
+    Value res = Bool_Power(argv[0], argv[1]);
+    if (IS_NOT_IMPLEMENTED(res))
+        operatorNotImplemented("**", argv[0], argv[1]);
+    return res;
+}
+
+Value PyBool_Positive(int argc, Value *argv) {
+    if (argc != 0)
+        reportArityError(0, 0, argc);
+    Value res = Bool_Positive(argv[0]);
+    if (IS_NOT_IMPLEMENTED(res))
+        operatorNotImplementedUnary("+", argv[0]);
+    return res;
+}
+
+Value PyBool_Negative(int argc, Value *argv) {
+    if (argc != 0)
+        reportArityError(0, 0, argc);
+    Value res = Bool_Negative(argv[0]);
+    if (IS_NOT_IMPLEMENTED(res))
+        operatorNotImplementedUnary("-", argv[0]);
+    return res;
+}
+
+Value PyBool_And(int argc, Value *argv) {
+    if (argc != 1)
+        reportArityError(1, 1, argc);
+    Value res = Bool_And(argv[0], argv[1]);
+    if (IS_NOT_IMPLEMENTED(res))
+        operatorNotImplemented("&", argv[0], argv[1]);
+    return res;
+}
+
+Value PyBool_Xor(int argc, Value *argv) {
+    if (argc != 1)
+        reportArityError(1, 1, argc);
+    Value res = Bool_Xor(argv[0], argv[1]);
+    if (IS_NOT_IMPLEMENTED(res))
+        operatorNotImplemented("^", argv[0], argv[1]);
+    return res;
+}
+
+Value PyBool_Or(int argc, Value *argv) {
+    if (argc != 1)
+        reportArityError(1, 1, argc);
+    Value res = Bool_Or(argv[0], argv[1]);
+    if (IS_NOT_IMPLEMENTED(res))
+        operatorNotImplemented("|", argv[0], argv[1]);
+    return res;
+}
+
+Value PyBool_Invert(int argc, Value *argv) {
+    if (argc != 0)
+        reportArityError(0, 0, argc);
+    Value res = Bool_Invert(argv[0]);
+    if (IS_NOT_IMPLEMENTED(res))
+        operatorNotImplementedUnary("~", argv[0]);
+    return res;
+}
+
+Value PyBool_LeftShift(int argc, Value *argv) {
+    if (argc != 1)
+        reportArityError(1, 1, argc);
+    Value res = Bool_LeftShift(argv[0], argv[1]);
+    if (IS_NOT_IMPLEMENTED(res))
+        operatorNotImplemented("<<", argv[0], argv[1]);
+    return res;
+}
+
+Value PyBool_RightShift(int argc, Value *argv) {
+    if (argc != 1)
+        reportArityError(1, 1, argc);
+    Value res = Bool_RightShift(argv[0], argv[1]);
+    if (IS_NOT_IMPLEMENTED(res))
+        operatorNotImplemented(">>", argv[0], argv[1]);
+    return res;
+}
+
+%}
+
+struct GperfMethod
+
+%readonly-tables
+%struct-type
+%define lookup-function-name in_bool_set
+
+%%
+__eq__, PyBool_Equal
+__ne__, PyBool_NotEqual
+__gt__, PyBool_Greater
+__ge__, PyBool_GreaterEqual
+__lt__, PyBool_Less
+__le__, PyBool_LessEqual
+__add__, PyBool_Add
+__sub__, PyBool_Subtract
+__mul__, PyBool_Multiply
+__truediv__, PyBool_TrueDivide
+__floordiv__, PyBool_FloorDivide
+__mod__, PyBool_Modulo
+__pow__, PyBool_Power
+__pos__, PyBool_Positive
+__neg__, PyBool_Negative
+__and__, PyBool_And
+__xor__, PyBool_Xor
+__or__, PyBool_Or
+__invert__, PyBool_Invert
+__lshift__, PyBool_LeftShift
+__rshift__, PyBool_RightShift
+%%

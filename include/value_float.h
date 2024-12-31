@@ -26,6 +26,7 @@
     .pow = Float_Power,                \
     .pos = Float_Positive,             \
     .neg = Float_Negative,             \
+    .getattr = Float_GetAttr,          \
     .hash = Float_Hash,                \
     .toBool = Float_ToBool,            \
     .toInt = Float_ToInt,              \
@@ -63,6 +64,8 @@ Value Float_Power(Value a, Value b);
 Value Float_Positive(Value a);
 
 Value Float_Negative(Value a);
+
+Value Float_GetAttr(Value a, ObjString *name);
 
 uint64_t Float_Hash(Value value);
 

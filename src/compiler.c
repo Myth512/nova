@@ -1046,9 +1046,9 @@ static void dot(bool canAssign, bool allowTuple) {
             reportError("Assignment is not allowed here", &operator);
         
         advance();
-        assignment(OP_GET_PROPERTY, OP_SET_PROPERTY, arg, operator);
+        assignment(OP_GET_ATTRIBUTE, OP_SET_ATTRIBUTE, arg, operator);
     } else {
-        emitBytes(OP_GET_PROPERTY, arg, name);
+        emitBytes(OP_GET_ATTRIBUTE, arg, name);
     }
 }
 

@@ -1,0 +1,226 @@
+%{
+#include <string.h>
+#include "vm.h"
+#include "value.h"
+#include "value_int.h"
+
+Value PyInt_Equal(int argc, Value *argv) {
+    if (argc != 1)
+        reportArityError(1, 1, argc);
+    Value res = Int_Equal(argv[0], argv[1]);
+    if (IS_NOT_IMPLEMENTED(res))
+        operatorNotImplemented("==", argv[0], argv[1]);
+    return res;
+}
+
+Value PyInt_NotEqual(int argc, Value *argv) {
+    if (argc != 1)
+        reportArityError(1, 1, argc);
+    Value res = Int_NotEqual(argv[0], argv[1]);
+    if (IS_NOT_IMPLEMENTED(res))
+        operatorNotImplemented("!=", argv[0], argv[1]);
+    return res;
+}
+
+Value PyInt_Greater(int argc, Value *argv) {
+    if (argc != 1)
+        reportArityError(1, 1, argc);
+    Value res = Int_Greater(argv[0], argv[1]);
+    if (IS_NOT_IMPLEMENTED(res))
+        operatorNotImplemented(">", argv[0], argv[1]);
+    return res;
+}
+
+Value PyInt_GreaterEqual(int argc, Value *argv) {
+    if (argc != 1)
+        reportArityError(1, 1, argc);
+    Value res = Int_GreaterEqual(argv[0], argv[1]);
+    if (IS_NOT_IMPLEMENTED(res))
+        operatorNotImplemented(">=", argv[0], argv[1]);
+    return res;
+}
+
+Value PyInt_Less(int argc, Value *argv) {
+    if (argc != 1)
+        reportArityError(1, 1, argc);
+    Value res = Int_Less(argv[0], argv[1]);
+    if (IS_NOT_IMPLEMENTED(res))
+        operatorNotImplemented("<", argv[0], argv[1]);
+    return res;
+}
+
+Value PyInt_LessEqual(int argc, Value *argv) {
+    if (argc != 1)
+        reportArityError(1, 1, argc);
+    Value res = Int_LessEqual(argv[0], argv[1]);
+    if (IS_NOT_IMPLEMENTED(res))
+        operatorNotImplemented("<=", argv[0], argv[1]);
+    return res;
+}
+
+Value PyInt_Add(int argc, Value *argv) {
+    if (argc != 1)
+        reportArityError(1, 1, argc);
+    Value res = Int_Add(argv[0], argv[1]);
+    if (IS_NOT_IMPLEMENTED(res))
+        operatorNotImplemented("+", argv[0], argv[1]);
+    return res;
+}
+
+Value PyInt_Subtract(int argc, Value *argv) {
+    if (argc != 1)
+        reportArityError(1, 1, argc);
+    Value res = Int_Subtract(argv[0], argv[1]);
+    if (IS_NOT_IMPLEMENTED(res))
+        operatorNotImplemented("-", argv[0], argv[1]);
+    return res;
+}
+
+Value PyInt_Multiply(int argc, Value *argv) {
+    if (argc != 1)
+        reportArityError(1, 1, argc);
+    Value res = Int_Multiply(argv[0], argv[1]);
+    if (IS_NOT_IMPLEMENTED(res))
+        operatorNotImplemented("*", argv[0], argv[1]);
+    return res;
+}
+
+Value PyInt_TrueDivide(int argc, Value *argv) {
+    if (argc != 1)
+        reportArityError(1, 1, argc);
+    Value res = Int_TrueDivide(argv[0], argv[1]);
+    if (IS_NOT_IMPLEMENTED(res))
+        operatorNotImplemented("/", argv[0], argv[1]);
+    return res;
+}
+
+Value PyInt_FloorDivide(int argc, Value *argv) {
+    if (argc != 1)
+        reportArityError(1, 1, argc);
+    Value res = Int_FloorDivide(argv[0], argv[1]);
+    if (IS_NOT_IMPLEMENTED(res))
+        operatorNotImplemented("//", argv[0], argv[1]);
+    return res;
+}
+
+Value PyInt_Modulo(int argc, Value *argv) {
+    if (argc != 1)
+        reportArityError(1, 1, argc);
+    Value res = Int_Modulo(argv[0], argv[1]);
+    if (IS_NOT_IMPLEMENTED(res))
+        operatorNotImplemented("%", argv[0], argv[1]);
+    return res;
+}
+
+Value PyInt_Power(int argc, Value *argv) {
+    if (argc != 1)
+        reportArityError(1, 1, argc);
+    Value res = Int_Power(argv[0], argv[1]);
+    if (IS_NOT_IMPLEMENTED(res))
+        operatorNotImplemented("**", argv[0], argv[1]);
+    return res;
+}
+
+Value PyInt_Positive(int argc, Value *argv) {
+    if (argc != 0)
+        reportArityError(0, 0, argc);
+    Value res = Int_Positive(argv[0]);
+    if (IS_NOT_IMPLEMENTED(res))
+        operatorNotImplementedUnary("+", argv[0]);
+    return res;
+}
+
+Value PyInt_Negative(int argc, Value *argv) {
+    if (argc != 0)
+        reportArityError(0, 0, argc);
+    Value res = Int_Negative(argv[0]);
+    if (IS_NOT_IMPLEMENTED(res))
+        operatorNotImplementedUnary("-", argv[0]);
+    return res;
+}
+
+Value PyInt_And(int argc, Value *argv) {
+    if (argc != 1)
+        reportArityError(1, 1, argc);
+    Value res = Int_And(argv[0], argv[1]);
+    if (IS_NOT_IMPLEMENTED(res))
+        operatorNotImplemented("&", argv[0], argv[1]);
+    return res;
+}
+
+Value PyInt_Xor(int argc, Value *argv) {
+    if (argc != 1)
+        reportArityError(1, 1, argc);
+    Value res = Int_Xor(argv[0], argv[1]);
+    if (IS_NOT_IMPLEMENTED(res))
+        operatorNotImplemented("^", argv[0], argv[1]);
+    return res;
+}
+
+Value PyInt_Or(int argc, Value *argv) {
+    if (argc != 1)
+        reportArityError(1, 1, argc);
+    Value res = Int_Or(argv[0], argv[1]);
+    if (IS_NOT_IMPLEMENTED(res))
+        operatorNotImplemented("|", argv[0], argv[1]);
+    return res;
+}
+
+Value PyInt_Invert(int argc, Value *argv) {
+    if (argc != 0)
+        reportArityError(0, 0, argc);
+    Value res = Int_Invert(argv[0]);
+    if (IS_NOT_IMPLEMENTED(res))
+        operatorNotImplementedUnary("~", argv[0]);
+    return res;
+}
+
+Value PyInt_LeftShift(int argc, Value *argv) {
+    if (argc != 1)
+        reportArityError(1, 1, argc);
+    Value res = Int_LeftShift(argv[0], argv[1]);
+    if (IS_NOT_IMPLEMENTED(res))
+        operatorNotImplemented("<<", argv[0], argv[1]);
+    return res;
+}
+
+Value PyInt_RightShift(int argc, Value *argv) {
+    if (argc != 1)
+        reportArityError(1, 1, argc);
+    Value res = Int_RightShift(argv[0], argv[1]);
+    if (IS_NOT_IMPLEMENTED(res))
+        operatorNotImplemented(">>", argv[0], argv[1]);
+    return res;
+}
+
+%}
+
+struct GperfMethod
+
+%readonly-tables
+%struct-type
+%define lookup-function-name in_int_set
+
+%%
+__eq__, PyInt_Equal
+__ne__, PyInt_NotEqual
+__gt__, PyInt_Greater
+__ge__, PyInt_GreaterEqual
+__lt__, PyInt_Less
+__le__, PyInt_LessEqual
+__add__, PyInt_Add
+__sub__, PyInt_Subtract
+__mul__, PyInt_Multiply
+__truediv__, PyInt_TrueDivide
+__floordiv__, PyInt_FloorDivide
+__mod__, PyInt_Modulo
+__pow__, PyInt_Power
+__pos__, PyInt_Positive
+__neg__, PyInt_Negative
+__and__, PyInt_And
+__xor__, PyInt_Xor
+__or__, PyInt_Or
+__invert__, PyInt_Invert
+__lshift__, PyInt_LeftShift
+__rshift__, PyInt_RightShift
+%%

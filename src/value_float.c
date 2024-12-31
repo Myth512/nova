@@ -3,6 +3,7 @@
 #include "value.h"
 #include "value_int.h"
 #include "value_float.h"
+#include "methods_float.h"
 #include "vm.h"
 
 Value Float_Equal(Value a, Value b) {
@@ -133,6 +134,10 @@ Value Float_Positive(Value a) {
 
 Value Float_Negative(Value a) {
     return FLOAT_VAL(-AS_FLOAT(a));
+}
+
+Value Float_GetAttr(Value a, ObjString *name) {
+    return getGperfMethod(a, name, in_float_set);
 }
 
 uint64_t Float_Hash(Value value) {

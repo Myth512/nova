@@ -282,10 +282,10 @@ int printInstruction(CodeVec *vec, int offset) {
             return constantInstruction("CLASS", vec, offset);
         case OP_METHOD:
             return constantInstruction("METHOD", vec, offset);
-        case OP_GET_PROPERTY:
-            return constantInstruction("GET PROPERTY", vec, offset);
-        case OP_SET_PROPERTY:
-            return constantInstruction("SET PROPERTY", vec, offset);
+        case OP_GET_ATTRIBUTE:
+            return constantInstruction("GET ATTRIBUTE", vec, offset);
+        case OP_SET_ATTRIBUTE:
+            return constantInstruction("SET ATTRIBUTE", vec, offset);
         default:
             printf("Unknown opcode %d\n", opcode);
             return offset + 1;

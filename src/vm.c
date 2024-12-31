@@ -371,7 +371,7 @@ static void setAt() {
     // valueSetAt(object, key, value);
 }
 
-static void getProperty() {
+static void getAttrtibute() {
     Value obj = pop();
     ObjString *name = READ_STRING();
     Value result = valueGetAttr(obj, name);
@@ -380,7 +380,7 @@ static void getProperty() {
     push(result);
 }
 
-static void setProperty() {
+static void setAttribute() {
     // Value obj = peek(1);
     // ObjString *name = READ_STRING();
     // Value value = pop();
@@ -602,11 +602,11 @@ static Value run() {
             case OP_METHOD:
                 defineMethod(READ_STRING());
                 break;
-            case OP_GET_PROPERTY:
-                getProperty();
+            case OP_GET_ATTRIBUTE:
+                getAttrtibute();
                 break;
-            case OP_SET_PROPERTY:
-                setProperty();
+            case OP_SET_ATTRIBUTE:
+                setAttribute();
                 break;
             case OP_RETURN: {
                 Value result = pop();
