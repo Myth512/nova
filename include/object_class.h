@@ -25,6 +25,12 @@ typedef struct {
 
 typedef struct {
     Obj obj;
+    ObjString *name;
+    ValueType type;
+} ObjNativeClass;
+
+typedef struct {
+    Obj obj;
     ObjClass *class;
     Table fields;
     bool isInitiazed;

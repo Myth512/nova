@@ -44,9 +44,11 @@ typedef struct {
     Value value;
 } OptValue;
 
+typedef Value (*NativeFn)(int argc, Value *argv);
+
 typedef struct GperfMethod {
 	const char *name;
-	Value (*method)(int, Value*);	
+    NativeFn method;
 } GperfMethod;
 
 typedef Value (*BinaryMethod)(Value, Value);
@@ -74,6 +76,8 @@ typedef struct {
     UnaryMethod invert;
     BinaryMethod lshift;
     BinaryMethod rshift;
+    Value (*getattr)(Value, ObjString *name);
+    Value (*setattr)(Value, ObjString *name, Value);
     uint64_t (*hash)(Value);
     long long (*len)(Value);
     bool (*toBool)(Value);

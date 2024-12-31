@@ -19,6 +19,7 @@
     .le = String_LessEqual,            \
     .add = String_Add,                 \
     .mul = String_Multiply,            \
+    .getattr = String_GetAttr,         \
     .hash = String_Hash,               \
     .len = String_Len,                 \
     .toBool = String_ToBool,           \
@@ -59,7 +60,7 @@ Value String_Add(Value a, Value b);
 
 Value String_Multiply(Value a, Value b);
 
-OptValue String_GetField(Value string, ObjString *name);
+Value String_GetAttr(Value string, ObjString *name);
 
 Value String_GetAt(ObjString *string, Value index);
 

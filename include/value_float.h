@@ -26,7 +26,7 @@
     .pow = Float_Power,                \
     .pos = Float_Positive,             \
     .neg = Float_Negative,             \
-    .hash =Float_Hash,                 \
+    .hash = Float_Hash,                \
     .toBool = Float_ToBool,            \
     .toInt = Float_ToInt,              \
     .toFloat = Float_ToFloat,          \

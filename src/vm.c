@@ -372,13 +372,12 @@ static void setAt() {
 }
 
 static void getProperty() {
-    // Value obj = pop();
-    // ObjString *name = READ_STRING();
-    // OptValue result = valueGetField(obj, name);
-    // if (result.hasValue)
-    //     push(result.value);
-    // else
-    //     reportRuntimeError("Object of %s does not have field %s", decodeValueType(obj), name->chars);
+    Value obj = pop();
+    ObjString *name = READ_STRING();
+    Value result = valueGetAttr(obj, name);
+    if (IS_UNDEFINED(result))
+        reportRuntimeError("No attr :(");
+    push(result);
 }
 
 static void setProperty() {

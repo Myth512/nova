@@ -34,6 +34,7 @@
     .invert = Int_Invert,             \
     .lshift = Int_LeftShift,          \
     .rshift = Int_RightShift,         \
+    .getattr = Int_GetAttr,           \
     .hash = Int_Hash,                 \
     .toBool = Int_ToBool,             \
     .toInt = Int_ToInt,               \
@@ -64,6 +65,7 @@
     .invert = Int_Invert,            \
     .lshift = Int_LeftShift,         \
     .rshift = Int_RightShift,        \
+    .getattr = Int_GetAttr,          \
     .hash = Int_Hash,                \
     .toBool = Int_ToBool,            \
     .toInt = Int_ToInt,              \
@@ -113,6 +115,8 @@ Value Int_Invert(Value a);
 Value Int_LeftShift(Value a, Value b);
 
 Value Int_RightShift(Value a, Value b);
+
+Value Int_GetAttr(Value obj, ObjString *name);
 
 uint64_t Int_Hash(Value value);
 

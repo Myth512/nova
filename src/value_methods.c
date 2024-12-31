@@ -152,8 +152,9 @@ Value valueRightShift(Value a, Value b) {
     return binaryMethod(a, b, GET_METHOD(a, rshift), GET_METHOD(b, rshift), ">>");
 }
 
-Value valueGetAttribute(Value obj, ObjString *name) {
-
+Value valueGetAttr(Value obj, ObjString *name) {
+    Value (*method)(Value, ObjString*) = GET_METHOD(obj, getattr);
+    return method(obj, name);
 }
 
 void valueSetAttribute(Value obj, ObjString *name, Value value) {

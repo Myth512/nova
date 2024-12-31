@@ -51,11 +51,11 @@ Value valueLeftShift(Value a, Value b);
 
 Value valueRightShift(Value a, Value b);
 
-Value valueGetAttribute(Value obj, ObjString *name);
+Value valueGetAttr(Value obj, ObjString *name);
 
-void valueSetAttribute(Value obj, ObjString *name, Value value);
+void valueSetAttr(Value obj, ObjString *name, Value value);
 
-void valueDelAttribute(Value obj, ObjString *name);
+void valueDelAttr(Value obj, ObjString *name);
 
 Value valueGetItem(Value obj, Value key);
 

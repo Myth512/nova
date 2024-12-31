@@ -61,3 +61,11 @@ Value PyString_Multiply(int argc, Value *argv) {
 Value PyString_GetAt(int argc, Value *argv) {
 
 }
+
+Value PyString_Hash(int argc, Value *argv) {
+
+}
+
+Value PyString_Len(int argc, Value *argv) {
+
+}

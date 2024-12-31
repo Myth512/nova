@@ -40,8 +40,6 @@ typedef struct {
     int upvalueCount;
 } ObjClosure;
 
-typedef Value (*NativeFn)(int argc, Value *argv);
-
 typedef struct {
     Obj obj;
     char *name; 

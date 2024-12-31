@@ -5,6 +5,7 @@
 #include "value_int.h"
 #include "object_string.h"
 #include "object_class.h"
+#include "string_methods.h"
 
 ObjString *allocateString(size_t length) {
     size_t size = sizeof(ObjString) + length + 1;
@@ -151,6 +152,13 @@ Value String_Multiply(Value a, Value b) {
         memcpy(result->chars + i * oldLength, string->chars, oldLength);
 
     return STRING_VAL(result);
+}
+
+Value String_GetAttr(Value string, ObjString *name) {
+    const GperfMethod *result = in_string_set(name->chars, name->length);
+    if (!result)
+        return UNDEFINED_VAL;
+    return OBJ_VAL(createNativeMethod(string, result->method, result->name));
 }
 
 OptValue String_GetField(Value string, ObjString *name) {

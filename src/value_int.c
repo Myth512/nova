@@ -134,6 +134,14 @@ Value Int_RightShift(Value a, Value b) {
     return NOT_IMPLEMENTED_VAL;
 }
 
+Value Int_GetAttr(Value obj, ObjString *name) {
+    
+}
+
+Value Int_Class(Value value) {
+
+}
+
 uint64_t Int_Hash(Value value) {
     uint64_t hash = (uint64_t)AS_INT(value);
     
