@@ -72,7 +72,7 @@ typedef struct {
     Obj *objects;
     size_t bytesAllocated;
     size_t nextGC;
-    bool stackPrinting;
+    bool allowStackPrinting;
 } VM;
 
 typedef enum {
@@ -97,6 +97,8 @@ void operatorNotImplemented(char *operator, Value a, Value b);
 void operatorNotImplementedUnary(char *operator, Value a);
 
 void functionNotImplemented(char *function, Value a);
+
+void call(ObjClosure *closure, int argc, bool isMethod);
 
 Value callNovaValue(Value callee, int argc);
 

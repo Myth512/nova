@@ -141,7 +141,7 @@ Value Int_GetAttr(Value obj, ObjString *name) {
     return getGperfMethod(obj, name, in_int_set);
 }
 
-Value Int_Init(int argc, Value *argv) {
+Value Int_Init(Value callee, int argc, Value *argv) {
     return INT_VAL(valueToInt(argv[0]));
 }
 

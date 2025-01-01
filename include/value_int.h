@@ -119,7 +119,7 @@ Value Int_RightShift(Value a, Value b);
 
 Value Int_GetAttr(Value obj, ObjString *name);
 
-Value Int_Init(int argc, Value *argv);
+Value Int_Init(Value callee, int argc, Value *argv);
 
 uint64_t Int_Hash(Value value);
 

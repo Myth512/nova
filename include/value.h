@@ -77,8 +77,8 @@ typedef struct {
     UnaryMethod invert;
     BinaryMethod lshift;
     BinaryMethod rshift;
-    Value (*init)(int, Value*);
-    Value (*call)(int, Value*);
+    Value (*init)(Value, int, Value*);
+    Value (*call)(Value, int, Value*);
     UnaryMethod class;
     Value (*getattr)(Value, ObjString *name);
     Value (*setattr)(Value, ObjString *name, Value);

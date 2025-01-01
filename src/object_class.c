@@ -34,9 +34,15 @@ ObjNativeMethod *createNativeMethod(Value reciever, NativeFn function, const cha
 }
 
 int Class_ToStr(Value value, char *buffer, size_t size) {
-    return writeToBuffer(buffer, size, "%s", AS_CLASS(value)->name->chars);
+    return writeToBuffer(buffer, size, "<class '%s'>", AS_CLASS(value)->name->chars);
 }
 
 int NativeClass_ToStr(Value value, char *buffer, size_t size) {
-    return writeToBuffer(buffer, size, "%s", AS_NATIVE_CLASS(value)->name->chars);
+    return writeToBuffer(buffer, size, "<class '%s'>", AS_NATIVE_CLASS(value)->name->chars);
+}
+
+Value NativeClass_Call(Value value, int argc, Value *argv) {
+    Value dummy = (Value){.type=AS_NATIVE_CLASS(value)->type};
+    argv -= argc;
+    return valueInit(dummy, argc, argv);
 }

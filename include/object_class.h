@@ -21,6 +21,7 @@
 }
 
 #define NATIVE_CLASS_METHODS (ValueMethods){ \
+    .call = NativeClass_Call,                \
     .str = NativeClass_ToStr,                \
     .repr = NativeClass_ToStr,               \
 }
@@ -61,5 +62,7 @@ ObjNativeMethod *createNativeMethod(Value reciever, NativeFn function, const cha
 int Class_ToStr(Value value, char *buffer, size_t size);
 
 int NativeClass_ToStr(Value value, char *buffer, size_t size);
+
+Value NativeClass_Call(Value value, int argc, Value *argv);
 
 #endif

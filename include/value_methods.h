@@ -63,7 +63,9 @@ void valueSetItem(Value obj, Value key, Value value);
 
 void valueDelItem(Value obj, Value key);
 
-Value valueCall(Value obj);
+Value valueInit(Value callee, int argc, Value *argv);
+
+Value valueCall(Value callee, int argc, Value *argv);
 
 uint64_t valueHash(Value value);
 

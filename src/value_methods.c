@@ -14,6 +14,8 @@ ValueMethods MethodTable[] = {
     [VAL_INT]    = INT_METHODS, 
     [VAL_FLOAT]  = FLOAT_METHODS,
     [VAL_STRING] = STRING_METHODS,
+    [VAL_NATIVE] = NATIVE_METHODS,
+    [VAL_CLOSURE] = CLOSURE_METHODS,
     [VAL_CLASS] = CLASS_METHODS,
     [VAL_NATIVE_CLASS] = NATIVE_CLASS_METHODS
 };
@@ -195,12 +197,14 @@ void valueDelItem(Value obj, Value key) {
     method(obj, key);
 }
 
-Value valueInit(int argc, Value argv) {
-
+Value valueInit(Value callee, int argc, Value *argv) {
+    Value (*method)(Value, int, Value*) = GET_METHOD(callee, init);
+    return method(callee, argc, argv);
 }
 
-Value valueCall(Value obj) {
-
+Value valueCall(Value callee, int argc, Value *argv) {
+    Value (*method)(Value, int, Value*) = GET_METHOD(callee, call);
+    return method(callee, argc, argv);
 }
 
 uint64_t valueHash(Value value) {

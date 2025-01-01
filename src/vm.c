@@ -74,9 +74,9 @@ void functionNotImplemented(char *function, Value a) {
 }
 
 static void printStack(const char *prefix) {
-    if (vm.stackPrinting)
+    if (!vm.allowStackPrinting)
         return;
-    vm.stackPrinting = true;
+    vm.allowStackPrinting = false;
 
     printf("%s\t", prefix);
     for (Value *slot = vm.stack; slot < vm.top; slot++) {
@@ -86,7 +86,7 @@ static void printStack(const char *prefix) {
     }
     printf("\n");
 
-    vm.stackPrinting = false;
+    vm.allowStackPrinting = true;
 }
 
 static void resetStack() {
@@ -123,7 +123,7 @@ static void insert(int distance, Value value) {
     #endif
 }
 
-static bool call(ObjClosure *closure, int argc, bool isMethod) {
+void call(ObjClosure *closure, int argc, bool isMethod) {
     if (argc < closure->function->minArity || argc > closure->function->maxArity)
         reportArityError(closure->function->minArity, closure->function->maxArity, argc);
 
@@ -137,7 +137,6 @@ static bool call(ObjClosure *closure, int argc, bool isMethod) {
     for (int i = 0; i < closure->function->localNames->vec.size - argc; i++)
         push(UNDEFINED_VAL);
     frame->isMethod = isMethod;
-    return true;
 }
 
 static void defineNative(const char *name, NativeFn function) {
@@ -166,12 +165,13 @@ static void defineNativeClass(const char *name, ValueType type) {
     tableSet(&vm.globals, n, OBJ_VAL(class));
 }
 
-static bool callValueInternal(Value callee, int argc) {
+static void callValueInternal(Value callee, int argc) {
     switch (callee.type) {
         case VAL_METHOD: {
             ObjMethod *method = AS_METHOD(callee);
             insert(argc, method->reciever);
-            return call(method->method, argc + 1, true);
+            call(method->method, argc + 1, true);
+            break;
         }
         case VAL_NATIVE_METHOD: {
             ObjNativeMethod *method = AS_NATIVE_METHOD(callee);
@@ -180,23 +180,18 @@ static bool callValueInternal(Value callee, int argc) {
             Value result = native(argc, vm.top - argc - 1);
             vm.top -= argc + 1;
             push(result);
-            return true;
+            break;
         }
         case VAL_CLASS: {
             ObjClass *class = AS_CLASS(callee);
             insert(argc, OBJ_VAL(createInstance(class)));
             Value initializer;
             if (tableGet(&class->methods, vm.magicStrings.init, &initializer)) {
-                return call(AS_CLOSURE(initializer), argc + 1, true);
+                call(AS_CLOSURE(initializer), argc + 1, true);
             } else if (argc != 0) {
                 reportRuntimeError("Expect 0 arguments but got %d", argc);
-                return false;
             }
-            return true;
-        }
-        case VAL_NATIVE_CLASS: {
-            ObjClass *class = AS_NATIVE_CLASS(callee);
-            valeuIn
+            break;
         }
         case VAL_CLOSURE: {
             ObjClosure *closure = AS_CLOSURE(callee);
@@ -204,25 +199,21 @@ static bool callValueInternal(Value callee, int argc) {
             int maxArity = closure->function->maxArity;
             for (int i = argc; i < maxArity; i++)
                 push(closure->function->defaults->vec.values[i - minArity]);
-            return call(AS_CLOSURE(callee), argc < maxArity ? maxArity : argc, false);
+            call(AS_CLOSURE(callee), argc < maxArity ? maxArity : argc, false);
+            break;
         }
         case VAL_NATIVE:
-            NativeFn native = AS_NATIVE(callee)->function;
-            Value result = native(argc, vm.top - argc);
-            vm.top -= argc + 1;
-            push(result);
-            return true;
+            break;
         default:
             break;
     }
     reportRuntimeError("Can only call functions and classes");
-    return false;
 }
 
-static bool callValue(Value callee, int argc) {
-    bool res = callValueInternal(callee, argc);
+static void callValue(Value callee, int argc) {
+    Value res = valueCall(callee, argc, vm.top);
     frame = &vm.frames[vm.frameSize - 1];
-    return res;
+    push(res);
 }
 
 static ObjUpvalue *captureUpvalue(Value *local) {
@@ -301,18 +292,18 @@ static void buildFormattedString() {
 }
 
 static void buildArray() {
-    // size_t size = READ_BYTE();
-    // ObjArray *array = allocateArray(size);
+    size_t size = READ_BYTE();
+    ObjArray *array = allocateArray(size);
 
-    // for (int i = 0; i < size; i++) {
-    //     Value value = peek(size - i - 1);
-    //     array->vec.values[i] = value;
-    // }
+    for (int i = 0; i < size; i++) {
+        Value value = peek(size - i - 1);
+        array->vec.values[i] = value;
+    }
     
-    // for (int i = 0; i < size; i++)
-    //     pop();
+    for (int i = 0; i < size; i++)
+        pop();
     
-    // push((array));
+    push(OBJ_VAL(array));
 }
 
 static void buildTuple() {
@@ -399,7 +390,7 @@ static Value run() {
     while (true) {
 
         #ifdef DEBUG_TRACE_EXECUTION
-            if (!vm.stackPrinting)
+            if (vm.allowStackPrinting)
                 printInstruction(&frame->closure->function->code, (int)(frame->ip - frame->closure->function->code.code));
         #endif
 
@@ -577,8 +568,7 @@ static Value run() {
             }
             case OP_CALL: {
                 int argc = READ_BYTE();
-                if (!callValue(peek(argc), argc))
-                    return NONE_VAL;
+                callValue(peek(argc), argc);
                 break;
             }
             case OP_CLOSURE: {
@@ -714,16 +704,17 @@ void initMagicStrings() {
 }
 
 void initVM() {
+    vm.allowStackPrinting = false;
     resetStack();
     vm.objects = NULL;
     vm.bytesAllocated = 0;
     vm.nextGC = 1024 * 1024;
-    vm.stackPrinting = false;
     initTable(&vm.globals);
     initTable(&vm.strings);
     initMagicStrings();
     defineNatives();
     defineNativeClass("int", VAL_INT);
+    vm.allowStackPrinting = true;
 }
 
 void freeVM() {

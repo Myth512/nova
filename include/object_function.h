@@ -46,6 +46,16 @@ typedef struct {
     NativeFn function;
 } ObjNative;
 
+#define CLOSURE_METHODS (ValueMethods){ \
+    .call = Closure_Call,               \
+    .str = Closure_ToStr                \
+} 
+
+#define NATIVE_METHODS (ValueMethods){ \
+    .call = Native_Call,               \
+    .str = Closure_ToStr               \
+}
+
 ObjUpvalue *createUpvalue(Value *slot);
 
 ObjFunction* createFunction();
@@ -53,5 +63,13 @@ ObjFunction* createFunction();
 ObjClosure* createClosure(ObjFunction *function);
 
 ObjNative* createNative(NativeFn function, const char *name);
+
+Value Closure_Call(Value callee, int argc, Value *argv);
+
+int Closure_ToStr(Value value, char *buffer, size_t size);
+
+Value Native_Call(Value callee, int argc, Value *argv);
+
+int Native_ToStr(Value value, char *buffer, size_t size);
 
 #endif
