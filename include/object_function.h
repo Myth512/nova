@@ -53,7 +53,7 @@ typedef struct {
 
 #define NATIVE_METHODS (ValueMethods){ \
     .call = Native_Call,               \
-    .str = Closure_ToStr               \
+    .str =  Native_ToStr               \
 }
 
 ObjUpvalue *createUpvalue(Value *slot);

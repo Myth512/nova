@@ -43,6 +43,7 @@ int NativeClass_ToStr(Value value, char *buffer, size_t size) {
 
 Value NativeClass_Call(Value value, int argc, Value *argv) {
     Value dummy = (Value){.type=AS_NATIVE_CLASS(value)->type};
-    argv -= argc;
-    return valueInit(dummy, argc, argv);
+    Value res = valueInit(dummy, argc, argv - argc);
+    vm.top -= argc + 1;
+    return res;
 }

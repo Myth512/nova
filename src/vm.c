@@ -714,6 +714,7 @@ void initVM() {
     initMagicStrings();
     defineNatives();
     defineNativeClass("int", VAL_INT);
+    defineNativeClass("float", VAL_FLOAT);
     vm.allowStackPrinting = true;
 }
 
