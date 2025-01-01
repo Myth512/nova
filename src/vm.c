@@ -9,7 +9,7 @@
 #include "value_methods.h"
 #include "object.h"
 #include "object_string.h"
-#include "object_array.h"
+#include "object_list.h"
 #include "object_tuple.h"
 #include "object_class.h"
 #include "object_instance.h"
@@ -81,7 +81,7 @@ static void printStack(const char *prefix) {
     printf("%s\t", prefix);
     for (Value *slot = vm.stack; slot < vm.top; slot++) {
         printf("[ ");
-        valuePrint(*slot);
+        valueRepr(*slot);
         printf(" ]");
     }
     printf("\n");
@@ -116,7 +116,7 @@ static Value peek(int distance) {
     return vm.top[-1 - distance];
 }
 
-static void insert(int distance, Value value) {
+void insert(int distance, Value value) {
     vm.top[-1 - distance] = value;
     #ifdef DEBUG_TRACE_STACK
         printStack("insert");
@@ -174,23 +174,9 @@ static void callValueInternal(Value callee, int argc) {
             break;
         }
         case VAL_NATIVE_METHOD: {
-            ObjNativeMethod *method = AS_NATIVE_METHOD(callee);
-            insert(argc, method->reciever);
-            NativeFn native = method->method;
-            Value result = native(argc, vm.top - argc - 1);
-            vm.top -= argc + 1;
-            push(result);
             break;
         }
         case VAL_CLASS: {
-            ObjClass *class = AS_CLASS(callee);
-            insert(argc, OBJ_VAL(createInstance(class)));
-            Value initializer;
-            if (tableGet(&class->methods, vm.magicStrings.init, &initializer)) {
-                call(AS_CLOSURE(initializer), argc + 1, true);
-            } else if (argc != 0) {
-                reportRuntimeError("Expect 0 arguments but got %d", argc);
-            }
             break;
         }
         case VAL_CLOSURE: {
@@ -592,9 +578,11 @@ static Value run() {
                 closeUpvalues(vm.top - 1);
                 pop();
                 break;
-            case OP_CLASS:
-                push(OBJ_VAL(createClass(READ_STRING())));
+            case OP_CLASS: {
+                ObjString *name = READ_STRING();
+                push(OBJ_VAL(createClass(name)));
                 break;
+            }
             case OP_METHOD:
                 defineMethod(READ_STRING());
                 break;

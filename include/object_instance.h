@@ -114,7 +114,7 @@ long long Instance_Len(Value value);
 
 bool Instance_ToBool(Value value);
 
-int Instance_ToInt(Value value);
+long long Instance_ToInt(Value value);
 
 double Instance_ToFloat(Value value);
 

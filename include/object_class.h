@@ -16,6 +16,7 @@
 #define AS_NATIVE_METHOD(value) ((ObjNativeMethod*)value.as.object)
 
 #define CLASS_METHODS (ValueMethods){ \
+    .call = Class_Call,               \
     .str = Class_ToStr,               \
     .repr = Class_ToStr,              \
 }
@@ -24,6 +25,17 @@
     .call = NativeClass_Call,                \
     .str = NativeClass_ToStr,                \
     .repr = NativeClass_ToStr,               \
+}
+
+#define MEHTOD_METHODS (ValueMethods) { \
+    .str = Method_ToStr,                \
+    .repr = Method_ToStr                \
+}
+
+#define NATIVE_METHOD_METHODS (ValueMethods){ \
+    .call = NativeMethod_Call,                \
+    .str = NativeMethod_ToStr,                \
+    .repr = Native_ToStr,                     \
 }
 
 typedef struct {
@@ -59,10 +71,18 @@ ObjMethod *createMethod(Value reciever, ObjClosure *method);
 
 ObjNativeMethod *createNativeMethod(Value reciever, NativeFn function, const char *name);
 
+Value Class_Call(Value callee, int argc, Value *argv);
+
 int Class_ToStr(Value value, char *buffer, size_t size);
+
+Value NativeClass_Call(Value value, int argc, Value *argv);
 
 int NativeClass_ToStr(Value value, char *buffer, size_t size);
 
-Value NativeClass_Call(Value value, int argc, Value *argv);
+int Method_ToStr(Value value, char *buffer, size_t size);
+
+Value NativeMethod_Call(Value callee, int argc, Value *argv);
+
+int NativeMethod_ToStr(Value value, char *buffer, size_t size);
 
 #endif

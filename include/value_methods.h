@@ -9,6 +9,8 @@ int valueWrite(Value value, char *buffer, const size_t size);
 
 int valuePrint(Value value);
 
+int valueRepr(Value value);
+
 Value valueEqual(Value a, Value b);
 
 Value valueNotEqual(Value a, Value b);

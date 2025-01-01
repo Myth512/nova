@@ -205,3 +205,7 @@ double String_ToFloat(Value value) {
 int String_ToStr(Value value, char *buffer, size_t size) {
     writeToBuffer(buffer, size, "%s", AS_CHARS(value));
 }
+
+int String_ToRepr(Value value, char *buffer, size_t size) {
+    writeToBuffer(buffer, size, "'%s'", AS_CHARS(value));
+}

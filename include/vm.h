@@ -88,6 +88,8 @@ void push(Value value);
 
 Value pop();
 
+void insert(int distance, Value value);
+
 void reportRuntimeError(const char *format, ...);
 
 void reportArityError(int min, int max, int got);

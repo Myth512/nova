@@ -26,7 +26,7 @@
     .toInt = String_ToInt,             \
     .toFloat = String_ToFloat,         \
     .str = String_ToStr,               \
-    .repr = String_ToStr,              \
+    .repr = String_ToRepr,             \
 }
 
 struct ObjString {
@@ -75,5 +75,7 @@ long long String_ToInt(Value value);
 double String_ToFloat(Value value);
 
 int String_ToStr(Value value, char *buffer, size_t size);
+
+int String_ToRepr(Value value, char *buffer, size_t size);
 
 #endif

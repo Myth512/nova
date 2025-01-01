@@ -2,7 +2,7 @@
 #define OBJECT_FUNCTION_H
 
 #include "object.h"
-#include "object_array.h"
+#include "object_list.h"
 
 #define CLOSURE_VAL(closure)     ((Value){.type=VAL_CLOSURE, .as.object=(Obj*)closure})
 
@@ -46,14 +46,21 @@ typedef struct {
     NativeFn function;
 } ObjNative;
 
+#define FUNCTION_METHODS (ValueMethods){ \
+    .str = Function_ToStr,               \
+    .repr = Function_ToStr               \
+}
+
 #define CLOSURE_METHODS (ValueMethods){ \
     .call = Closure_Call,               \
-    .str = Closure_ToStr                \
+    .str = Closure_ToStr,               \
+    .repr = Closure_ToStr               \
 } 
 
 #define NATIVE_METHODS (ValueMethods){ \
     .call = Native_Call,               \
-    .str =  Native_ToStr               \
+    .str =  Native_ToStr,              \
+    .repr = Native_ToStr               \
 }
 
 ObjUpvalue *createUpvalue(Value *slot);
@@ -63,6 +70,8 @@ ObjFunction* createFunction();
 ObjClosure* createClosure(ObjFunction *function);
 
 ObjNative* createNative(NativeFn function, const char *name);
+
+int Function_ToStr(Value value, char *buffer, size_t size);
 
 Value Closure_Call(Value callee, int argc, Value *argv);
 

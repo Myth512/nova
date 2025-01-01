@@ -11,7 +11,7 @@
 #include "value_float.h"
 #include "object.h"
 #include "object_string.h"
-#include "object_array.h"
+#include "object_list.h"
 #include "error.h"
 
 #define NO_ARG -1
@@ -990,46 +990,49 @@ static void method() {
     
     uint8_t constant = identifierConstant(&name);
     FunctionType type = TYPE_METHOD;
-    if (name.length == 6 && memcmp(name.start, "_init_", 6) == 0)
+    if (name.length == 8 && memcmp(name.start, "__init__", 8) == 0)
         type = TYPE_INITIALIZER;
     function(type);
     emitBytes(OP_METHOD, constant, (Token){0});
 }
 
 static void classDeclaration() {
-    // advance();
-    // Token name = parser.current;
-    // if (!consume(TOKEN_IDENTIFIER, false))
-    //     reportError("Expect class name", &parser.current);
+    advance();
+    Token name = parser.current;
+    if (!consume(TOKEN_IDENTIFIER, false))
+        reportError("Expect class name", &parser.current);
     
-    // uint8_t nameConstant = identifierConstant(&name);
+    uint8_t nameConstant = identifierConstant(&name);
     
-    // declareVariable(name);
-    // emitBytes(OP_CLASS, nameConstant, name);
-    // defineVariable(name);
+    declareVariable(name);
+    emitBytes(OP_CLASS, nameConstant, name);
+    defineVariable(name);
 
-    // ClassCompiler classCompiler;
-    // classCompiler.enclosing = currentClass;
-    // currentClass = &classCompiler;
+    ClassCompiler classCompiler;
+    classCompiler.enclosing = currentClass;
+    currentClass = &classCompiler;
 
-    // uint8_t getOp, setOp, arg;
-    // resolveVariable(&name, &getOp, &setOp, &arg); 
-    // emitBytes(getOp, arg, name);
-    
-    // if (!consume(TOKEN_LEFT_BRACE, true)) 
-    //     reportError("Expect '{' before class body", &parser.current);
-    
-    // while (!check(TOKEN_RIGHT_BRACE, false) && !check(TOKEN_EOF, false)) {
-    //     if (consume(TOKEN_DEF, true))
-    //         method();
-    // }
-    
-    // if (!consume(TOKEN_RIGHT_BRACE, false))
-    //     reportError("Expect '}' after class body", &parser.current);
+    uint8_t getOp, arg;
+    resolveVariableReference(&name, &getOp, &arg); 
+    emitBytes(getOp, arg, name);
 
-    // emitByte(OP_POP, (Token){0});
+    if (!consume(TOKEN_COLON, false))
+        reportError("expect ':'", &parser.current);
+    
+    if (consume(TOKEN_NEWLINE, false)) {
+        if (!consume(TOKEN_INDENT, false))
+            reportError("expect indent", &parser.current);
+        
+        while (!check(TOKEN_DEDENT, false) && !check(TOKEN_EOF, false))
+            if (consume(TOKEN_DEF, false))
+                method();
+        
+        consume(TOKEN_DEDENT, false);
+    } 
+    
+    emitByte(OP_POP, (Token){0});
 
-    // currentClass = currentClass->enclosing;
+    currentClass = currentClass->enclosing;
 }
 
 static void dot(bool canAssign, bool allowTuple) {

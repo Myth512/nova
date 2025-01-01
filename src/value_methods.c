@@ -4,6 +4,7 @@
 #include "value_float.h"
 #include "object_string.h"
 #include "object_class.h"
+#include "object_instance.h"
 #include "vm.h"
 
 #define GET_METHOD(value, name) MethodTable[(value).type].name
@@ -14,10 +15,15 @@ ValueMethods MethodTable[] = {
     [VAL_INT]    = INT_METHODS, 
     [VAL_FLOAT]  = FLOAT_METHODS,
     [VAL_STRING] = STRING_METHODS,
+    [VAL_LIST] = LIST_METHODS,
     [VAL_NATIVE] = NATIVE_METHODS,
+    [VAL_FUNCTION] = FUNCTION_METHODS,
     [VAL_CLOSURE] = CLOSURE_METHODS,
     [VAL_CLASS] = CLASS_METHODS,
-    [VAL_NATIVE_CLASS] = NATIVE_CLASS_METHODS
+    [VAL_NATIVE_CLASS] = NATIVE_CLASS_METHODS,
+    [VAL_METHOD] = MEHTOD_METHODS,
+    [VAL_NATIVE_METHOD] = NATIVE_METHOD_METHODS,
+    [VAL_INSTANCE] = INSTANCE_METHODS
 };
 
 void *checkForNull(void *p) {
@@ -204,6 +210,8 @@ Value valueInit(Value callee, int argc, Value *argv) {
 
 Value valueCall(Value callee, int argc, Value *argv) {
     Value (*method)(Value, int, Value*) = GET_METHOD(callee, call);
+    if (method == NULL)
+        reportRuntimeError("no call :(");
     return method(callee, argc, argv);
 }
 
@@ -256,6 +264,13 @@ int valuePrint(Value value) {
     if (str == NULL)
         return printf("TODO");
     return str(value, NULL, 0);
+}
+
+int valueRepr(Value value) {
+    int (*repr)(Value, char*, size_t) = GET_METHOD(value, repr);
+    if (repr == NULL)
+        return printf("TODO");
+    return repr(value, NULL, 0);
 }
 
 ObjString *valueToStr(Value value) {

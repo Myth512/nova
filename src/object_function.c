@@ -41,6 +41,10 @@ ObjNative* createNative(NativeFn function, const char *name) {
     return native;
 }
 
+int Function_ToStr(Value value, char *buffer, size_t size) {
+    return writeToBuffer(buffer, size, "<function %s>", AS_FUNCTION(value)->name->chars);
+}
+
 Value Closure_Call(Value callee, int argc, Value *argv) {
     ObjClosure *closure = AS_CLOSURE(callee);
     int minArity = closure->function->minArity;
@@ -51,7 +55,7 @@ Value Closure_Call(Value callee, int argc, Value *argv) {
 }
 
 int Closure_ToStr(Value value, char *buffer, size_t size) {
-    writeToBuffer(buffer, size, "<function %s at %p>", AS_CLOSURE(value)->function->name->chars, (void*)valueId(value));
+    writeToBuffer(buffer, size, "<function %s at %p>", AS_CLOSURE(value)->function->name->chars, valueId(value));
 }
 
 Value Native_Call(Value callee, int argc, Value *argv) {

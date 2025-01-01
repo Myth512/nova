@@ -1,9 +1,8 @@
 #include <stdio.h>
 
-#include "object_array.h"
+#include "object_list.h"
 #include "object_string.h"
 #include "object_class.h"
-// #include "array_methods.h"
 #include "memory.h"
 #include "vm.h"
 
@@ -18,6 +17,10 @@ ObjArray* allocateArray(int size) {
     array->vec.values = NULL;
     array->vec.values = (Value*)reallocate(array->vec.values, 0, size * sizeof(Value));
     return array;
+}
+
+int List_ToStr(Value value, char *buffer, size_t size) {
+    writeToBuffer(buffer, size, "list");
 }
 
 static int movePointer(char **buffer, int bytesWritten) {
