@@ -660,12 +660,14 @@ static int resolveUpvalue(Compiler *compiler, Token *name) {
     // return -1;
 }
 
-static void resolveVariableAssignment(Token *name, uint8_t *setOp, uint8_t *arg) {
+static void resolveVariableAssignment(Token *name, uint8_t *getOp, uint8_t *setOp, uint8_t *arg) {
     if (current->type == TYPE_FUNCTION) {
+        *getOp = OP_GET_LOCAL;
         *setOp = OP_SET_LOCAL;
         *arg = resolveLocal(current, name, true);
         return;
     }
+    *getOp = OP_GET_GLOBAL;
     *setOp = OP_SET_GLOBAL;
     *arg = identifierConstant(name);
 }
@@ -689,24 +691,15 @@ static void declareVariable(Token name) {
 }
 
 static void defineVariable(Token name) {
-    uint8_t setOp, arg;
-    resolveVariableAssignment(&name, &setOp, &arg);
+    uint8_t getOp, setOp, arg;
+    resolveVariableAssignment(&name, &getOp, &setOp, &arg);
     emitBytes(setOp, arg, name);
+    if (setOp == OP_SET_GLOBAL)
+        emitByte(OP_POP, (Token){0});
 }
 
 static bool isAssignment(Token operator) {
-    switch (operator.type) {
-        case TOKEN_EQUAL:
-        case TOKEN_PLUS_EQUAL:
-        case TOKEN_MINUS_EQUAL:
-        case TOKEN_STAR_EQUAL:
-        case TOKEN_SLASH_EQUAL:
-        case TOKEN_CARET_EQUAL:
-        case TOKEN_PERCENT_EQUAL:
-            return true;
-        default:
-            return false;
-    }
+    return TOKEN_EQUAL <= operator.type && operator.type <= TOKEN_RIGHT_SHIFT_EQUAL;
 }
 
 static void assignment(uint8_t getOp, uint8_t setOp, int arg, Token operator) {
@@ -725,14 +718,32 @@ static void assignment(uint8_t getOp, uint8_t setOp, int arg, Token operator) {
         case TOKEN_STAR_EQUAL:
             emitByte(OP_MULTIPLY, operator);
             break;
-        case TOKEN_SLASH_EQUAL:
-            // emitByte(OP_DIVIDE, operator);
-            break;
-        case TOKEN_CARET_EQUAL:
+        case TOKEN_DOUBLE_STAR_EQUAL:
             emitByte(OP_POWER, operator);
+            break;
+        case TOKEN_SLASH_EQUAL:
+            emitByte(OP_TRUE_DIVIDE, operator);
+            break;
+        case TOKEN_DOUBLE_SLASH_EQUAL:
+            emitByte(OP_FLOOR_DIVIDE, operator);
             break;
         case TOKEN_PERCENT_EQUAL:
             emitByte(OP_MOD, operator);
+            break;
+        case TOKEN_AMPERSAND_EQUAL:
+            emitByte(OP_BITWISE_AND, operator);
+            break;
+        case TOKEN_CARET_EQUAL:
+            emitByte(OP_BITWISE_XOR, operator);
+            break;
+        case TOKEN_PIPE_EQUAL:
+            emitByte(OP_BITWISE_OR, operator);
+            break;
+        case TOKEN_LEFT_SHIFT_EQUAL:
+            emitByte(OP_LEFT_SHIFT, operator);
+            break;
+        case TOKEN_RIGHT_SHIFT_EQUAL:
+            emitByte(OP_RIGHT_SHIFT, operator);
             break;
         default:
             // to remove warnings
@@ -745,15 +756,15 @@ static void assignment(uint8_t getOp, uint8_t setOp, int arg, Token operator) {
 static void variable(bool canAssign, bool allowTuple) {
     uint8_t getOp, setOp, arg;
     Token name = parser.current;
-    advance(false);
+    advance();
     Token operator = parser.current;
 
-    if (consume(TOKEN_EQUAL, false)) {
+    if (isAssignment(operator)) {
+        advance();
         if (!canAssign)
             reportError("Variable assignment is now allowed here", &operator);
-        resolveVariableAssignment(&name, &setOp, &arg);
-        expression();
-        emitBytes(setOp, arg, name);
+        resolveVariableAssignment(&name, &getOp, &setOp, &arg);
+        assignment(getOp, setOp, arg, operator);
     } else {
         resolveVariableReference(&name, &getOp, &arg);
         emitBytes(getOp, arg, name);
@@ -963,7 +974,7 @@ static uint8_t parseArguments() {
     uint8_t argc = 0;
     if (!check(TOKEN_RIGHT_PAREN, false)) {
         do {
-            expression(true);
+            parseExpression(PREC_ASSIGNMENT, false, false);
             if (argc == 255)
                 reportError("Can't have more than 255 arguments", &parser.current);
             argc++;

@@ -28,6 +28,7 @@
 }
 
 #define MEHTOD_METHODS (ValueMethods) { \
+    .call = Method_Call,                \
     .str = Method_ToStr,                \
     .repr = Method_ToStr                \
 }
@@ -78,6 +79,8 @@ int Class_ToStr(Value value, char *buffer, size_t size);
 Value NativeClass_Call(Value value, int argc, Value *argv);
 
 int NativeClass_ToStr(Value value, char *buffer, size_t size);
+
+Value Method_Call(Value callee, int argc, Value *argv);
 
 int Method_ToStr(Value value, char *buffer, size_t size);
 

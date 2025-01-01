@@ -62,7 +62,7 @@ Value Native_Call(Value callee, int argc, Value *argv) {
     ObjNative *native = AS_NATIVE(callee);
     Value res = native->function(argc, argv - argc);
     vm.top -= argc + 1;
-    return res;
+    push(res);
 }
 
 int Native_ToStr(Value value, char *buffer, size_t size) {

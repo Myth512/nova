@@ -212,7 +212,7 @@ Value valueCall(Value callee, int argc, Value *argv) {
     Value (*method)(Value, int, Value*) = GET_METHOD(callee, call);
     if (method == NULL)
         reportRuntimeError("no call :(");
-    return method(callee, argc, argv);
+    method(callee, argc, argv);
 }
 
 uint64_t valueHash(Value value) {

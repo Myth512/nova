@@ -84,7 +84,7 @@ static void freeObject(Obj *object) {
         }
         case VAL_INSTANCE: {
             ObjInstance *instance = (ObjInstance*)object;
-            freeTable(&instance->fields);
+            freeTable(&instance->attributes);
             FREE(ObjInstance, object);
             break;
         }
@@ -165,7 +165,7 @@ static void markReferences(Obj *obj) {
         case VAL_INSTANCE: {
             ObjInstance *instance = (ObjInstance*)obj;
             markObject((Obj*)instance->class);
-            markTable(&instance->fields);
+            markTable(&instance->attributes);
             break;
         }
         case VAL_METHOD: {

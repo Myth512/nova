@@ -11,7 +11,7 @@
 typedef struct {
     Obj obj;
     ObjClass *class;
-    Table fields;
+    Table attributes;
     bool isInitiazed;
 } ObjInstance;
 
@@ -100,7 +100,7 @@ Value Instance_GetAttr(Value obj, ObjString *name);
 
 Value Instance_SetAttr(Value obj, ObjString *name, Value value);
 
-Value Instance_DelAttr(Value a, ObjString *name);
+Value Instance_DelAttr(Value obj, ObjString *name);
 
 Value Instance_GetItem(Value obj, Value key);
 

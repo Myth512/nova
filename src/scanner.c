@@ -87,6 +87,10 @@ static void skipWhitespace() {
             case '\r':
                 advance();
                 break;
+            case '#':
+                while (peek(0) != '\n')
+                    advance();
+                break;
             default:
                 return;
         }

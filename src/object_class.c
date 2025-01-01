@@ -57,11 +57,17 @@ Value NativeClass_Call(Value callee, int argc, Value *argv) {
     Value dummy = (Value){.type=AS_NATIVE_CLASS(callee)->type};
     Value res = valueInit(dummy, argc, argv - argc);
     vm.top -= argc + 1;
-    return res;
+    push(res);
+}
+
+Value Method_Call(Value callee, int argc, Value *argv) {
+    ObjMethod *method = AS_METHOD(callee);
+    insert(argc, method->reciever);
+    call(method->method, argc + 1, true);
 }
 
 int Method_ToStr(Value value, char *buffer, size_t size) {
-    return writeToBuffer(buffer, size, "<bound method %s", AS_METHOD(value)->method->function->name->chars);
+    return writeToBuffer(buffer, size, "<bound method %s>", AS_METHOD(value)->method->function->name->chars);
 }
 
 int NativeMethod_ToStr(Value value, char *buffer, size_t size) {
@@ -74,5 +80,5 @@ Value NativeMethod_Call(Value callee, int argc, Value *argv) {
     NativeFn native = method->method;
     Value result = native(argc, vm.top - argc - 1);
     vm.top -= argc + 1;
-    return result;
+    push(result);
 }

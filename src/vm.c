@@ -165,41 +165,9 @@ static void defineNativeClass(const char *name, ValueType type) {
     tableSet(&vm.globals, n, OBJ_VAL(class));
 }
 
-static void callValueInternal(Value callee, int argc) {
-    switch (callee.type) {
-        case VAL_METHOD: {
-            ObjMethod *method = AS_METHOD(callee);
-            insert(argc, method->reciever);
-            call(method->method, argc + 1, true);
-            break;
-        }
-        case VAL_NATIVE_METHOD: {
-            break;
-        }
-        case VAL_CLASS: {
-            break;
-        }
-        case VAL_CLOSURE: {
-            ObjClosure *closure = AS_CLOSURE(callee);
-            int minArity = closure->function->minArity;
-            int maxArity = closure->function->maxArity;
-            for (int i = argc; i < maxArity; i++)
-                push(closure->function->defaults->vec.values[i - minArity]);
-            call(AS_CLOSURE(callee), argc < maxArity ? maxArity : argc, false);
-            break;
-        }
-        case VAL_NATIVE:
-            break;
-        default:
-            break;
-    }
-    reportRuntimeError("Can only call functions and classes");
-}
-
 static void callValue(Value callee, int argc) {
     Value res = valueCall(callee, argc, vm.top);
     frame = &vm.frames[vm.frameSize - 1];
-    push(res);
 }
 
 static ObjUpvalue *captureUpvalue(Value *local) {
@@ -364,10 +332,10 @@ static void getAttrtibute() {
 }
 
 static void setAttribute() {
-    // Value obj = peek(1);
-    // ObjString *name = READ_STRING();
-    // Value value = pop();
-    // valueSetField(obj, name, value);
+    Value obj = peek(1);
+    ObjString *name = READ_STRING();
+    Value value = pop();
+    valueSetAttr(obj, name, value);
 }
 
 static Value run() {
@@ -652,22 +620,16 @@ OptValue callNovaMethod2args(Value obj, ObjString *methodName, Value arg1, Value
 }
 
 void initMagicStrings() {
-    vm.magicStrings.init = copyString("_init_", 6);
-    vm.magicStrings.add = copyString("_add_", 5);
-    vm.magicStrings.ladd = copyString("_ladd_", 6);
-    vm.magicStrings.radd = copyString("_radd_", 6);
-    vm.magicStrings.inc = copyString("_inc_", 5);
-    vm.magicStrings.dec = copyString("_dec_", 5);
-    vm.magicStrings.sub = copyString("_sub_", 5);
-    vm.magicStrings.lsub = copyString("_lsub_", 6);
-    vm.magicStrings.rsub = copyString("_rsub_", 6);
-    vm.magicStrings.neg = copyString("_neg_", 5);
-    vm.magicStrings.mul = copyString("_mul_", 5);
-    vm.magicStrings.lmul = copyString("_lmul_", 6);
-    vm.magicStrings.rmul = copyString("_rmul_", 6);
-    vm.magicStrings.div = copyString("_div_", 5);
-    vm.magicStrings.ldiv = copyString("_ldiv_", 6);
-    vm.magicStrings.rdiv = copyString("_rdiv_", 6);
+    vm.magicStrings.init = copyString("__init__", 8);
+    vm.magicStrings.add = copyString("__add__", 7);
+    vm.magicStrings.radd = copyString("__radd__", 8);
+    vm.magicStrings.sub = copyString("__sub__", 7);
+    vm.magicStrings.rsub = copyString("__rsub__", 8);
+    vm.magicStrings.neg = copyString("__neg__", 7);
+    vm.magicStrings.mul = copyString("__mul__", 7);
+    vm.magicStrings.rmul = copyString("__rmul__", 8);
+    vm.magicStrings.div = copyString("__truediv__", 11);
+    vm.magicStrings.rdiv = copyString("__rtruediv__", 12);
     vm.magicStrings.mod = copyString("_mod_", 5);
     vm.magicStrings.lmod = copyString("_lmod_", 6);
     vm.magicStrings.rmod = copyString("_rmod_", 6);

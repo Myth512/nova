@@ -1,12 +1,13 @@
 #include "object_instance.h"
 #include "value_methods.h"
 #include "object_string.h"
+#include "vm.h"
 
 ObjInstance *createInstance(ObjClass *class) {
     ObjInstance *instance = (ObjInstance*)allocateObject(sizeof(ObjInstance), VAL_INSTANCE);
     instance->class = class;
     instance->isInitiazed = false;
-    initTable(&instance->fields);
+    initTable(&instance->attributes);
     return instance;
 }
 
@@ -95,15 +96,25 @@ Value Instance_RightShift(Value a, Value b) {
 }
 
 Value Instance_GetAttr(Value obj, ObjString *name) {
+    Value value;
+    ObjInstance *instance = AS_INSTANCE(obj);
+    bool res = tableGet(&instance->attributes, name, &value);
+    if (res)
+        return value;
 
+    res = tableGet(&instance->class->methods, name, &value);
+    if (res)
+        return OBJ_VAL(createMethod(obj, AS_CLOSURE(value)));
+
+    reportRuntimeError("'%s' object has no attribute '%s'", AS_INSTANCE(obj)->class->name->chars, name->chars);
 }
 
 Value Instance_SetAttr(Value obj, ObjString *name, Value value) {
-
+    tableSet(&AS_INSTANCE(obj)->attributes, name, value);
 }
 
-Value Instance_DelAttr(Value a, ObjString *name) {
-
+Value Instance_DelAttr(Value obj, ObjString *name) {
+    tableDelete(&AS_INSTANCE(obj)->attributes, name);
 }
 
 Value Instance_GetItem(Value obj, Value key) {
