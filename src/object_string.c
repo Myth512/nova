@@ -154,6 +154,10 @@ Value String_Multiply(Value a, Value b) {
     return STRING_VAL(result);
 }
 
+Value String_RightMultiply(Value a, Value b) {
+    return String_Multiply(a, b);
+}
+
 Value String_GetAttr(Value value, ObjString *name) {
     return getGperfMethod(value, name, in_string_set);
 }

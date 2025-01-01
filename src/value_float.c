@@ -70,6 +70,14 @@ Value Float_Subtract(Value a, Value b) {
     return NOT_IMPLEMENTED_VAL;
 }
 
+Value Float_RightSubtract(Value a, Value b) {
+    if (b.type == VAL_INT)
+        return FLOAT_VAL(AS_INT(b) - AS_FLOAT(a));
+    if (b.type == VAL_FLOAT)
+        return FLOAT_VAL(AS_FLOAT(b) - AS_FLOAT(a));
+    return NOT_IMPLEMENTED_VAL;
+}
+
 Value Float_Multiply(Value a, Value b) {
     if (b.type == VAL_INT)
         return FLOAT_VAL(AS_FLOAT(a) * AS_INT(b));
@@ -82,12 +90,26 @@ Value Float_TrueDivide(Value a, Value b) {
     if (b.type == VAL_INT) {
         if (AS_INT(b) == 0)
             reportRuntimeError("Division by zero");
-        return FLOAT_VAL(AS_FLOAT(a) / AS_INT(b));
+        return FLOAT_VAL(AS_INT(a) / AS_FLOAT(b));
     }
     if (b.type == VAL_FLOAT) {
         if (AS_FLOAT(b) == 0)
             reportRuntimeError("Division by zero");
         return FLOAT_VAL(AS_FLOAT(a) / AS_FLOAT(b));
+    }
+    return NOT_IMPLEMENTED_VAL;
+}
+
+Value Float_RightTrueDivide(Value a, Value b) {
+    if (b.type == VAL_INT) {
+        if (AS_INT(a) == 0)
+            reportRuntimeError("Division by zero");
+        return FLOAT_VAL(AS_INT(b) / AS_FLOAT(a));
+    }
+    if (b.type == VAL_FLOAT) {
+        if (AS_FLOAT(a) == 0)
+            reportRuntimeError("Division by zero");
+        return FLOAT_VAL(AS_FLOAT(b) / AS_FLOAT(a));
     }
     return NOT_IMPLEMENTED_VAL;
 }
@@ -106,6 +128,20 @@ Value Float_FloorDivide(Value a, Value b) {
     return NOT_IMPLEMENTED_VAL;
 }
 
+Value Float_RightFloorDivide(Value a, Value b) {
+    if (b.type == VAL_INT) {
+        if (AS_INT(a) == 0)
+            reportRuntimeError("Division by zero");
+        return FLOAT_VAL((long long)(AS_INT(b) / AS_FLOAT(a)));
+    }
+    if (b.type == VAL_FLOAT) {
+        if (AS_FLOAT(a) == 0)
+            reportRuntimeError("Division by zero");
+        return FLOAT_VAL((long long)(AS_FLOAT(b) / AS_FLOAT(a)));
+    }
+    return NOT_IMPLEMENTED_VAL;
+}
+
 Value Float_Modulo(Value a, Value b) {
     if (b.type == VAL_INT) {
         if (AS_INT(b) == 0)
@@ -120,11 +156,33 @@ Value Float_Modulo(Value a, Value b) {
     return NOT_IMPLEMENTED_VAL;
 }
 
+Value Float_RightModulo(Value a, Value b) {
+    if (b.type == VAL_INT) {
+        if (AS_INT(a) == 0)
+            reportRuntimeError("Division by zero");
+        return FLOAT_VAL(fmod(AS_INT(b), AS_FLOAT(a)));
+    }
+    if (b.type == VAL_FLOAT) {
+        if (AS_FLOAT(a) == 0)
+            reportRuntimeError("Division by zero");
+        return FLOAT_VAL(fmod(AS_FLOAT(b), AS_FLOAT(a)));
+    }
+    return NOT_IMPLEMENTED_VAL;
+}
+
 Value Float_Power(Value a, Value b) {
     if (b.type == VAL_INT)
         return FLOAT_VAL(pow(AS_FLOAT(a), AS_INT(b)));
     if (b.type == VAL_FLOAT)
         return FLOAT_VAL(pow(AS_FLOAT(a), AS_FLOAT(b)));
+    return NOT_IMPLEMENTED_VAL;
+}
+
+Value Float_RightPower(Value a, Value b) {
+    if (b.type == VAL_INT)
+        return FLOAT_VAL(pow(AS_INT(b), AS_FLOAT(a)));
+    if (b.type == VAL_FLOAT)
+        return FLOAT_VAL(pow(AS_FLOAT(b), AS_FLOAT(a)));
     return NOT_IMPLEMENTED_VAL;
 }
 

@@ -20,12 +20,19 @@
     .lt = Int_Less,                   \
     .le = Int_LessEqual,              \
     .add = Int_Add,                   \
+    .radd = Int_Add,                  \
     .sub = Int_Subtract,              \
+    .rsub = Int_RightSubtract,        \
     .mul = Int_Multiply,              \
+    .rmul = Int_Multiply,             \
     .truediv = Int_TrueDivide,        \
+    .rtruediv = Int_RightTrueDivide,  \
     .floordiv = Int_FloorDivide,      \
+    .rfloordiv = Int_RightFloorDivide,\
     .mod = Int_Modulo,                \
+    .rmod = Int_RightModulo,          \
     .pow = Int_Power,                 \
+    .rpow = Int_RightPower,           \
     .pos = Int_Positive,              \
     .neg = Int_Negative,              \
     .and = Int_And,                   \
@@ -33,7 +40,9 @@
     .or = Int_Or,                     \
     .invert = Int_Invert,             \
     .lshift = Int_LeftShift,          \
+    .rlshift = Int_RightLeftShift,    \
     .rshift = Int_RightShift,         \
+    .rrshift = Int_RightRightShift,   \
     .getattr = Int_GetAttr,           \
     .hash = Int_Hash,                 \
     .toBool = Int_ToBool,             \
@@ -43,36 +52,44 @@
     .repr = Bool_ToStr                \
 }
 
-#define INT_METHODS (ValueMethods) { \
-    .eq = Int_Equal,                 \
-    .ne = Int_NotEqual,              \
-    .gt = Int_Greater,               \
-    .ge = Int_GreaterEqual,          \
-    .lt = Int_Less,                  \
-    .le = Int_LessEqual,             \
-    .add = Int_Add,                  \
-    .sub = Int_Subtract,             \
-    .mul = Int_Multiply,             \
-    .truediv = Int_TrueDivide,       \
-    .floordiv = Int_FloorDivide,     \
-    .mod = Int_Modulo,               \
-    .pow = Int_Power,                \
-    .pos = Int_Positive,             \
-    .neg = Int_Negative,             \
-    .and = Int_And,                  \
-    .xor = Int_Xor,                  \
-    .or = Int_Or,                    \
-    .invert = Int_Invert,            \
-    .lshift = Int_LeftShift,         \
-    .rshift = Int_RightShift,        \
-    .getattr = Int_GetAttr,          \
-    .init = Int_Init,                \
-    .hash = Int_Hash,                \
-    .toBool = Int_ToBool,            \
-    .toInt = Int_ToInt,              \
-    .toFloat = Int_ToFloat,          \
-    .str = Int_ToStr,                \
-    .repr = Int_ToStr                \
+#define INT_METHODS (ValueMethods) {  \
+    .eq = Int_Equal,                  \
+    .ne = Int_NotEqual,               \
+    .gt = Int_Greater,                \
+    .ge = Int_GreaterEqual,           \
+    .lt = Int_Less,                   \
+    .le = Int_LessEqual,              \
+    .radd = Int_Add,                  \
+    .sub = Int_Subtract,              \
+    .rsub = Int_RightSubtract,        \
+    .mul = Int_Multiply,              \
+    .rmul = Int_Multiply,             \
+    .truediv = Int_TrueDivide,        \
+    .rtruediv = Int_RightTrueDivide,  \
+    .floordiv = Int_FloorDivide,      \
+    .rfloordiv = Int_RightFloorDivide,\
+    .mod = Int_Modulo,                \
+    .rmod = Int_RightModulo,          \
+    .pow = Int_Power,                 \
+    .rpow = Int_RightPower,           \
+    .pos = Int_Positive,              \
+    .neg = Int_Negative,              \
+    .and = Int_And,                   \
+    .xor = Int_Xor,                   \
+    .or = Int_Or,                     \
+    .invert = Int_Invert,             \
+    .lshift = Int_LeftShift,          \
+    .rlshift = Int_RightLeftShift,    \
+    .rshift = Int_RightShift,         \
+    .rrshift = Int_RightRightShift,   \
+    .getattr = Int_GetAttr,           \
+    .init = Int_Init,                 \
+    .hash = Int_Hash,                 \
+    .toBool = Int_ToBool,             \
+    .toInt = Int_ToInt,               \
+    .toFloat = Int_ToFloat,           \
+    .str = Int_ToStr,                 \
+    .repr = Int_ToStr                 \
 }
 
 Value Int_Equal(Value a, Value b);
@@ -91,15 +108,25 @@ Value Int_Add(Value a, Value b);
 
 Value Int_Subtract(Value a, Value b);
 
+Value Int_RightSubtract(Value a, Value b);
+
 Value Int_Multiply(Value a, Value b);
 
 Value Int_TrueDivide(Value a, Value b);
 
+Value Int_RightTrueDivide(Value a, Value b);
+
 Value Int_FloorDivide(Value a, Value b);
+
+Value Int_RightFloorDivide(Value a, Value b);
 
 Value Int_Modulo(Value a, Value b);
 
+Value Int_RightModulo(Value a, Value b);
+
 Value Int_Power(Value a, Value b);
+
+Value Int_RightPower(Value a, Value b);
 
 Value Int_Positive(Value a);
 
@@ -115,7 +142,11 @@ Value Int_Invert(Value a);
 
 Value Int_LeftShift(Value a, Value b);
 
+Value Int_RightLeftShift(Value a, Value b);
+
 Value Int_RightShift(Value a, Value b);
+
+Value Int_RightRightShift(Value a, Value b);
 
 Value Int_GetAttr(Value obj, ObjString *name);
 

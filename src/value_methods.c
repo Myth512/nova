@@ -104,31 +104,31 @@ Value valueLessEqual(Value a, Value b) {
 }
 
 Value valueAdd(Value a, Value b) {
-    return binaryMethod(a, b, GET_METHOD(a, add), GET_METHOD(b, add), "+");
+    return binaryMethod(a, b, GET_METHOD(a, add), GET_METHOD(b, radd), "+");
 }
 
 Value valueSubtract(Value a, Value b) {
-    return binaryMethod(a, b, GET_METHOD(a, sub), GET_METHOD(b, sub), "-");
+    return binaryMethod(a, b, GET_METHOD(a, sub), GET_METHOD(b, rsub), "-");
 }
 
 Value valueMultiply(Value a, Value b) {
-    return binaryMethod(a, b, GET_METHOD(a, mul), GET_METHOD(b, mul), "*");
+    return binaryMethod(a, b, GET_METHOD(a, mul), GET_METHOD(b, rmul), "*");
 }
 
 Value valueTrueDivide(Value a, Value b) {
-    return binaryMethod(a, b, GET_METHOD(a, truediv), GET_METHOD(b, truediv), "/");
+    return binaryMethod(a, b, GET_METHOD(a, truediv), GET_METHOD(b, rtruediv), "/");
 }
 
 Value valueFloorDivide(Value a, Value b) {
-    return binaryMethod(a, b, GET_METHOD(a, floordiv), GET_METHOD(b, floordiv), "//");
+    return binaryMethod(a, b, GET_METHOD(a, floordiv), GET_METHOD(b, rfloordiv), "//");
 }
 
 Value valueModulo(Value a, Value b) {
-    return binaryMethod(a, b, GET_METHOD(a, mod), GET_METHOD(b, mod), "%%");
+    return binaryMethod(a, b, GET_METHOD(a, mod), GET_METHOD(b, rmod), "%%");
 }
 
 Value valuePower(Value a, Value b) {
-    return binaryMethod(a, b, GET_METHOD(a, pow), GET_METHOD(b, pow), "**");
+    return binaryMethod(a, b, GET_METHOD(a, pow), GET_METHOD(b, rpow), "**");
 }
 
 Value valuePositive(Value a) {
@@ -140,15 +140,15 @@ Value valueNegative(Value a) {
 }
 
 Value valueAnd(Value a, Value b) {
-    return binaryMethod(a, b, GET_METHOD(a, and), GET_METHOD(b, and), "&");
+    return binaryMethod(a, b, GET_METHOD(a, and), GET_METHOD(b, rand), "&");
 }
 
 Value valueXor(Value a, Value b) {
-    return binaryMethod(a, b, GET_METHOD(a, xor), GET_METHOD(b, xor), "^");
+    return binaryMethod(a, b, GET_METHOD(a, xor), GET_METHOD(b, rxor), "^");
 }
 
 Value valueOr(Value a, Value b) {
-    return binaryMethod(a, b, GET_METHOD(a, or), GET_METHOD(b, or), "|");
+    return binaryMethod(a, b, GET_METHOD(a, or), GET_METHOD(b, ror), "|");
 }
 
 Value valueInvert(Value a) {
@@ -156,11 +156,11 @@ Value valueInvert(Value a) {
 }
 
 Value valueLeftShift(Value a, Value b) {
-    return binaryMethod(a, b, GET_METHOD(a, lshift), GET_METHOD(b, lshift), "<<");
+    return binaryMethod(a, b, GET_METHOD(a, lshift), GET_METHOD(b, rlshift), "<<");
 }
 
 Value valueRightShift(Value a, Value b) {
-    return binaryMethod(a, b, GET_METHOD(a, rshift), GET_METHOD(b, rshift), ">>");
+    return binaryMethod(a, b, GET_METHOD(a, rshift), GET_METHOD(b, rrshift), ">>");
 }
 
 Value valueGetAttr(Value obj, ObjString *name) {

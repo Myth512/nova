@@ -56,6 +56,13 @@ Value Int_Subtract(Value a, Value b) {
     return NOT_IMPLEMENTED_VAL;
 }
 
+Value Int_RightSubtract(Value a, Value b) {
+    return Int_Subtract(b, a);
+    if (b.type == VAL_INT || b.type == VAL_BOOL)
+        return INT_VAL(AS_INT(b) - AS_INT(a));
+    return NOT_IMPLEMENTED_VAL;
+}
+
 Value Int_Multiply(Value a, Value b) {
     if (b.type == VAL_INT || b.type == VAL_BOOL)
         return INT_VAL(AS_INT(a) * AS_INT(b));
@@ -71,11 +78,29 @@ Value Int_TrueDivide(Value a, Value b) {
     return NOT_IMPLEMENTED_VAL;
 }
 
+Value Int_RightTrueDivide(Value a, Value b) {
+    if (b.type == VAL_INT || b.type == VAL_BOOL) {
+        if (AS_INT(a) == 0)
+            reportRuntimeError("Division by zero");
+        return FLOAT_VAL(AS_INT(b) / AS_INT(a));
+    }
+    return NOT_IMPLEMENTED_VAL;
+}
+
 Value Int_FloorDivide(Value a, Value b) {
     if (b.type == VAL_INT || b.type == VAL_BOOL) {
         if (AS_INT(b) == 0)
             reportRuntimeError("Division by zero");
         return INT_VAL(AS_INT(a) / AS_INT(b));
+    }
+    return NOT_IMPLEMENTED_VAL;
+}
+
+Value Int_RightFloorDivide(Value a, Value b) {
+    if (b.type == VAL_INT || b.type == VAL_BOOL) {
+        if (AS_INT(a) == 0)
+            reportRuntimeError("Division by zero");
+        return INT_VAL(AS_INT(b) / AS_INT(a));
     }
     return NOT_IMPLEMENTED_VAL;
 }
@@ -89,9 +114,24 @@ Value Int_Modulo(Value a, Value b) {
     return NOT_IMPLEMENTED_VAL;
 }
 
+Value Int_RightModulo(Value a, Value b) {
+    if (b.type == VAL_INT || b.type == VAL_BOOL) {
+        if (AS_INT(a) == 0)
+            reportRuntimeError("Division by zero");
+        return INT_VAL(AS_INT(b) % AS_INT(a));
+    }
+    return NOT_IMPLEMENTED_VAL;
+}
+
 Value Int_Power(Value a, Value b) {
     if (b.type == VAL_INT || b.type == VAL_BOOL)
         return INT_VAL(pow(AS_INT(a), AS_INT(b)));
+    return NOT_IMPLEMENTED_VAL;
+}
+
+Value Int_RightPower(Value a, Value b) {
+    if (b.type == VAL_INT || b.type == VAL_BOOL)
+        return INT_VAL(pow(AS_INT(b), AS_INT(a)));
     return NOT_IMPLEMENTED_VAL;
 }
 
@@ -131,9 +171,21 @@ Value Int_LeftShift(Value a, Value b) {
     return NOT_IMPLEMENTED_VAL;
 }
 
+Value Int_RightLeftShift(Value a, Value b) {
+    if (b.type == VAL_INT || b.type == VAL_BOOL)
+        return INT_VAL(AS_INT(b) << AS_INT(a));
+    return NOT_IMPLEMENTED_VAL;
+}
+
 Value Int_RightShift(Value a, Value b) {
     if (b.type == VAL_INT || b.type == VAL_BOOL)
         return INT_VAL(AS_INT(a) >> AS_INT(b));
+    return NOT_IMPLEMENTED_VAL;
+}
+
+Value Int_RightRightShift(Value a, Value b) {
+    if (b.type == VAL_INT || b.type == VAL_BOOL)
+        return INT_VAL(AS_INT(b) >> AS_INT(a));
     return NOT_IMPLEMENTED_VAL;
 }
 

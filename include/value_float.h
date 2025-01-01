@@ -10,29 +10,36 @@
 
 #define AS_FLOAT(value)     ((value).as.floating)
 
-#define FLOAT_METHODS (ValueMethods) { \
-    .eq = Float_Equal,                 \
-    .ne = Float_NotEqual,              \
-    .gt = Float_Greater,               \
-    .ge = Float_GreaterEqual,          \
-    .lt = Float_Less,                  \
-    .le = Float_LessEqual,             \
-    .add = Float_Add,                  \
-    .sub = Float_Subtract,             \
-    .mul = Float_Multiply,             \
-    .truediv = Float_TrueDivide,       \
-    .floordiv = Float_FloorDivide,     \
-    .mod = Float_Modulo,               \
-    .pow = Float_Power,                \
-    .pos = Float_Positive,             \
-    .neg = Float_Negative,             \
-    .getattr = Float_GetAttr,          \
-    .hash = Float_Hash,                \
-    .toBool = Float_ToBool,            \
-    .toInt = Float_ToInt,              \
-    .toFloat = Float_ToFloat,          \
-    .str = Float_ToStr,                \
-    .repr = Float_ToStr                \
+#define FLOAT_METHODS (ValueMethods) {   \
+    .eq = Float_Equal,                   \
+    .ne = Float_NotEqual,                \
+    .gt = Float_Greater,                 \
+    .ge = Float_GreaterEqual,            \
+    .lt = Float_Less,                    \
+    .le = Float_LessEqual,               \
+    .add = Float_Add,                    \
+    .radd = Float_Add,                   \
+    .sub = Float_Subtract,               \
+    .rsub = Float_RightSubtract,         \
+    .mul = Float_Multiply,               \
+    .rmul = Float_Multiply,              \
+    .truediv = Float_TrueDivide,         \
+    .rtruediv = Float_RightTrueDivide,   \
+    .floordiv = Float_FloorDivide,       \
+    .rfloordiv = Float_RightFloorDivide, \
+    .mod = Float_Modulo,                 \
+    .rmod = Float_RightModulo,           \
+    .pow = Float_Power,                  \
+    .rpow = Float_RightPower,            \
+    .pos = Float_Positive,               \
+    .neg = Float_Negative,               \
+    .getattr = Float_GetAttr,            \
+    .hash = Float_Hash,                  \
+    .toBool = Float_ToBool,              \
+    .toInt = Float_ToInt,                \
+    .toFloat = Float_ToFloat,            \
+    .str = Float_ToStr,                  \
+    .repr = Float_ToStr                  \
 }
 
 Value Float_Equal(Value a, Value b);
@@ -51,15 +58,25 @@ Value Float_Add(Value a, Value b);
 
 Value Float_Subtract(Value a, Value b);
 
+Value Float_RightSubtract(Value a, Value b);
+
 Value Float_Multiply(Value a, Value b);
 
 Value Float_TrueDivide(Value a, Value b);
 
+Value Float_RightTrueDivide(Value a, Value b);
+
 Value Float_FloorDivide(Value a, Value b);
+
+Value Float_RightFloorDivide(Value a, Value b);
 
 Value Float_Modulo(Value a, Value b);
 
+Value Float_RightModulo(Value a, Value b);
+
 Value Float_Power(Value a, Value b);
+
+Value Float_RightPower(Value a, Value b);
 
 Value Float_Positive(Value a);
 

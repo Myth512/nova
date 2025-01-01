@@ -18,7 +18,9 @@
     .lt = String_Less,                 \
     .le = String_LessEqual,            \
     .add = String_Add,                 \
+    .radd = String_Add,                \
     .mul = String_Multiply,            \
+    .rmul = String_RightMultiply,      \
     .getattr = String_GetAttr,         \
     .hash = String_Hash,               \
     .len = String_Len,                 \
@@ -59,6 +61,8 @@ Value String_LessEqual(Value a, Value b);
 Value String_Add(Value a, Value b);
 
 Value String_Multiply(Value a, Value b);
+
+Value String_RightMultiply(Value a, Value b);
 
 Value String_GetAttr(Value value, ObjString *name);
 
