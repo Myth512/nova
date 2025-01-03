@@ -107,9 +107,9 @@ typedef struct {
     int (*repr)(Value, char*, size_t);
 } ValueMethods;
 
-#define NONE_VAL             ((Value){VAL_NONE})
-#define UNDEFINED_VAL       ((Value){VAL_UNDEFINED})
-#define NOT_IMPLEMENTED_VAL ((Value){VAL_NOT_IMPLEMENTED})
+#define NONE_VAL             ((Value){.type=VAL_NONE, .as.integer=0})
+#define UNDEFINED_VAL       ((Value){.type=VAL_UNDEFINED, .as.integer=0})
+#define NOT_IMPLEMENTED_VAL ((Value){.type=VAL_NOT_IMPLEMENTED, .as.integer=0})
 
 #define IS_NONE(value)      ((value).type == VAL_NONE)
 #define IS_UNDEFINED(value) ((value).type == VAL_UNDEFINED)

@@ -245,19 +245,19 @@ static void buildFormattedString() {
     push(STRING_VAL(string));
 }
 
-static void buildArray() {
+static void buildList() {
     size_t size = READ_BYTE();
-    ObjArray *array = allocateArray(size);
+    ObjList *list = allocateList(size);
 
     for (int i = 0; i < size; i++) {
         Value value = peek(size - i - 1);
-        array->vec.values[i] = value;
+        list->vec.values[i] = value;
     }
     
     for (int i = 0; i < size; i++)
         pop();
     
-    push(OBJ_VAL(array));
+    push(OBJ_VAL(list));
 }
 
 static void buildTuple() {
@@ -299,27 +299,27 @@ static void setLocal() {
     frame->slots[slot] = peek(0);
 }
 
-static void getAt(bool popValues) {
-    // Value key;
-    // Value object;
+static void getItem(bool popValues) {
+    Value key;
+    Value object;
     
-    // if (popValues) {
-    //     key = pop();
-    //     object = pop();
-    // } else {
-    //     key = peek(0);
-    //     object = peek(1);
-    // }
+    if (popValues) {
+        key = pop();
+        object = pop();
+    } else {
+        key = peek(0);
+        object = peek(1);
+    }
 
-    // push(valueGetAt(object, key));
+    push(valueGetItem(object, key));
 }
 
-static void setAt() {
-    // Value value = pop();
-    // Value key = pop();
-    // Value object = peek(0);
+static void setItem() {
+    Value value = pop();
+    Value key = pop();
+    Value object = peek(0);
 
-    // valueSetAt(object, key, value);
+    valueSetItem(object, key, value);
 }
 
 static void getAttrtibute() {
@@ -390,14 +390,14 @@ static Value run() {
                 *frame->closure->upvalues[slot]->location = peek(0);
                 break;
             }
-            case OP_GET_AT:
-                getAt(true);
+            case OP_GET_ITEM:
+                getItem(true);
                 break;
-            case OP_GET_AT_NO_POP:
-                getAt(false);
+            case OP_GET_ITEM_NO_POP:
+                getItem(false);
                 break;
-            case OP_SET_AT:
-                setAt();
+            case OP_SET_ITEM:
+                setItem();
                 break;
             case OP_FALSE:
                 push(BOOL_VAL(false));
@@ -474,8 +474,8 @@ static Value run() {
             case OP_BUILD_FSTRING:
                 buildFormattedString();
                 break;
-            case OP_BUILD_ARRAY:
-                buildArray();
+            case OP_BUILD_LIST:
+                buildList();
                 break;
             case OP_BUILD_TUPLE:
                 buildTuple();
@@ -528,7 +528,7 @@ static Value run() {
             case OP_CLOSURE: {
                 ObjFunction *function = AS_FUNCTION(READ_CONSTANT());
                 Value defaults = pop();
-                function->defaults = AS_ARRAY(defaults);
+                function->defaults = AS_LIST(defaults);
                 ObjClosure *closure = createClosure(function);
                 push(CLOSURE_VAL(closure));
                 for (int i = 0; i < closure->upvalueCount; i++) {

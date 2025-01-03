@@ -3,6 +3,8 @@
 #include "object_list.h"
 #include "object_string.h"
 #include "object_class.h"
+#include "value_int.h"
+#include "value_methods.h"
 #include "memory.h"
 #include "vm.h"
 
@@ -10,17 +12,13 @@ static int min(int a, int b) {
     return a < b ? a : b;
 }
 
-ObjArray* allocateArray(int size) {
-    ObjArray *array = (ObjArray*)allocateObject(sizeof(ObjArray), VAL_LIST);
-    array->vec.size = size; 
-    array->vec.capacity = size; 
-    array->vec.values = NULL;
-    array->vec.values = (Value*)reallocate(array->vec.values, 0, size * sizeof(Value));
-    return array;
-}
-
-int List_ToStr(Value value, char *buffer, size_t size) {
-    writeToBuffer(buffer, size, "list");
+ObjList* allocateList(int size) {
+    ObjList *list = (ObjList*)allocateObject(sizeof(ObjList), VAL_LIST);
+    list->vec.size = size; 
+    list->vec.capacity = size; 
+    list->vec.values = NULL;
+    list->vec.values = (Value*)reallocate(list->vec.values, 0, size * sizeof(Value));
+    return list;
 }
 
 static int movePointer(char **buffer, int bytesWritten) {
@@ -31,134 +29,140 @@ static int movePointer(char **buffer, int bytesWritten) {
     return 0;
 }
 
-int arrayWrite(ObjArray *array, char *buffer, size_t size) {
-    // int bytesWritten = writeToBuffer(buffer, size, "[");
-    // size -= movePointer(&buffer, bytesWritten);
-    // size_t length = array->vec.size;
-    // for (int i = 0; i < length; i++) {
-    //     bytesWritten = valueWrite(array->vec.values[i], buffer, size);
-    //     size -= movePointer(&buffer, bytesWritten);
-    //     if (i + 1 != length) {
-    //         bytesWritten = writeToBuffer(buffer, size, ", ");
-    //         size -= movePointer(&buffer, bytesWritten);
-    //     }
-    // }
-    // writeToBuffer(buffer, size, "]");
+int List_ToStr(Value value, char *buffer, size_t size) {
+    ObjList *list = AS_LIST(value);
+    int bytesWritten = writeToBuffer(buffer, size, "[");
+    size -= movePointer(&buffer, bytesWritten);
+    size_t length = list->vec.size;
+    for (int i = 0; i < length; i++) {
+        bytesWritten = valueWrite(list->vec.values[i], buffer, size);
+        size -= movePointer(&buffer, bytesWritten);
+        if (i + 1 != length) {
+            bytesWritten = writeToBuffer(buffer, size, ", ");
+            size -= movePointer(&buffer, bytesWritten);
+        }
+    }
+    writeToBuffer(buffer, size, "]");
 }
 
-int arrayPrint(ObjArray *array) {
-    return arrayWrite(array, NULL, 0);
+Value List_Equal(Value a, Value b) {
+    if (AS_LIST(a)->vec.size != AS_LIST(b)->vec.size)
+        return BOOL_VAL(false);
+    for (int i = 0; i < AS_LIST(a)->vec.size; i++) {
+        if (!valueToBool(valueEqual(AS_LIST(a)->vec.values[i], AS_LIST(b)->vec.values[i])))
+            return BOOL_VAL(false);
+    }
+    return BOOL_VAL(true);
 }
 
-bool arrayEqual(ObjArray *a, ObjArray *b) {
-    // if (a->vec.size != b->vec.size)
-    //     return false;
-    // for (int i = 0; i < a->vec.size; i++) {
-    //     if (!valueEqual(a->vec.values[i], b->vec.values[i]))
-    //         return false;
-    // }
-    // return true;
+Value List_NotEqual(Value a, Value b) {
+    return BOOL_VAL(!AS_BOOL(List_Equal(a, b)));
 }
 
-bool arrayNotEqual(ObjArray *a, ObjArray *b) {
-    return !arrayEqual(a, b);
+static int inequality(ObjList *a, ObjList *b) {
+    int minLength = min(a->vec.size, b->vec.size);
+    for (int i = 0; i < minLength; i++) {
+        if (valueToBool(valueEqual(a->vec.values[i], b->vec.values[i])))
+            continue;
+        if (valueToBool(valueGreater(a->vec.values[i], b->vec.values[i])))
+            return 1;
+        return -1;
+    }
+    return a->vec.size - b->vec.size;
 }
 
-static bool inequality(ObjArray *a, ObjArray *b, bool (*numFunc)(double, double), bool (*valFunc)(Value, Value)) {
-    // int minLength = min(a->vec.size, b->vec.size);
-    // for (int i = 0; i < minLength; i++) {
-    //     if (valueEqual(a->vec.values[i], b->vec.values[i]))
-    //         continue;
-    //     return valFunc(a->vec.values[i], b->vec.values[i]);
-    // }
-    // return numFunc(a->vec.size, b->vec.size);
+Value List_Greater(Value a, Value b) {
+    if (!IS_LIST(b))
+        return NOT_IMPLEMENTED_VAL;
+    return BOOL_VAL(inequality(AS_LIST(a), AS_LIST(b)) > 0);
 }
 
-bool arrayGreater(ObjArray *a, ObjArray *b) {
-    // return inequality(a, b, greater, valueGreater);
+Value List_GreaterEqual(Value a, Value b) {
+    if (!IS_LIST(b))
+        return NOT_IMPLEMENTED_VAL;
+    return BOOL_VAL(inequality(AS_LIST(a), AS_LIST(b)) >= 0);
 }
 
-bool arrayGreaterEqual(ObjArray *a, ObjArray *b) {
-    // return inequality(a, b, greaterEqual, valueGreaterEqual);
+Value List_Less(Value a, Value b) {
+    if (!IS_LIST(b))
+        return NOT_IMPLEMENTED_VAL;
+    return BOOL_VAL(inequality(AS_LIST(a), AS_LIST(b)) < 0);
 }
 
-bool arrayLess(ObjArray *a, ObjArray *b) {
-    // return inequality(a, b, less, valueLess);
+Value List_LessEqual(Value a, Value b) {
+    if (!IS_LIST(b))
+        return NOT_IMPLEMENTED_VAL;
+    return BOOL_VAL(inequality(AS_LIST(a), AS_LIST(b)) <= 0);
 }
 
-bool arrayLessEqual(ObjArray *a, ObjArray *b) {
-    // return inequality(a, b, lessEqual, valueLessEqual);
+Value List_Add(Value a, Value b) {
+    if (!IS_LIST(b))
+        return NOT_IMPLEMENTED_VAL;
+
+    ObjList *l1 = AS_LIST(a);
+    ObjList *l2 = AS_LIST(b);
+
+    size_t size = l1->vec.size + l2->vec.size; 
+
+    ObjList *result = allocateList(size);
+
+    for (int i = 0; i < l1->vec.size; i++)
+        result->vec.values[i] = l1->vec.values[i];
+
+    for (int i = 0; i < l1->vec.size; i++)
+        result->vec.values[l1->vec.size + i] = l2->vec.values[i];
+
+    return OBJ_VAL(result);
 }
 
-ObjArray *arrayAdd(ObjArray *a, ObjArray *b) {
-    size_t size = a->vec.size + b->vec.size; 
+Value List_Multiply(Value a, Value b) {
+    if (!IS_INT(b))
+        return NOT_IMPLEMENTED_VAL;
 
-    ObjArray *result = allocateArray(size);
+    size_t oldSize = AS_LIST(a)->vec.size;
+    size_t newSize = oldSize * AS_INT(b);
 
-    for (int i = 0; i < a->vec.size; i++)
-        result->vec.values[i] = a->vec.values[i];
-
-    for (int i = 0; i < b->vec.size; i++)
-        result->vec.values[a->vec.size + i] = b->vec.values[i];
-
-    return result;
-}
-
-ObjArray *arrayMultiply(ObjArray *array, int scalar) {
-    size_t oldSize = array->vec.size;
-    size_t newSize = oldSize * scalar;
-
-    ObjArray *result = allocateArray(newSize);
+    ObjList *result = allocateList(newSize);
 
     for (int i = 0; i < newSize; i++)
-        result->vec.values[i] = array->vec.values[i % oldSize];
+        result->vec.values[i] = AS_LIST(a)->vec.values[i % oldSize];
 
-    return result;
+    return OBJ_VAL(result);
 }
 
-OptValue arrayGetField(Value array, ObjString *name) {
-    // const struct ArrayMethod *result = in_array_set(name->chars, name->length);
-    // if (result) {
-    //     ObjNativeMethod *method = createNativeMethod(array, result->method, result->name);
-    //     return (OptValue){.hasValue=true, .value=OBJ_VAL(method)};
-    // } 
-    // return (OptValue){.hasValue=false};
+// Value List_GetAttr(Value list, ObjString *name) {
+//     return getGperfMethod(list, name, int_list_set);
+// }
+
+Value List_GetItem(Value obj, Value key) {
+    if (!IS_INT(key))
+        reportRuntimeError("Index must be integer");
+    
+    int index = calculateIndex(AS_INT(key), AS_LIST(obj)->vec.size);
+
+    if (index == -1)
+        reportRuntimeError("Index is out of range");
+    
+    return AS_LIST(obj)->vec.values[index];
 }
 
-Value arrayGetAt(ObjArray *array, Value index) {
-    // if (!isInt(index))
-    //     reportRuntimeError("Index must be integer number");
+Value List_SetItem(Value obj, Value key, Value value) {
+    if (!IS_INT(key))
+        reportRuntimeError("Index must be integer");
     
-    // int i = asInt(index);
+    int index = calculateIndex(AS_INT(key), AS_LIST(obj)->vec.size);
+
+    if (index == -1)
+        reportRuntimeError("Index is out of range");
     
-    // int length = array->vec.size; 
-    // if (i >= length || i < -length)
-    //     reportRuntimeError("Index is out of range");
-    // if (i < 0)
-    //     i += length;
-    
-    // return array->vec.values[i];
+    AS_LIST(obj)->vec.values[index] = value;
+    return NONE_VAL;
 }
 
-void arraySetAt(ObjArray *array, Value index, Value value) {
-    // if (!isInt(index))
-    //     reportRuntimeError("Index must be integer number");
-    
-    // int i = asInt(index);
-    
-    // int length = array->vec.size; 
-    // if (i >= length || i < -length)
-    //     reportRuntimeError("Index is out of range");
-    // if (i < 0)
-    //     i += length;
-    
-    // array->vec.values[i] = value;
-}
+// int arrayLen(ObjArray *array) {
+    // return array->vec.size;
+// }
 
-int arrayLen(ObjArray *array) {
-    return array->vec.size;
-}
-
-bool arrayToBool(ObjArray *array) {
-    return (bool)arrayLen(array);
-}
+// bool arrayToBool(ObjArray *array) {
+    // return (bool)arrayLen(array);
+// }

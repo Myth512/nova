@@ -22,6 +22,7 @@
     .mul = String_Multiply,            \
     .rmul = String_RightMultiply,      \
     .getattr = String_GetAttr,         \
+    .getitem = String_GetItem,         \
     .hash = String_Hash,               \
     .len = String_Len,                 \
     .toBool = String_ToBool,           \

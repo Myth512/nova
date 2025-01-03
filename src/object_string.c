@@ -169,7 +169,8 @@ Value String_GetItem(Value value, Value key) {
     if (index == -1)
         reportRuntimeError("Index is out of bounds");
     
-    return OBJ_VAL(copyString(AS_STRING(value)->chars + index, 1));
+    ObjString *res = copyString(AS_STRING(value)->chars + index, 1);
+    return OBJ_VAL(res);
 }
 
 static uint64_t hashString(const char *value) {

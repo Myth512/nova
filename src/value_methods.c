@@ -186,7 +186,7 @@ Value valueGetItem(Value obj, Value key) {
     Value (*method)(Value, Value) = GET_METHOD(obj, getitem);
     if (method == NULL)
         reportRuntimeError("not subscriptable");
-    method(obj, key);
+    return method(obj, key);
 }
 
 void valueSetItem(Value obj, Value key, Value value) {

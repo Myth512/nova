@@ -97,7 +97,7 @@ static void rstring(bool canAssign, bool allowTuple);
 
 static void fstring(bool canAssign, bool allowTuple);
 
-static void array(bool canAssign, bool allowTuple);
+static void list(bool canAssign, bool allowTuple);
 
 static void tuple(bool canAssign, bool allowTuple);
 
@@ -115,7 +115,7 @@ static void or(bool canAssign, bool allowTuple);
 
 static void call(bool canAssign, bool allowTuple);
 
-static void at(bool canAssign, bool allowTuple);
+static void item(bool canAssign, bool allowTuple);
 
 static void dot(bool canAssign, bool allowTuple);
 
@@ -123,7 +123,7 @@ static void statement(int breakPointer, int continuePointer);
 
 ParseRule rules[TOKEN_COUNT] = {
     [TOKEN_LEFT_PAREN]    = {grouping, call,   PREC_CALL},
-    [TOKEN_LEFT_BRACKET]  = {array,    at,     PREC_CALL},
+    [TOKEN_LEFT_BRACKET]  = {list,     item,   PREC_CALL},
     [TOKEN_RIGHT_BRACKET] = {NULL,     NULL,   PREC_NONE},
     [TOKEN_COMMA]         = {NULL,     tuple,  PREC_PRIMARY},
     [TOKEN_DOT]           = {NULL,     dot,    PREC_CALL},
@@ -317,7 +317,7 @@ static ObjFunction* endCompiler() {
             printCodeVec(currentCode(), function->name != NULL ? function->name->chars : "<top level>");
     #endif
 
-    ObjArray *names = allocateArray(current->localCount);
+    ObjList *names = allocateList(current->localCount);
     for (int i = 0; i < current->localCount; i++) {
         Token name = current->locals[i].name;
         names->vec.values[i] = STRING_VAL(copyString(name.start, name.length));
@@ -397,20 +397,20 @@ static void rstring(bool canAssign, bool allowTuple) {
     advance();
 }
 
-static void array(bool canAssign, bool allowTuple) {
-    // (void)canAssign;
+static void list(bool canAssign, bool allowTuple) {
+    (void)canAssign;
 
-    // size_t size = 0;
-    // advance(true);
-    // if (!match(TOKEN_RIGHT_BRACKET, false)) {
-    //     do {
-    //         expression();
-    //         size++;
-    //     } while (consume(TOKEN_COMMA, true));
-    //     if (!consume(TOKEN_RIGHT_BRACKET, true))
-    //         reportError("Expect ']'", &parser.current);
-    // }
-    // emitBytes(OP_BUILD_ARRAY, (uint8_t)size, (Token){0});
+    size_t size = 0;
+    advance(true);
+    if (!consume(TOKEN_RIGHT_BRACKET, false)) {
+        do {
+            parseExpression(PREC_ASSIGNMENT, false, false);
+            size++;
+        } while (consume(TOKEN_COMMA, true));
+        if (!consume(TOKEN_RIGHT_BRACKET, true))
+            reportError("Expect ']'", &parser.current);
+    }
+    emitBytes(OP_BUILD_LIST, (uint8_t)size, (Token){0});
 }
 
 static void tuple(bool canAssign, bool allowTuple) {
@@ -935,7 +935,7 @@ static void function(FunctionType type) {
         } while (consume(TOKEN_COMMA, true));
     }
 
-    emitBytes(OP_BUILD_ARRAY, (uint8_t)defaultCount, parser.current);
+    emitBytes(OP_BUILD_LIST, (uint8_t)defaultCount, parser.current);
 
     if (!consume(TOKEN_RIGHT_PAREN, true))
         reportError("Expect ')' after parameters", &parser.current);
@@ -1066,29 +1066,25 @@ static void dot(bool canAssign, bool allowTuple) {
     }
 }
 
-static void at(bool canAssign, bool allowTuple) {
-    // (void)canAssign;
+static void item(bool canAssign, bool allowTuple) {
+    (void)canAssign;
 
-    // advance(true);
-    // Token index = parser.current;
-    // expression();
-    // advance(false);
+    advance(true);
+    Token index = parser.current;
+    expression();
+    advance(false);
 
-    // Token operator = parser.current;
+    Token operator = parser.current;
 
-    // if (match(TOKEN_COLON_EQUAL, false)) {
-    //     reportError("Invalid syntax", &operator);
-    // }
+    if (isAssignment(operator)) {
+        advance(true);
+        if (!canAssign)
+            reportError("Assignment is not allowed here", &operator);
 
-    // if (isAssignment(operator)) {
-    //     advance(true);
-    //     if (!canAssign)
-    //         reportError("Assignment is not allowed here", &operator);
-
-    //     assignment(OP_GET_AT_NO_POP, OP_SET_AT, NO_ARG, operator);
-    // } else {
-    //     emitByte(OP_GET_AT, index);
-    // }
+        assignment(OP_GET_ITEM_NO_POP, OP_SET_ITEM, NO_ARG, operator);
+    } else {
+        emitByte(OP_GET_ITEM, index);
+    }
 }
 
 static void returnStatement() {

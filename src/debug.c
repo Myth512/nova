@@ -187,11 +187,11 @@ int printInstruction(CodeVec *vec, int offset) {
             return byteInstruction("GET UPVALUE", vec, offset);
         case OP_SET_UPVALUE:
             return byteInstruction("SET UPVALUE", vec, offset);
-        case OP_SET_AT:
+        case OP_SET_ITEM:
             return simpleInstruction("SET AT", offset);
-        case OP_GET_AT:
+        case OP_GET_ITEM:
             return simpleInstruction("GET AT", offset);
-        case OP_GET_AT_NO_POP:
+        case OP_GET_ITEM_NO_POP:
             return simpleInstruction("GET AT NO POP", offset);
         case OP_ADD:
             return simpleInstruction("ADD", offset);
@@ -241,7 +241,7 @@ int printInstruction(CodeVec *vec, int offset) {
             return simpleInstruction("RETURN", offset);
         case OP_BUILD_FSTRING:
             return argInstruction("BUILD FSTRING", vec, offset);
-        case OP_BUILD_ARRAY:
+        case OP_BUILD_LIST:
             return argInstruction("BUILD ARRAY", vec, offset);
         case OP_BUILD_TUPLE:
             return argInstruction("BUILD TUPLE", vec, offset);
