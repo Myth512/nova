@@ -5,7 +5,7 @@
 
 Value printNative(int argc, Value *argv);
 
-Value clockNative(int argc, Value *argv);
+Value Py_Time(int argc, Value *argv);
 
 Value sqrtNative(int argc, Value *argv);
 

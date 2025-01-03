@@ -124,7 +124,6 @@ static void statement(int breakPointer, int continuePointer);
 ParseRule rules[TOKEN_COUNT] = {
     [TOKEN_LEFT_PAREN]    = {grouping, call,   PREC_CALL},
     [TOKEN_LEFT_BRACKET]  = {list,     item,   PREC_CALL},
-    [TOKEN_RIGHT_BRACKET] = {NULL,     NULL,   PREC_NONE},
     [TOKEN_COMMA]         = {NULL,     tuple,  PREC_PRIMARY},
     [TOKEN_DOT]           = {NULL,     dot,    PREC_CALL},
     [TOKEN_DOUBLE_EQUAL]  = {NULL,     binary, PREC_COMPARISON},

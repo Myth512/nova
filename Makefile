@@ -6,7 +6,7 @@ BIN_DIR = bin
 TARGET = $(BIN_DIR)/nova
 
 CC=gcc
-OPT=-O0
+OPT=-O3
 DEPFLAGS=-MP -MD
 
 CFLAGS= -std=c99 -Wall -Wextra -g -I $(INC_DIR) $(OPT) $(DEPFLAGS)
@@ -52,3 +52,4 @@ gperf:
 	gperf gperf/methods_int.txt > include/methods_int.h
 	gperf gperf/methods_float.txt > include/methods_float.h
 	gperf gperf/methods_string.txt > include/methods_string.h
+	gperf gperf/methods_list.txt > include/methods_list.h

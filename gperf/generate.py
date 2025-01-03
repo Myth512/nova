@@ -32,8 +32,19 @@ operations_dict = {
     'int': 'ToInt',
     'float': 'ToFloat',
     'str': 'ToStr',
-    'repr': 'ToRepr'
+    'repr': 'ToRepr',
 }
+
+op = {
+    'append': 'Append',
+    'pop': 'Pop',
+    'sort': 'Sort'
+}
+
+def getFull(m):
+    if m in operations_dict:
+        return operations_dict[m];
+    return op[m]
 
 types = {
     'None': ['eq', 'ne', 'getattr'],
@@ -41,6 +52,7 @@ types = {
     'Int': ['eq', 'ne', 'gt', 'ge', 'lt', 'le', 'add', 'sub', 'mul', 'truediv', 'floordiv', 'mod', 'pow', 'pos', 'neg', 'and', 'xor', 'or', 'invert', 'lshift', 'rshift', 'getattr'],
     'Float': ['eq', 'ne', 'gt', 'ge', 'lt', 'le', 'add', 'sub', 'mul', 'truediv', 'floordiv', 'mod', 'pow', 'pos', 'neg', 'getattr'],
     'String': ['eq', 'ne', 'gt', 'ge', 'lt', 'le', 'add', 'mul', 'getattr'],
+    'List': ['eq', 'ne', 'gt', 'ge', 'lt', 'le', 'add', 'mul', 'append', 'pop', 'sort']
 }
 
 operator_map = {
@@ -69,10 +81,10 @@ operator_map = {
 
 def binary(type_, method):
     return f'''
-Value Py{type_}_{operations_dict[method]}(int argc, Value *argv) {{
+Value Py{type_}_{getFull(method)}(int argc, Value *argv) {{
     if (argc != 1)
         reportArityError(1, 1, argc);
-    Value res = {type_}_{operations_dict[method]}(argv[0], argv[1]);
+    Value res = {type_}_{getFull(method)}(argv[0], argv[1]);
     if (IS_NOT_IMPLEMENTED(res))
         operatorNotImplemented("{operator_map[method]}", argv[0], argv[1]);
     return res;
@@ -81,10 +93,10 @@ Value Py{type_}_{operations_dict[method]}(int argc, Value *argv) {{
 
 def unary(type_, method):
     return f'''
-Value Py{type_}_{operations_dict[method]}(int argc, Value *argv) {{
+Value Py{type_}_{getFull(method)}(int argc, Value *argv) {{
     if (argc != 0)
         reportArityError(0, 0, argc);
-    Value res = {type_}_{operations_dict[method]}(argv[0]);
+    Value res = {type_}_{getFull(method)}(argv[0]);
     if (IS_NOT_IMPLEMENTED(res))
         operatorNotImplementedUnary("{operator_map[method]}", argv[0]);
     return res;
@@ -93,16 +105,33 @@ Value Py{type_}_{operations_dict[method]}(int argc, Value *argv) {{
 
 def getattr_(type_, method):
     return f'''
-Value Py{type_}_{operations_dict[method]}(int argc, Value *argv) {{
+Value Py{type_}_{getFull(method)}(int argc, Value *argv) {{
     if (argc != 1)
         reportArityError(1, 1, argc);
     Value res = {type_}_GetAttr(argv[0], AS_STRING(argv[1]));
-    if (IS_NOT_IMPLEMENTED(res))
-        operatorNotImplementedUnary("getattr", argv[0]);
     return res;
 }}
 '''
 
+def binaryno(type_, method):
+    return f'''
+Value Py{type_}_{getFull(method)}(int argc, Value *argv) {{
+    if (argc != 1)
+        reportArityError(1, 1, argc);
+    Value res = {type_}_{getFull(method)}(argv[0], argv[1]);
+    return res;
+}}
+'''
+
+def unaryno(type_, method):
+    return f'''
+Value Py{type_}_{getFull(method)}(int argc, Value *argv) {{
+    if (argc != 0)
+        reportArityError(0, 0, argc);
+    Value res = {type_}_{getFull(method)}(argv[0]);
+    return res;
+}}
+'''
 def filename(type_):
     if type_ in ['None', 'Bool', 'Int', 'Float']:
         return f'value_{type_.lower()}.h'
@@ -150,7 +179,10 @@ operations_func = {
     'invert': unary,
     'lshift': binary, 
     'rshift': binary, 
-    'getattr': getattr_
+    'getattr': getattr_,
+    'append': binaryno,
+    'pop': unaryno,
+    'sort': unaryno
 }
 
 
@@ -167,6 +199,9 @@ for type_ in types:
         file.write('\n%%\n')
 
         for method in types[type_]:
-            file.write(f'__{method}__, Py{type_}_{operations_dict[method]}\n')
+            if method in operations_dict:
+                file.write(f'__{method}__, Py{type_}_{getFull(method)}\n')
+            else:
+                file.write(f'{method}, Py{type_}_{getFull(method)}\n')
         
         file.write('%%\n')

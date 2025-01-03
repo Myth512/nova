@@ -277,6 +277,7 @@ static void sweep() {
 }
 
 void collectGarbage() {
+    return;
     #ifdef DEBUG_LOG_GC
         printf("gc begin\n");
         size_t before = vm.bytesAllocated;

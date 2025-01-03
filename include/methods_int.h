@@ -230,12 +230,10 @@ Value PyInt_GetAttr(int argc, Value *argv) {
     if (argc != 1)
         reportArityError(1, 1, argc);
     Value res = Int_GetAttr(argv[0], AS_STRING(argv[1]));
-    if (IS_NOT_IMPLEMENTED(res))
-        operatorNotImplementedUnary("getattr", argv[0]);
     return res;
 }
 
-#line 208 "gperf/methods_int.txt"
+#line 206 "gperf/methods_int.txt"
 struct GperfMethod;
 
 #define TOTAL_KEYWORDS 22
@@ -293,62 +291,62 @@ in_int_set (register const char *str, register size_t len)
   static const struct GperfMethod wordlist[] =
     {
       {""}, {""}, {""}, {""}, {""}, {""}, {""},
-#line 223 "gperf/methods_int.txt"
+#line 221 "gperf/methods_int.txt"
       {"__mul__", PyInt_Multiply},
       {""}, {""},
-#line 234 "gperf/methods_int.txt"
+#line 232 "gperf/methods_int.txt"
       {"__lshift__", PyInt_LeftShift},
       {""},
-#line 221 "gperf/methods_int.txt"
+#line 219 "gperf/methods_int.txt"
       {"__add__", PyInt_Add},
       {""}, {""},
-#line 235 "gperf/methods_int.txt"
+#line 233 "gperf/methods_int.txt"
       {"__rshift__", PyInt_RightShift},
-#line 224 "gperf/methods_int.txt"
-      {"__truediv__", PyInt_TrueDivide},
 #line 222 "gperf/methods_int.txt"
+      {"__truediv__", PyInt_TrueDivide},
+#line 220 "gperf/methods_int.txt"
       {"__sub__", PyInt_Subtract},
       {""}, {""},
-#line 233 "gperf/methods_int.txt"
+#line 231 "gperf/methods_int.txt"
       {"__invert__", PyInt_Invert},
       {""},
-#line 230 "gperf/methods_int.txt"
+#line 228 "gperf/methods_int.txt"
       {"__and__", PyInt_And},
       {""}, {""}, {""},
-#line 236 "gperf/methods_int.txt"
+#line 234 "gperf/methods_int.txt"
       {"__getattr__", PyInt_GetAttr},
-#line 226 "gperf/methods_int.txt"
+#line 224 "gperf/methods_int.txt"
       {"__mod__", PyInt_Modulo},
       {""}, {""}, {""},
-#line 219 "gperf/methods_int.txt"
+#line 217 "gperf/methods_int.txt"
       {"__lt__", PyInt_Less},
-#line 229 "gperf/methods_int.txt"
+#line 227 "gperf/methods_int.txt"
       {"__neg__", PyInt_Negative},
       {""}, {""}, {""},
-#line 217 "gperf/methods_int.txt"
+#line 215 "gperf/methods_int.txt"
       {"__gt__", PyInt_Greater},
-#line 231 "gperf/methods_int.txt"
+#line 229 "gperf/methods_int.txt"
       {"__xor__", PyInt_Xor},
       {""}, {""}, {""},
-#line 220 "gperf/methods_int.txt"
+#line 218 "gperf/methods_int.txt"
       {"__le__", PyInt_LessEqual},
-#line 228 "gperf/methods_int.txt"
+#line 226 "gperf/methods_int.txt"
       {"__pos__", PyInt_Positive},
       {""}, {""}, {""},
-#line 218 "gperf/methods_int.txt"
+#line 216 "gperf/methods_int.txt"
       {"__ge__", PyInt_GreaterEqual},
-#line 227 "gperf/methods_int.txt"
+#line 225 "gperf/methods_int.txt"
       {"__pow__", PyInt_Power},
       {""}, {""}, {""},
-#line 216 "gperf/methods_int.txt"
+#line 214 "gperf/methods_int.txt"
       {"__ne__", PyInt_NotEqual},
-#line 225 "gperf/methods_int.txt"
+#line 223 "gperf/methods_int.txt"
       {"__floordiv__", PyInt_FloorDivide},
       {""}, {""}, {""},
-#line 232 "gperf/methods_int.txt"
+#line 230 "gperf/methods_int.txt"
       {"__or__", PyInt_Or},
       {""}, {""}, {""}, {""},
-#line 215 "gperf/methods_int.txt"
+#line 213 "gperf/methods_int.txt"
       {"__eq__", PyInt_Equal}
     };
 
@@ -366,5 +364,5 @@ in_int_set (register const char *str, register size_t len)
     }
   return 0;
 }
-#line 237 "gperf/methods_int.txt"
+#line 235 "gperf/methods_int.txt"
 

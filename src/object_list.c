@@ -3,6 +3,7 @@
 #include "object_list.h"
 #include "object_string.h"
 #include "object_class.h"
+#include "methods_list.h"
 #include "value_int.h"
 #include "value_methods.h"
 #include "memory.h"
@@ -130,9 +131,9 @@ Value List_Multiply(Value a, Value b) {
     return OBJ_VAL(result);
 }
 
-// Value List_GetAttr(Value list, ObjString *name) {
-//     return getGperfMethod(list, name, int_list_set);
-// }
+Value List_GetAttr(Value list, ObjString *name) {
+    return getGperfMethod(list, name, in_list_set);
+}
 
 Value List_GetItem(Value obj, Value key) {
     if (!IS_INT(key))
@@ -157,6 +158,19 @@ Value List_SetItem(Value obj, Value key, Value value) {
     
     AS_LIST(obj)->vec.values[index] = value;
     return NONE_VAL;
+}
+
+Value List_Append(Value obj, Value value) {
+    pushValue(&AS_LIST(obj)->vec, value);
+    return NONE_VAL;
+}
+
+Value List_Pop(Value obj) {
+    return popValue(&AS_LIST(obj)->vec);
+}
+
+Value List_Sort(Value obj) {
+
 }
 
 // int arrayLen(ObjArray *array) {

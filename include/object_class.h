@@ -36,7 +36,7 @@
 #define NATIVE_METHOD_METHODS (ValueMethods){ \
     .call = NativeMethod_Call,                \
     .str = NativeMethod_ToStr,                \
-    .repr = Native_ToStr,                     \
+    .repr = NativeMethod_ToStr,               \
 }
 
 typedef struct {

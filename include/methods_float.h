@@ -176,12 +176,10 @@ Value PyFloat_GetAttr(int argc, Value *argv) {
     if (argc != 1)
         reportArityError(1, 1, argc);
     Value res = Float_GetAttr(argv[0], AS_STRING(argv[1]));
-    if (IS_NOT_IMPLEMENTED(res))
-        operatorNotImplementedUnary("getattr", argv[0]);
     return res;
 }
 
-#line 154 "gperf/methods_float.txt"
+#line 152 "gperf/methods_float.txt"
 struct GperfMethod;
 
 #define TOTAL_KEYWORDS 16
@@ -239,47 +237,47 @@ in_float_set (register const char *str, register size_t len)
   static const struct GperfMethod wordlist[] =
     {
       {""}, {""}, {""}, {""}, {""}, {""}, {""},
-#line 173 "gperf/methods_float.txt"
+#line 171 "gperf/methods_float.txt"
       {"__pow__", PyFloat_Power},
       {""}, {""}, {""},
-#line 170 "gperf/methods_float.txt"
+#line 168 "gperf/methods_float.txt"
       {"__truediv__", PyFloat_TrueDivide},
-#line 174 "gperf/methods_float.txt"
+#line 172 "gperf/methods_float.txt"
       {"__pos__", PyFloat_Positive},
       {""}, {""}, {""}, {""},
-#line 169 "gperf/methods_float.txt"
+#line 167 "gperf/methods_float.txt"
       {"__mul__", PyFloat_Multiply},
       {""}, {""}, {""}, {""},
-#line 171 "gperf/methods_float.txt"
+#line 169 "gperf/methods_float.txt"
       {"__floordiv__", PyFloat_FloorDivide},
       {""}, {""}, {""},
-#line 176 "gperf/methods_float.txt"
+#line 174 "gperf/methods_float.txt"
       {"__getattr__", PyFloat_GetAttr},
-#line 172 "gperf/methods_float.txt"
+#line 170 "gperf/methods_float.txt"
       {"__mod__", PyFloat_Modulo},
       {""}, {""}, {""},
-#line 165 "gperf/methods_float.txt"
+#line 163 "gperf/methods_float.txt"
       {"__lt__", PyFloat_Less},
-#line 175 "gperf/methods_float.txt"
+#line 173 "gperf/methods_float.txt"
       {"__neg__", PyFloat_Negative},
       {""}, {""}, {""},
-#line 163 "gperf/methods_float.txt"
+#line 161 "gperf/methods_float.txt"
       {"__gt__", PyFloat_Greater},
-#line 168 "gperf/methods_float.txt"
+#line 166 "gperf/methods_float.txt"
       {"__sub__", PyFloat_Subtract},
       {""}, {""}, {""},
-#line 166 "gperf/methods_float.txt"
+#line 164 "gperf/methods_float.txt"
       {"__le__", PyFloat_LessEqual},
-#line 167 "gperf/methods_float.txt"
+#line 165 "gperf/methods_float.txt"
       {"__add__", PyFloat_Add},
       {""}, {""}, {""},
-#line 164 "gperf/methods_float.txt"
+#line 162 "gperf/methods_float.txt"
       {"__ge__", PyFloat_GreaterEqual},
       {""}, {""}, {""}, {""},
-#line 162 "gperf/methods_float.txt"
+#line 160 "gperf/methods_float.txt"
       {"__ne__", PyFloat_NotEqual},
       {""}, {""}, {""}, {""},
-#line 161 "gperf/methods_float.txt"
+#line 159 "gperf/methods_float.txt"
       {"__eq__", PyFloat_Equal}
     };
 
@@ -297,5 +295,5 @@ in_float_set (register const char *str, register size_t len)
     }
   return 0;
 }
-#line 177 "gperf/methods_float.txt"
+#line 175 "gperf/methods_float.txt"
 

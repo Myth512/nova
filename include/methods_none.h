@@ -59,12 +59,10 @@ Value PyNone_GetAttr(int argc, Value *argv) {
     if (argc != 1)
         reportArityError(1, 1, argc);
     Value res = None_GetAttr(argv[0], AS_STRING(argv[1]));
-    if (IS_NOT_IMPLEMENTED(res))
-        operatorNotImplementedUnary("getattr", argv[0]);
     return res;
 }
 
-#line 37 "gperf/methods_none.txt"
+#line 35 "gperf/methods_none.txt"
 struct GperfMethod;
 
 #define TOTAL_KEYWORDS 3
@@ -122,12 +120,12 @@ in_none_set (register const char *str, register size_t len)
   static const struct GperfMethod wordlist[] =
     {
       {""}, {""}, {""}, {""}, {""}, {""},
-#line 45 "gperf/methods_none.txt"
+#line 43 "gperf/methods_none.txt"
       {"__ne__", PyNone_NotEqual},
-#line 44 "gperf/methods_none.txt"
+#line 42 "gperf/methods_none.txt"
       {"__eq__", PyNone_Equal},
       {""}, {""}, {""},
-#line 46 "gperf/methods_none.txt"
+#line 44 "gperf/methods_none.txt"
       {"__getattr__", PyNone_GetAttr}
     };
 
@@ -145,5 +143,5 @@ in_none_set (register const char *str, register size_t len)
     }
   return 0;
 }
-#line 47 "gperf/methods_none.txt"
+#line 45 "gperf/methods_none.txt"
 

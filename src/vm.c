@@ -149,7 +149,7 @@ static void defineNative(const char *name, NativeFn function) {
 }
 
 static void defineNatives() {
-    defineNative("clock", clockNative);
+    defineNative("time", Py_Time);
     defineNative("print", printNative);
     defineNative("sqrt", sqrtNative);
     defineNative("min", minNative);

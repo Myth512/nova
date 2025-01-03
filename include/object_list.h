@@ -22,6 +22,7 @@ typedef struct {
     .le = List_LessEqual,             \
     .add = List_Add,                  \
     .mul = List_Multiply,             \
+    .getattr = List_GetAttr,          \
     .getitem = List_GetItem,          \
     .setitem = List_SetItem,          \
     .str = List_ToStr,                \
@@ -46,9 +47,17 @@ Value List_Add(Value a, Value b);
 
 Value List_Multiply(Value a, Value b);
 
+Value List_GetAttr(Value list, ObjString *name);
+
 Value List_GetItem(Value obj, Value key);
 
 Value List_SetItem(Value obj, Value key, Value value);
+
+Value List_Append(Value obj, Value value);
+
+Value List_Pop(Value obj);
+
+Value List_Sort(Value obj);
 
 int List_ToStr(Value value, char *buffer, size_t size);
 

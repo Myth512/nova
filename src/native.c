@@ -5,13 +5,14 @@
 
 #include "native.h"
 #include "value.h"
+#include "value_int.h"
 #include "value_methods.h"
 #include "object.h"
 #include "object_string.h"
 #include "vm.h"
 
-Value clockNative(int argc, Value *argv) {
-    // return FLO((double)clock() / CLOCKS_PER_SEC);
+Value Py_Time(int argc, Value *argv) {
+    return INT_VAL((double)clock() / CLOCKS_PER_SEC);
 }
 
 Value printNative(int argc, Value *argv) {

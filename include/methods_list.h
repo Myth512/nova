@@ -1,5 +1,5 @@
 /* ANSI-C code produced by gperf version 3.1 */
-/* Command-line: gperf gperf/methods_string.txt  */
+/* Command-line: gperf gperf/methods_list.txt  */
 /* Computed positions: -k'3-4' */
 
 #if !((' ' == 32) && ('!' == 33) && ('"' == 34) && ('#' == 35) \
@@ -29,102 +29,116 @@
 #error "gperf generated tables don't work with this execution character set. Please report a bug to <bug-gperf@gnu.org>."
 #endif
 
-#line 1 "gperf/methods_string.txt"
+#line 1 "gperf/methods_list.txt"
 
 #include <string.h>
 #include "object_string.h"
 #include "vm.h"
 #include "value.h"
-#include "object_string.h"
+#include "object_list.h"
 
-Value PyString_Equal(int argc, Value *argv) {
+Value PyList_Equal(int argc, Value *argv) {
     if (argc != 1)
         reportArityError(1, 1, argc);
-    Value res = String_Equal(argv[0], argv[1]);
+    Value res = List_Equal(argv[0], argv[1]);
     if (IS_NOT_IMPLEMENTED(res))
         operatorNotImplemented("==", argv[0], argv[1]);
     return res;
 }
 
-Value PyString_NotEqual(int argc, Value *argv) {
+Value PyList_NotEqual(int argc, Value *argv) {
     if (argc != 1)
         reportArityError(1, 1, argc);
-    Value res = String_NotEqual(argv[0], argv[1]);
+    Value res = List_NotEqual(argv[0], argv[1]);
     if (IS_NOT_IMPLEMENTED(res))
         operatorNotImplemented("!=", argv[0], argv[1]);
     return res;
 }
 
-Value PyString_Greater(int argc, Value *argv) {
+Value PyList_Greater(int argc, Value *argv) {
     if (argc != 1)
         reportArityError(1, 1, argc);
-    Value res = String_Greater(argv[0], argv[1]);
+    Value res = List_Greater(argv[0], argv[1]);
     if (IS_NOT_IMPLEMENTED(res))
         operatorNotImplemented(">", argv[0], argv[1]);
     return res;
 }
 
-Value PyString_GreaterEqual(int argc, Value *argv) {
+Value PyList_GreaterEqual(int argc, Value *argv) {
     if (argc != 1)
         reportArityError(1, 1, argc);
-    Value res = String_GreaterEqual(argv[0], argv[1]);
+    Value res = List_GreaterEqual(argv[0], argv[1]);
     if (IS_NOT_IMPLEMENTED(res))
         operatorNotImplemented(">=", argv[0], argv[1]);
     return res;
 }
 
-Value PyString_Less(int argc, Value *argv) {
+Value PyList_Less(int argc, Value *argv) {
     if (argc != 1)
         reportArityError(1, 1, argc);
-    Value res = String_Less(argv[0], argv[1]);
+    Value res = List_Less(argv[0], argv[1]);
     if (IS_NOT_IMPLEMENTED(res))
         operatorNotImplemented("<", argv[0], argv[1]);
     return res;
 }
 
-Value PyString_LessEqual(int argc, Value *argv) {
+Value PyList_LessEqual(int argc, Value *argv) {
     if (argc != 1)
         reportArityError(1, 1, argc);
-    Value res = String_LessEqual(argv[0], argv[1]);
+    Value res = List_LessEqual(argv[0], argv[1]);
     if (IS_NOT_IMPLEMENTED(res))
         operatorNotImplemented("<=", argv[0], argv[1]);
     return res;
 }
 
-Value PyString_Add(int argc, Value *argv) {
+Value PyList_Add(int argc, Value *argv) {
     if (argc != 1)
         reportArityError(1, 1, argc);
-    Value res = String_Add(argv[0], argv[1]);
+    Value res = List_Add(argv[0], argv[1]);
     if (IS_NOT_IMPLEMENTED(res))
         operatorNotImplemented("+", argv[0], argv[1]);
     return res;
 }
 
-Value PyString_Multiply(int argc, Value *argv) {
+Value PyList_Multiply(int argc, Value *argv) {
     if (argc != 1)
         reportArityError(1, 1, argc);
-    Value res = String_Multiply(argv[0], argv[1]);
+    Value res = List_Multiply(argv[0], argv[1]);
     if (IS_NOT_IMPLEMENTED(res))
         operatorNotImplemented("*", argv[0], argv[1]);
     return res;
 }
 
-Value PyString_GetAttr(int argc, Value *argv) {
+Value PyList_Append(int argc, Value *argv) {
     if (argc != 1)
         reportArityError(1, 1, argc);
-    Value res = String_GetAttr(argv[0], AS_STRING(argv[1]));
+    Value res = List_Append(argv[0], argv[1]);
     return res;
 }
 
-#line 89 "gperf/methods_string.txt"
+Value PyList_Pop(int argc, Value *argv) {
+    if (argc != 0)
+        reportArityError(0, 0, argc);
+    Value res = List_Pop(argv[0]);
+    return res;
+}
+
+Value PyList_Sort(int argc, Value *argv) {
+    if (argc != 0)
+        reportArityError(0, 0, argc);
+    Value res = List_Sort(argv[0]);
+    return res;
+}
+
+#line 103 "gperf/methods_list.txt"
 struct GperfMethod;
 
-#define TOTAL_KEYWORDS 9
-#define MIN_WORD_LENGTH 6
-#define MAX_WORD_LENGTH 11
-#define MIN_HASH_VALUE 6
-#define MAX_HASH_VALUE 31
-/* maximum key range = 26, duplicates = 0 */
+#define TOTAL_KEYWORDS 11
+#define MIN_WORD_LENGTH 3
+#define MAX_WORD_LENGTH 7
+#define MIN_HASH_VALUE 3
+#define MAX_HASH_VALUE 26
+/* maximum key range = 24, duplicates = 0 */
 
 #ifdef __GNUC__
 __inline
@@ -138,65 +152,80 @@ hash (register const char *str, register size_t len)
 {
   static const unsigned char asso_values[] =
     {
-      32, 32, 32, 32, 32, 32, 32, 32, 32, 32,
-      32, 32, 32, 32, 32, 32, 32, 32, 32, 32,
-      32, 32, 32, 32, 32, 32, 32, 32, 32, 32,
-      32, 32, 32, 32, 32, 32, 32, 32, 32, 32,
-      32, 32, 32, 32, 32, 32, 32, 32, 32, 32,
-      32, 32, 32, 32, 32, 32, 32, 32, 32, 32,
-      32, 32, 32, 32, 32, 32, 32, 32, 32, 32,
-      32, 32, 32, 32, 32, 32, 32, 32, 32, 32,
-      32, 32, 32, 32, 32, 32, 32, 32, 32, 32,
-      32, 32, 32, 32, 32, 32, 32,  5, 32, 32,
-       0, 10, 32,  5, 32, 32, 32, 32,  0,  0,
-       4, 32, 32, 15, 32, 32,  0,  0, 32, 32,
-      32, 32, 32, 32, 32, 32, 32, 32, 32, 32,
-      32, 32, 32, 32, 32, 32, 32, 32, 32, 32,
-      32, 32, 32, 32, 32, 32, 32, 32, 32, 32,
-      32, 32, 32, 32, 32, 32, 32, 32, 32, 32,
-      32, 32, 32, 32, 32, 32, 32, 32, 32, 32,
-      32, 32, 32, 32, 32, 32, 32, 32, 32, 32,
-      32, 32, 32, 32, 32, 32, 32, 32, 32, 32,
-      32, 32, 32, 32, 32, 32, 32, 32, 32, 32,
-      32, 32, 32, 32, 32, 32, 32, 32, 32, 32,
-      32, 32, 32, 32, 32, 32, 32, 32, 32, 32,
-      32, 32, 32, 32, 32, 32, 32, 32, 32, 32,
-      32, 32, 32, 32, 32, 32, 32, 32, 32, 32,
-      32, 32, 32, 32, 32, 32, 32, 32, 32, 32,
-      32, 32, 32, 32, 32, 32
+      27, 27, 27, 27, 27, 27, 27, 27, 27, 27,
+      27, 27, 27, 27, 27, 27, 27, 27, 27, 27,
+      27, 27, 27, 27, 27, 27, 27, 27, 27, 27,
+      27, 27, 27, 27, 27, 27, 27, 27, 27, 27,
+      27, 27, 27, 27, 27, 27, 27, 27, 27, 27,
+      27, 27, 27, 27, 27, 27, 27, 27, 27, 27,
+      27, 27, 27, 27, 27, 27, 27, 27, 27, 27,
+      27, 27, 27, 27, 27, 27, 27, 27, 27, 27,
+      27, 27, 27, 27, 27, 27, 27, 27, 27, 27,
+      27, 27, 27, 27, 27, 27, 27,  5, 27, 27,
+       0,  0, 27, 15, 27, 27, 27, 27,  5,  0,
+       9, 27,  0,  4,  0, 27,  5,  0, 27, 27,
+      27, 27, 27, 27, 27, 27, 27, 27, 27, 27,
+      27, 27, 27, 27, 27, 27, 27, 27, 27, 27,
+      27, 27, 27, 27, 27, 27, 27, 27, 27, 27,
+      27, 27, 27, 27, 27, 27, 27, 27, 27, 27,
+      27, 27, 27, 27, 27, 27, 27, 27, 27, 27,
+      27, 27, 27, 27, 27, 27, 27, 27, 27, 27,
+      27, 27, 27, 27, 27, 27, 27, 27, 27, 27,
+      27, 27, 27, 27, 27, 27, 27, 27, 27, 27,
+      27, 27, 27, 27, 27, 27, 27, 27, 27, 27,
+      27, 27, 27, 27, 27, 27, 27, 27, 27, 27,
+      27, 27, 27, 27, 27, 27, 27, 27, 27, 27,
+      27, 27, 27, 27, 27, 27, 27, 27, 27, 27,
+      27, 27, 27, 27, 27, 27, 27, 27, 27, 27,
+      27, 27, 27, 27, 27, 27
     };
-  return len + asso_values[(unsigned char)str[3]] + asso_values[(unsigned char)str[2]];
+  register unsigned int hval = len;
+
+  switch (hval)
+    {
+      default:
+        hval += asso_values[(unsigned char)str[3]];
+      /*FALLTHROUGH*/
+      case 3:
+        hval += asso_values[(unsigned char)str[2]];
+        break;
+    }
+  return hval;
 }
 
 const struct GperfMethod *
-in_string_set (register const char *str, register size_t len)
+in_list_set (register const char *str, register size_t len)
 {
   static const struct GperfMethod wordlist[] =
     {
-      {""}, {""}, {""}, {""}, {""}, {""},
-#line 100 "gperf/methods_string.txt"
-      {"__lt__", PyString_Less},
-#line 103 "gperf/methods_string.txt"
-      {"__mul__", PyString_Multiply},
       {""}, {""}, {""},
-#line 98 "gperf/methods_string.txt"
-      {"__gt__", PyString_Greater},
-#line 102 "gperf/methods_string.txt"
-      {"__add__", PyString_Add},
-      {""}, {""}, {""},
-#line 101 "gperf/methods_string.txt"
-      {"__le__", PyString_LessEqual},
-      {""}, {""}, {""},
-#line 97 "gperf/methods_string.txt"
-      {"__ne__", PyString_NotEqual},
-#line 99 "gperf/methods_string.txt"
-      {"__ge__", PyString_GreaterEqual},
+#line 119 "gperf/methods_list.txt"
+      {"pop", PyList_Pop},
+      {""}, {""},
+#line 118 "gperf/methods_list.txt"
+      {"append", PyList_Append},
+#line 117 "gperf/methods_list.txt"
+      {"__mul__", PyList_Multiply},
+      {""},
+#line 120 "gperf/methods_list.txt"
+      {"sort", PyList_Sort},
+#line 110 "gperf/methods_list.txt"
+      {"__eq__", PyList_Equal},
+#line 115 "gperf/methods_list.txt"
+      {"__le__", PyList_LessEqual},
+#line 116 "gperf/methods_list.txt"
+      {"__add__", PyList_Add},
+      {""}, {""},
+#line 111 "gperf/methods_list.txt"
+      {"__ne__", PyList_NotEqual},
+#line 114 "gperf/methods_list.txt"
+      {"__lt__", PyList_Less},
       {""}, {""}, {""}, {""},
-#line 104 "gperf/methods_string.txt"
-      {"__getattr__", PyString_GetAttr},
+#line 113 "gperf/methods_list.txt"
+      {"__ge__", PyList_GreaterEqual},
       {""}, {""}, {""}, {""},
-#line 96 "gperf/methods_string.txt"
-      {"__eq__", PyString_Equal}
+#line 112 "gperf/methods_list.txt"
+      {"__gt__", PyList_Greater}
     };
 
   if (len <= MAX_WORD_LENGTH && len >= MIN_WORD_LENGTH)
@@ -213,5 +242,5 @@ in_string_set (register const char *str, register size_t len)
     }
   return 0;
 }
-#line 105 "gperf/methods_string.txt"
+#line 121 "gperf/methods_list.txt"
 
