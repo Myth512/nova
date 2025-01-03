@@ -261,18 +261,18 @@ static void buildList() {
 }
 
 static void buildTuple() {
-    // size_t size = READ_BYTE();
-    // ObjTuple *tuple = allocateTuple(size);
+    size_t size = READ_BYTE();
+    ObjTuple *tuple = allocateTuple(size);
 
-    // for (int i = 0; i < size; i++) {
-    //     Value value = peek(size - i - 1);
-    //     tuple->values[i] = value;
-    // }
+    for (int i = 0; i < size; i++) {
+        Value value = peek(size - i - 1);
+        tuple->values[i] = value;
+    }
     
-    // for (int i = 0; i < size; i++)
-    //     pop();
+    for (int i = 0; i < size; i++)
+        pop();
     
-    // push(OBJ_VAL(tuple));
+    push(OBJ_VAL(tuple));
 }
 
 static void binary(Value (*func)(Value, Value)) {

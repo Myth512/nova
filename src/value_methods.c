@@ -3,6 +3,7 @@
 #include "value_int.h"
 #include "value_float.h"
 #include "object_string.h"
+#include "object_tuple.h"
 #include "object_class.h"
 #include "object_instance.h"
 #include "vm.h"
@@ -16,6 +17,7 @@ ValueMethods MethodTable[] = {
     [VAL_FLOAT]  = FLOAT_METHODS,
     [VAL_STRING] = STRING_METHODS,
     [VAL_LIST] = LIST_METHODS,
+    [VAL_TUPLE] = TUPLE_METHODS,
     [VAL_NATIVE] = NATIVE_METHODS,
     [VAL_FUNCTION] = FUNCTION_METHODS,
     [VAL_CLOSURE] = CLOSURE_METHODS,

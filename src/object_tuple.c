@@ -17,13 +17,13 @@ static int movePointer(char **buffer, int bytesWritten) {
     return 0;
 }
 
-int tupleWrite(ObjTuple *tuple, char *buffer, const size_t size) {
+int Tuple_ToStr(Value value, char *buffer, size_t size) {
     size_t bytesLeft = size;
     int bytesWritten = writeToBuffer(buffer, bytesLeft, "(");
     bytesLeft -= movePointer(&buffer, bytesWritten);
-    size_t length = tuple->size; 
+    size_t length = AS_TUPLE(value)->size; 
     for (int i = 0; i < length; i++) {
-        bytesWritten = valueWrite(tuple->values[i], buffer, bytesLeft);
+        bytesWritten = valueWrite(AS_TUPLE(value)->values[i], buffer, bytesLeft);
         bytesLeft -= movePointer(&buffer, bytesWritten);
         if (i + 1 != length) {
             bytesWritten = writeToBuffer(buffer, bytesLeft, ", ");
@@ -31,8 +31,4 @@ int tupleWrite(ObjTuple *tuple, char *buffer, const size_t size) {
         }
     }
     writeToBuffer(buffer, size, ")");
-}
-
-int tuplePrint(ObjTuple *tuple) {
-    return tupleWrite(tuple, NULL, 0);
 }
