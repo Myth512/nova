@@ -131,6 +131,10 @@ Value List_Multiply(Value a, Value b) {
     return OBJ_VAL(result);
 }
 
+Value List_RightMultiply(Value a, Value b) {
+    return List_Multiply(a, b);
+}
+
 Value List_GetAttr(Value list, ObjString *name) {
     return getGperfMethod(list, name, in_list_set);
 }
@@ -173,10 +177,10 @@ Value List_Sort(Value obj) {
 
 }
 
-// int arrayLen(ObjArray *array) {
-    // return array->vec.size;
-// }
+long long List_Len(Value value) {
+    return AS_LIST(value)->vec.size;
+}
 
-// bool arrayToBool(ObjArray *array) {
-    // return (bool)arrayLen(array);
-// }
+bool List_ToBool(Value value) {
+    return List_Len(value);
+}

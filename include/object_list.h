@@ -22,9 +22,12 @@ typedef struct {
     .le = List_LessEqual,             \
     .add = List_Add,                  \
     .mul = List_Multiply,             \
+    .rmul = List_RightMultiply,       \
     .getattr = List_GetAttr,          \
     .getitem = List_GetItem,          \
     .setitem = List_SetItem,          \
+    .len = List_Len,                  \
+    .toBool = List_ToBool,            \
     .str = List_ToStr,                \
     .repr = List_ToStr                \
 }
@@ -47,11 +50,17 @@ Value List_Add(Value a, Value b);
 
 Value List_Multiply(Value a, Value b);
 
+Value List_RightMultiply(Value a, Value b);
+
 Value List_GetAttr(Value list, ObjString *name);
 
 Value List_GetItem(Value obj, Value key);
 
 Value List_SetItem(Value obj, Value key, Value value);
+
+long long List_Len(Value value);
+
+bool List_ToBool(Value value);
 
 Value List_Append(Value obj, Value value);
 

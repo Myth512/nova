@@ -6,7 +6,7 @@ BIN_DIR = bin
 TARGET = $(BIN_DIR)/nova
 
 CC=gcc
-OPT=-O3
+OPT=-O0
 DEPFLAGS=-MP -MD
 
 CFLAGS= -std=c99 -Wall -Wextra -g -I $(INC_DIR) $(OPT) $(DEPFLAGS)
