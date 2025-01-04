@@ -5,6 +5,7 @@
 #include "value_type.h"
 #include "object_string.h"
 #include "object_tuple.h"
+#include "object_dict.h"
 #include "object_class.h"
 #include "object_instance.h"
 #include "vm.h"
@@ -20,6 +21,7 @@ ValueMethods MethodTable[] = {
     [VAL_STRING] = STRING_METHODS,
     [VAL_LIST] = LIST_METHODS,
     [VAL_TUPLE] = TUPLE_METHODS,
+    [VAL_DICT] = DICT_METHODS,
     [VAL_NATIVE] = NATIVE_METHODS,
     [VAL_FUNCTION] = FUNCTION_METHODS,
     [VAL_CLOSURE] = CLOSURE_METHODS,
@@ -273,6 +275,13 @@ int valuePrint(Value value) {
     if (str == NULL)
         return printf("TODO");
     return str(value, NULL, 0);
+}
+
+int valueReprWrite(Value value, char *buffer, size_t size) {
+    int (*repr)(Value, char*, size_t) = GET_METHOD(value, repr);
+    if (repr == NULL)
+        return printf("TODO");
+    return repr(value, buffer, size);
 }
 
 int valueRepr(Value value) {

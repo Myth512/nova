@@ -11,6 +11,7 @@
 #include "object_string.h"
 #include "object_list.h"
 #include "object_tuple.h"
+#include "object_dict.h"
 #include "object_class.h"
 #include "object_instance.h"
 #include "object_function.h"
@@ -286,6 +287,21 @@ static void buildTuple() {
     push(OBJ_VAL(tuple));
 }
 
+static void buildDict() {
+    size_t size = READ_BYTE();
+    ObjDict *dict = allocateDict();
+    Value res = OBJ_VAL(dict);
+
+    for (int i = 0; i < size; i++){
+        Value value = pop();
+        Value key = pop();
+
+        Dict_SetItem(res, key, value);
+    }
+
+    push(res);
+}
+
 static void binary(Value (*func)(Value, Value)) {
     Value b = pop();
     Value a = pop();
@@ -490,6 +506,9 @@ static Value run() {
                 break;
             case OP_BUILD_TUPLE:
                 buildTuple();
+                break;
+            case OP_BUILD_DICT:
+                buildDict();
                 break;
             case OP_JUMP: {
                 uint16_t offset = READ_SHORT();

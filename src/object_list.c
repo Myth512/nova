@@ -22,14 +22,6 @@ ObjList* allocateList(int size) {
     return list;
 }
 
-static int movePointer(char **buffer, int bytesWritten) {
-    if (*buffer != NULL) {
-        *buffer += bytesWritten;
-        return bytesWritten;
-    }
-    return 0;
-}
-
 int List_ToStr(Value value, char *buffer, size_t size) {
     ObjList *list = AS_LIST(value);
     int bytesWritten = writeToBuffer(buffer, size, "[");

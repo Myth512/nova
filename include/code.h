@@ -43,6 +43,7 @@ typedef enum {
     OP_BUILD_FSTRING,
     OP_BUILD_LIST,
     OP_BUILD_TUPLE,
+    OP_BUILD_DICT,
     OP_GET_ITEM,
     OP_GET_ITEM_NO_POP,
     OP_SET_ITEM,

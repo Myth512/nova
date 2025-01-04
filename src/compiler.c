@@ -101,6 +101,8 @@ static void list(bool canAssign, bool allowTuple);
 
 static void tuple(bool canAssign, bool allowTuple);
 
+static void dict(bool canAssign, bool allowTuple);
+
 static void grouping(bool canAssign, bool allowTuple);
 
 static void unary(bool canAssign, bool allowTuple);
@@ -124,6 +126,7 @@ static void statement(int breakPointer, int continuePointer);
 ParseRule rules[TOKEN_COUNT] = {
     [TOKEN_LEFT_PAREN]    = {grouping, call,   PREC_CALL},
     [TOKEN_LEFT_BRACKET]  = {list,     item,   PREC_CALL},
+    [TOKEN_LEFT_BRACE]    = {dict,     NULL,   PREC_NONE},
     [TOKEN_COMMA]         = {NULL,     tuple,  PREC_PRIMARY},
     [TOKEN_DOT]           = {NULL,     dot,    PREC_CALL},
     [TOKEN_DOUBLE_EQUAL]  = {NULL,     binary, PREC_COMPARISON},
@@ -348,8 +351,8 @@ static void parseExpression(Precedence precedence, bool canAssign, bool allowTup
     }
 }
 
-static void expression() {
-    parseExpression(PREC_ASSIGNMENT, false, true);
+static void expression(bool tuple) {
+    parseExpression(PREC_ASSIGNMENT, false, tuple);
 }
 
 static void literal(bool canAssign, bool allowTuple) {
@@ -403,7 +406,7 @@ static void list(bool canAssign, bool allowTuple) {
     advance(true);
     if (!consume(TOKEN_RIGHT_BRACKET, false)) {
         do {
-            parseExpression(PREC_ASSIGNMENT, false, false);
+            expression(false);
             size++;
         } while (consume(TOKEN_COMMA, true));
         if (!consume(TOKEN_RIGHT_BRACKET, true))
@@ -420,11 +423,31 @@ static void tuple(bool canAssign, bool allowTuple) {
 
     size_t size = 1;
     do {
-        parseExpression(PREC_ASSIGNMENT, canAssign, false);
+        expression(false);
         size++;
     } while (consume(TOKEN_COMMA, false));
 
     emitBytes(OP_BUILD_TUPLE, (uint8_t)size, (Token){0});
+}
+
+static void dict(bool canAssign, bool allowTuple) {
+    advance();
+
+    size_t size = 0;
+    if (!consume(TOKEN_RIGHT_BRACE, false)) {
+        do  {
+            expression(false);
+            if (!consume(TOKEN_COLON, false))
+                reportError("':' expected after dictionary key", &parser.current);
+            expression(false);
+            size++;
+        } while (consume(TOKEN_COMMA, false));
+
+        if (!consume(TOKEN_RIGHT_BRACE, false))
+            reportError("Expect '}'", &parser.current);
+    }
+
+    emitBytes(OP_BUILD_DICT, (uint8_t)size, (Token){0});
 }
 
 static void fstring(bool canAssign, bool allowTuple) {
@@ -439,7 +462,7 @@ static void fstring(bool canAssign, bool allowTuple) {
         } else {
             advance();
         }
-        expression();
+        expression(false);
         count++;
     }
 
@@ -456,7 +479,7 @@ static void grouping(bool canAssign, bool allowTuple) {
     (void)canAssign;
 
     advance();
-    parseExpression(PREC_ASSIGNMENT, false, true);
+    expression(true);
 
     if (!consume(TOKEN_RIGHT_PAREN, true))
         reportError("Opening parenthesis does not closed", NULL);
@@ -469,7 +492,7 @@ static void unary(bool canAssign, bool allowTuple) {
     advance();
 
     Precedence precedence = getRule(operator.type)->precedence + 1;
-    parseExpression(precedence, false, true);
+    expression(true);
 
     switch (operator.type) {
         case TOKEN_PLUS:
@@ -705,7 +728,7 @@ static void assignment(uint8_t getOp, uint8_t setOp, int arg, Token operator) {
     if (operator.type != TOKEN_EQUAL)
         emitAssignment(getOp, arg, operator);
     
-    expression();
+    expression(false);
 
     switch (operator.type) {
         case TOKEN_PLUS_EQUAL:
@@ -813,7 +836,7 @@ static void parseBlock(int breakPointer, int continuePointer) {
 
 static void ifStatement(int breakPointer, int continuePointer) {
     advance(false);
-    expression();
+    expression(false);
 
     int jumpToNextBranch = emitJump(OP_JUMP_FALSE_POP);
     int jumpToEnd = -1;
@@ -824,7 +847,7 @@ static void ifStatement(int breakPointer, int continuePointer) {
         jumpToEnd = emitJump(OP_JUMP);
         while (consume(TOKEN_ELIF, false)) {
             patchJump(jumpToNextBranch);
-            expression();
+            expression(false);
             jumpToNextBranch = emitJump(OP_JUMP_FALSE_POP);
 
             parseBlock(breakPointer, continuePointer);
@@ -883,7 +906,7 @@ static void whileStatement() {
     jumpToEnd = breakJump();
     conditionPointer = currentCode()->size;
 
-    expression();
+    expression(false);
     jumpToEndIfFalse = emitJump(OP_JUMP_FALSE_POP);
 
     parseBlock(jumpToEnd, conditionPointer);
@@ -923,7 +946,7 @@ static void function(FunctionType type) {
             advance();
 
             if (consume(TOKEN_EQUAL, true)) {
-                parseExpression(PREC_ASSIGNMENT, true, false);
+                expression(false);
                 defaultCount++;
             } else if (defaultCount > 0)
                 reportError("Non-default argument follows default argument", &parser.current);
@@ -973,7 +996,7 @@ static uint8_t parseArguments() {
     uint8_t argc = 0;
     if (!check(TOKEN_RIGHT_PAREN, false)) {
         do {
-            parseExpression(PREC_ASSIGNMENT, false, false);
+            expression(false);
             if (argc == 255)
                 reportError("Can't have more than 255 arguments", &parser.current);
             argc++;
@@ -1070,7 +1093,7 @@ static void item(bool canAssign, bool allowTuple) {
 
     advance(true);
     Token index = parser.current;
-    expression();
+    expression(false);
     advance(false);
 
     Token operator = parser.current;
@@ -1094,7 +1117,7 @@ static void returnStatement() {
     if (consumeEOS()) {
         emitReturn();
     } else {
-        expression();
+        expression(false);
         if (!consumeEOS()) {
             reportError("Expect eos after value", &parser.current);
         }

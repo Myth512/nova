@@ -9,14 +9,6 @@ ObjTuple* allocateTuple(size_t size) {
     return tuple;
 }
 
-static int movePointer(char **buffer, int bytesWritten) {
-    if (*buffer != NULL) {
-        *buffer += bytesWritten;
-        return bytesWritten;
-    }
-    return 0;
-}
-
 int Tuple_ToStr(Value value, char *buffer, size_t size) {
     size_t bytesLeft = size;
     int bytesWritten = writeToBuffer(buffer, bytesLeft, "(");

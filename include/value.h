@@ -21,6 +21,7 @@ typedef enum {
     VAL_STRING,
     VAL_LIST,
     VAL_TUPLE,
+    VAL_DICT,
     VAL_FUNCTION,
     VAL_CLOSURE,
     VAL_UPVALUE,
@@ -121,5 +122,7 @@ int writeToBuffer(char *buffer, const size_t size, const char *format, ...);
 Value getGperfMethod(Value value, ObjString *name, const struct GperfMethod *(*in_word_set)(register const char*, register size_t));
 
 int calculateIndex(int index, int length);
+
+int movePointer(char **buffer, int bytesWritten);
 
 #endif

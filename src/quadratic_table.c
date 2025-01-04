@@ -72,7 +72,7 @@ Value QuadraticTableGet(QuadraticTable *table, Value key) {
 
 bool QuadraticTableSet(QuadraticTable *table, Value key, Value value) {
     if (table->size + 1 >= table->capacity * MAX_LOAD_FACTOR) {
-        resizeTable(table, table->capacity * 2);
+        resizeTable(table, GROW_CAPACITY(table->capacity));
     }
 
     QuadraticEntry *entry = findEntry(table->entries, table->capacity, key);

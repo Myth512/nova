@@ -43,3 +43,11 @@ int calculateIndex(int index, int length) {
     
     return length + index;
 }
+
+int movePointer(char **buffer, int bytesWritten) {
+    if (*buffer != NULL) {
+        *buffer += bytesWritten;
+        return bytesWritten;
+    }
+    return 0;
+}
