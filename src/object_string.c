@@ -6,6 +6,7 @@
 #include "object_string.h"
 #include "object_class.h"
 #include "methods_string.h"
+#include "vm.h"
 
 ObjString *allocateString(size_t length) {
     size_t size = sizeof(ObjString) + length + 1;
@@ -156,6 +157,10 @@ Value String_Multiply(Value a, Value b) {
 
 Value String_RightMultiply(Value a, Value b) {
     return String_Multiply(a, b);
+}
+
+Value String_Class(Value value) {
+    return OBJ_VAL(vm.types.str);
 }
 
 Value String_GetAttr(Value value, ObjString *name) {

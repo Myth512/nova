@@ -97,6 +97,27 @@ static const char *TokenTypeToString[] = {
     [TOKEN_YIELD] = "YIELD"
 };
 
+static const char *ValueTypeToString[] = {
+    [VAL_NONE] = "<type none>",
+    [VAL_BOOL] = "<type bool>",
+    [VAL_INT] = "<type int>",
+    [VAL_FLOAT] = "<type float>",
+    [VAL_UNDEFINED] = "<type undefined>",
+    [VAL_NOT_IMPLEMENTED] = "<type not implemented>",
+    [VAL_STRING] = "<type string>",
+    [VAL_LIST] = "<type list>",
+    [VAL_TUPLE] = "<type tuple>",
+    [VAL_FUNCTION] = "<type function>",
+    [VAL_CLOSURE] = "<type closure>",
+    [VAL_UPVALUE] = "<type upvalue>",
+    [VAL_NATIVE] = "<type native>",
+    [VAL_CLASS] = "<type class>",
+    [VAL_NATIVE_CLASS] = "<type native class>",
+    [VAL_METHOD] = "<type method>",
+    [VAL_NATIVE_METHOD] = "<type native method>",
+    [VAL_INSTANCE] = "<type instance>"
+};
+
 static int simpleInstruction(const char *name, int offset) {
     printf("%s\n", name);
     return offset + 1;
@@ -292,11 +313,16 @@ int printInstruction(CodeVec *vec, int offset) {
     }
 }
 
+const char* decodeValueType(Value value) {
+    if (value.type < 0 || value.type > VAL_INSTANCE)
+        return "<unknown type>";
+    return ValueTypeToString[value.type];
+ }
+
 static char* decodeTokenType(TokenType type) {
     if (type < 0 || type > TOKEN_DEDENT)
         return "UNKNOWN TOKEN";
     return TokenTypeToString[type];
-            return "EQUAL";
 }
 
 void printToken(Token *token) {

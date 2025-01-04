@@ -6,6 +6,7 @@
 #include "table.h"
 #include "object.h"
 #include "object_function.h"
+#include "object_class.h"
 
 #define FRAMES_SIZE 64
 #define STACK_SIZE (FRAMES_SIZE * UINT8_MAX)
@@ -58,6 +59,17 @@ typedef struct {
 } MagicStrings;
 
 typedef struct {
+    ObjNativeClass *none;
+    ObjNativeClass *bool_;
+    ObjNativeClass *int_;
+    ObjNativeClass *float_;
+    ObjNativeClass *type;
+    ObjNativeClass *str;
+    ObjNativeClass *list;
+    ObjNativeClass *tuple;
+} BaseTypes;
+
+typedef struct {
     const char *source;
     CallFrame frames[FRAMES_SIZE];
     int frameSize;
@@ -68,6 +80,7 @@ typedef struct {
     Table globals;
     Table strings;
     MagicStrings magicStrings;
+    BaseTypes types;
     ObjUpvalue *openUpvalues;
     Obj *objects;
     size_t bytesAllocated;

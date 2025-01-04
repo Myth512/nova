@@ -2,6 +2,7 @@
 #include "value_none.h"
 #include "value_int.h"
 #include "value_float.h"
+#include "value_type.h"
 #include "object_string.h"
 #include "object_tuple.h"
 #include "object_class.h"
@@ -15,6 +16,7 @@ ValueMethods MethodTable[] = {
     [VAL_BOOL]   = BOOL_METHODS,
     [VAL_INT]    = INT_METHODS, 
     [VAL_FLOAT]  = FLOAT_METHODS,
+    [VAL_TYPE] = TYPE_METHODS,
     [VAL_STRING] = STRING_METHODS,
     [VAL_LIST] = LIST_METHODS,
     [VAL_TUPLE] = TUPLE_METHODS,
@@ -215,6 +217,11 @@ Value valueCall(Value callee, int argc, Value *argv) {
     if (method == NULL)
         reportRuntimeError("no call :(");
     method(callee, argc, argv);
+}
+
+Value valueClass(Value value) {
+    Value (*method)(Value) = GET_METHOD(value, class);
+    return method(value);
 }
 
 uint64_t valueHash(Value value) {

@@ -69,6 +69,8 @@ Value valueInit(Value callee, int argc, Value *argv);
 
 Value valueCall(Value callee, int argc, Value *argv);
 
+Value valueClass(Value value);
+
 uint64_t valueHash(Value value);
 
 uint64_t valueId(Value value);

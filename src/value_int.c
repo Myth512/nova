@@ -197,7 +197,16 @@ Value Int_Init(Value callee, int argc, Value *argv) {
     return INT_VAL(valueToInt(argv[0]));
 }
 
+Value Bool_Init(Value callee, int argc, Value *argv) {
+    return BOOL_VAL(valueToBool(argv[0]));
+}
+
 Value Int_Class(Value value) {
+    return OBJ_VAL(vm.types.int_);
+}
+
+Value Bool_Class(Value value) {
+    return OBJ_VAL(vm.types.bool_);
 }
 
 uint64_t Int_Hash(Value value) {

@@ -21,6 +21,7 @@
     .radd = String_Add,                \
     .mul = String_Multiply,            \
     .rmul = String_RightMultiply,      \
+    .class = String_Class,             \
     .getattr = String_GetAttr,         \
     .getitem = String_GetItem,         \
     .hash = String_Hash,               \
@@ -64,6 +65,8 @@ Value String_Add(Value a, Value b);
 Value String_Multiply(Value a, Value b);
 
 Value String_RightMultiply(Value a, Value b);
+
+Value String_Class(Value value);
 
 Value String_GetAttr(Value value, ObjString *name);
 

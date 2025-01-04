@@ -49,6 +49,10 @@ Value Class_Call(Value callee, int argc, Value *argv) {
     }
 }
 
+Value Class_Class(Value value) {
+    return OBJ_VAL(vm.types.type);
+}
+
 int NativeClass_ToStr(Value value, char *buffer, size_t size) {
     return writeToBuffer(buffer, size, "<class '%s'>", AS_NATIVE_CLASS(value)->name->chars);
 }

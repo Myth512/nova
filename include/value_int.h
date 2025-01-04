@@ -44,6 +44,8 @@
     .rshift = Int_RightShift,         \
     .rrshift = Int_RightRightShift,   \
     .getattr = Int_GetAttr,           \
+    .init = Bool_Init,                \
+    .class = Bool_Class,              \
     .hash = Int_Hash,                 \
     .toBool = Int_ToBool,             \
     .toInt = Int_ToInt,               \
@@ -84,6 +86,7 @@
     .rrshift = Int_RightRightShift,   \
     .getattr = Int_GetAttr,           \
     .init = Int_Init,                 \
+    .class = Int_Class,               \
     .hash = Int_Hash,                 \
     .toBool = Int_ToBool,             \
     .toInt = Int_ToInt,               \
@@ -151,6 +154,12 @@ Value Int_RightRightShift(Value a, Value b);
 Value Int_GetAttr(Value obj, ObjString *name);
 
 Value Int_Init(Value callee, int argc, Value *argv);
+
+Value Bool_Init(Value callee, int argc, Value *argv);
+
+Value Int_Class(Value value);
+
+Value Bool_Class(Value value);
 
 uint64_t Int_Hash(Value value);
 

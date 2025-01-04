@@ -159,10 +159,21 @@ static void defineNatives() {
     defineNative("input", novaInput);
 }
 
-static void defineNativeClass(const char *name, ValueType type) {
+static ObjNativeClass* defineNativeClass(const char *name, ValueType type) {
     ObjString *n = copyString(name, strlen(name));
     ObjNativeClass *class = createNativeClass(n, type);
     tableSet(&vm.globals, n, OBJ_VAL(class));
+    return class;
+}
+
+static void defineNativeTypes() {
+    vm.types.bool_ = defineNativeClass("bool", VAL_BOOL);
+    vm.types.int_ = defineNativeClass("int", VAL_INT);
+    vm.types.float_ = defineNativeClass("float", VAL_FLOAT);
+    vm.types.type = defineNativeClass("type", VAL_TYPE);
+    vm.types.str = defineNativeClass("str", VAL_STRING);
+    vm.types.list = defineNativeClass("list", VAL_LIST);
+    vm.types.tuple = defineNativeClass("tuple", VAL_TUPLE);
 }
 
 static void callValue(Value callee, int argc) {
@@ -663,8 +674,7 @@ void initVM() {
     initTable(&vm.strings);
     initMagicStrings();
     defineNatives();
-    defineNativeClass("int", VAL_INT);
-    defineNativeClass("float", VAL_FLOAT);
+    defineNativeTypes();
     vm.allowStackPrinting = true;
 }
 

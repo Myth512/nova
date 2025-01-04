@@ -17,12 +17,14 @@
 
 #define CLASS_METHODS (ValueMethods){ \
     .call = Class_Call,               \
+    .class = Class_Class,             \
     .str = Class_ToStr,               \
     .repr = Class_ToStr,              \
 }
 
 #define NATIVE_CLASS_METHODS (ValueMethods){ \
     .call = NativeClass_Call,                \
+    .class = Class_Class,                    \
     .str = NativeClass_ToStr,                \
     .repr = NativeClass_ToStr,               \
 }
@@ -71,6 +73,8 @@ ObjNativeClass *createNativeClass(ObjString *name, ValueType type);
 ObjMethod *createMethod(Value reciever, ObjClosure *method);
 
 ObjNativeMethod *createNativeMethod(Value reciever, NativeFn function, const char *name);
+
+Value Class_Class(Value value);
 
 Value Class_Call(Value callee, int argc, Value *argv);
 
