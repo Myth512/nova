@@ -92,7 +92,7 @@ typedef struct {
     BinaryMethod rshift;
     BinaryMethod rrshift;
     Value (*init)(Value, int, Value*);
-    Value (*call)(Value, int, Value*);
+    Value (*call)(Value, int, int, Value*);
     UnaryMethod class;
     Value (*getattr)(Value, ObjString *name);
     Value (*setattr)(Value, ObjString *name, Value);
@@ -116,6 +116,26 @@ typedef struct {
 #define IS_NONE(value)      ((value).type == VAL_NONE)
 #define IS_UNDEFINED(value) ((value).type == VAL_UNDEFINED)
 #define IS_NOT_IMPLEMENTED(value)  ((value).type == VAL_NOT_IMPLEMENTED)
+
+#define UNARY_WRAPPER(name)             \
+Value Py##name(int argc, Value *argv) { \
+    if (argc != 0)                      \
+        reportArityError(0, 0, argc);   \
+    Value (*method)(Value) = name;      \
+    if (method == NULL)                 \
+        reportRuntimeError("ns");       \
+    return method(argv[0]);             \
+}
+
+#define BINARY_WRAPPER(name)              \
+Value Py##name(int argc, Value *argv) {   \
+    if (argc != 1)                        \
+        reportArityError(1, 1, argc);     \
+    Value (*method)(Value, Value) = name; \
+    if (method == NULL)                   \
+        reportRuntimeError("ns");         \
+    return method(argv[0], argv[1]);      \
+}
 
 int writeToBuffer(char *buffer, const size_t size, const char *format, ...);
 

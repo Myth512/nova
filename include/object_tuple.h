@@ -21,6 +21,8 @@ typedef struct {
 
 ObjTuple* allocateTuple(size_t size);
 
+int Tuple_Index(Value obj, Value value);
+
 int Tuple_ToStr(Value value, char *buffer, size_t size);
 
 #endif

@@ -124,20 +124,68 @@ void insert(int distance, Value value) {
     #endif
 }
 
-void call(ObjClosure *closure, int argc, bool isMethod) {
-    if (argc < closure->function->minArity || argc > closure->function->maxArity)
-        reportArityError(closure->function->minArity, closure->function->maxArity, argc);
-
+void call(ObjClosure *closure, int argc, int kwargc, bool isMethod) {
     if (vm.frameSize == FRAMES_SIZE)
         reportRuntimeError("Stack overflow");
 
     CallFrame *frame = &vm.frames[vm.frameSize++];
     frame->closure = closure;
     frame->ip = closure->function->code.code;
-    frame->slots = vm.top - argc;
-    for (int i = 0; i < closure->function->localNames->vec.size - argc; i++)
-        push(UNDEFINED_VAL);
     frame->isMethod = isMethod;
+
+    int arity = closure->function->arity;
+    int defaultStart = closure->function->defaultStart;
+    int defaultCount = closure->function->defaults->size;
+
+    if (argc > arity)
+        reportArityError(arity - defaultCount, arity, argc);
+
+    Value args[arity];
+    for (int i = 0; i < arity; i++)
+        args[i] = UNDEFINED_VAL;
+
+    vm.top -= argc + 2 * kwargc;
+
+    for (int i = 0; i < argc; i++) {
+        args[i] = *vm.top;
+        vm.top++;
+    }
+
+    for (int i = 0; i < kwargc; i++) {
+        Value name = vm.top[0];
+        Value value = vm.top[1];
+        vm.top += 2;
+        int index = Tuple_Index(OBJ_VAL(closure->function->localNames), name);
+        if (index == -1)
+            reportRuntimeError("got an unexpected keyword argument '%s'", AS_STRING(name)->chars);
+        if (!IS_UNDEFINED(args[index]))
+            reportRuntimeError("got multiple values for argument '%s'", AS_STRING(name)->chars);
+        
+        args[index] = value;
+    }
+
+    for (int i = argc - defaultStart; i < defaultCount; i++) {
+        if (i < 0)
+            continue;
+        if (IS_UNDEFINED(args[defaultStart + i]))
+            args[defaultStart + i] = closure->function->defaults->values[i];
+    }
+
+    for (int i = 0; i < arity; i++) {
+        if (IS_UNDEFINED(args[i]))
+            reportRuntimeError("missing required argument: '%s'", AS_STRING(closure->function->localNames->values[i])->chars);
+    }
+
+    vm.top -= argc + 2 * kwargc;
+    frame->slots = vm.top;
+
+    for (int i = 0; i < arity; i++) {
+        *vm.top = args[i];
+        vm.top++;
+    }
+
+    for (int i = 0; i < closure->function->localNames->size - arity; i++)
+        push(UNDEFINED_VAL);
 }
 
 static void defineNative(const char *name, NativeFn function) {
@@ -177,8 +225,8 @@ static void defineNativeTypes() {
     vm.types.tuple = defineNativeClass("tuple", VAL_TUPLE);
 }
 
-static void callValue(Value callee, int argc) {
-    Value res = valueCall(callee, argc, vm.top);
+static void callValue(Value callee, int argc, int kwargc) {
+    Value res = valueCall(callee, argc, kwargc, vm.top);
     frame = &vm.frames[vm.frameSize - 1];
 }
 
@@ -317,7 +365,7 @@ static void getLocal() {
     uint8_t slot = READ_BYTE();
     Value value = frame->slots[slot];
     if (IS_UNDEFINED(value))
-        reportRuntimeError("Undefined variable '%s'", AS_STRING(frame->closure->function->localNames->vec.values[slot])->chars);
+        reportRuntimeError("Undefined variable '%s'", AS_STRING(frame->closure->function->localNames->values[slot])->chars);
     push(frame->slots[slot]);
 }
 
@@ -552,13 +600,14 @@ static Value run() {
             }
             case OP_CALL: {
                 int argc = READ_BYTE();
-                callValue(peek(argc), argc);
+                int kwargc = READ_BYTE();
+                callValue(peek(argc + 2*kwargc), argc, kwargc);
                 break;
             }
             case OP_CLOSURE: {
                 ObjFunction *function = AS_FUNCTION(READ_CONSTANT());
                 Value defaults = pop();
-                function->defaults = AS_LIST(defaults);
+                function->defaults = AS_TUPLE(defaults);
                 ObjClosure *closure = createClosure(function);
                 push(CLOSURE_VAL(closure));
                 for (int i = 0; i < closure->upvalueCount; i++) {
@@ -612,8 +661,8 @@ static Value run() {
 }
 
 Value callNovaValue(Value callee, int argc) {
-    callValue(callee, argc);
-    return run();
+    // callValue(callee, argc);
+    // return run();
 }
 
 OptValue callNovaMethod(Value obj, ObjString *methodName) {
@@ -660,6 +709,7 @@ void initMagicStrings() {
     vm.magicStrings.rmul = copyString("__rmul__", 8);
     vm.magicStrings.div = copyString("__truediv__", 11);
     vm.magicStrings.rdiv = copyString("__rtruediv__", 12);
+    // TODO
     vm.magicStrings.mod = copyString("_mod_", 5);
     vm.magicStrings.lmod = copyString("_lmod_", 6);
     vm.magicStrings.rmod = copyString("_rmod_", 6);
@@ -680,7 +730,6 @@ void initMagicStrings() {
     vm.magicStrings.int_ = copyString("_int_", 5);
     vm.magicStrings.float_ = copyString("_float_", 7);
     vm.magicStrings.str = copyString("_str_", 5);
-    vm.magicStrings.unsupported = copyString("unsupported", 12);
 }
 
 void initVM() {
@@ -714,7 +763,7 @@ InterpretResult interpret(const char *source) {
     ObjClosure *closure = createClosure(function);
     pop();
     push(OBJ_VAL(closure));
-    call(closure, 0, false);
+    call(closure, 0, 0, false);
 
     #ifdef DEBUG_DO_NOT_EXECUTE
         return INTERPRET_OK;

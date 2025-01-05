@@ -37,100 +37,18 @@
 #include "value.h"
 #include "object_list.h"
 
-Value PyList_Equal(int argc, Value *argv) {
-    if (argc != 1)
-        reportArityError(1, 1, argc);
-    Value res = List_Equal(argv[0], argv[1]);
-    if (IS_NOT_IMPLEMENTED(res))
-        operatorNotImplemented("==", argv[0], argv[1]);
-    return res;
-}
-
-Value PyList_NotEqual(int argc, Value *argv) {
-    if (argc != 1)
-        reportArityError(1, 1, argc);
-    Value res = List_NotEqual(argv[0], argv[1]);
-    if (IS_NOT_IMPLEMENTED(res))
-        operatorNotImplemented("!=", argv[0], argv[1]);
-    return res;
-}
-
-Value PyList_Greater(int argc, Value *argv) {
-    if (argc != 1)
-        reportArityError(1, 1, argc);
-    Value res = List_Greater(argv[0], argv[1]);
-    if (IS_NOT_IMPLEMENTED(res))
-        operatorNotImplemented(">", argv[0], argv[1]);
-    return res;
-}
-
-Value PyList_GreaterEqual(int argc, Value *argv) {
-    if (argc != 1)
-        reportArityError(1, 1, argc);
-    Value res = List_GreaterEqual(argv[0], argv[1]);
-    if (IS_NOT_IMPLEMENTED(res))
-        operatorNotImplemented(">=", argv[0], argv[1]);
-    return res;
-}
-
-Value PyList_Less(int argc, Value *argv) {
-    if (argc != 1)
-        reportArityError(1, 1, argc);
-    Value res = List_Less(argv[0], argv[1]);
-    if (IS_NOT_IMPLEMENTED(res))
-        operatorNotImplemented("<", argv[0], argv[1]);
-    return res;
-}
-
-Value PyList_LessEqual(int argc, Value *argv) {
-    if (argc != 1)
-        reportArityError(1, 1, argc);
-    Value res = List_LessEqual(argv[0], argv[1]);
-    if (IS_NOT_IMPLEMENTED(res))
-        operatorNotImplemented("<=", argv[0], argv[1]);
-    return res;
-}
-
-Value PyList_Add(int argc, Value *argv) {
-    if (argc != 1)
-        reportArityError(1, 1, argc);
-    Value res = List_Add(argv[0], argv[1]);
-    if (IS_NOT_IMPLEMENTED(res))
-        operatorNotImplemented("+", argv[0], argv[1]);
-    return res;
-}
-
-Value PyList_Multiply(int argc, Value *argv) {
-    if (argc != 1)
-        reportArityError(1, 1, argc);
-    Value res = List_Multiply(argv[0], argv[1]);
-    if (IS_NOT_IMPLEMENTED(res))
-        operatorNotImplemented("*", argv[0], argv[1]);
-    return res;
-}
-
-Value PyList_Append(int argc, Value *argv) {
-    if (argc != 1)
-        reportArityError(1, 1, argc);
-    Value res = List_Append(argv[0], argv[1]);
-    return res;
-}
-
-Value PyList_Pop(int argc, Value *argv) {
-    if (argc != 0)
-        reportArityError(0, 0, argc);
-    Value res = List_Pop(argv[0]);
-    return res;
-}
-
-Value PyList_Sort(int argc, Value *argv) {
-    if (argc != 0)
-        reportArityError(0, 0, argc);
-    Value res = List_Sort(argv[0]);
-    return res;
-}
-
-#line 103 "gperf/methods_list.txt"
+BINARY_WRAPPER(List_Equal)
+BINARY_WRAPPER(List_NotEqual)
+BINARY_WRAPPER(List_Greater)
+BINARY_WRAPPER(List_GreaterEqual)
+BINARY_WRAPPER(List_Less)
+BINARY_WRAPPER(List_LessEqual)
+BINARY_WRAPPER(List_Add)
+BINARY_WRAPPER(List_Multiply)
+BINARY_WRAPPER(List_Append)
+UNARY_WRAPPER(List_Pop)
+UNARY_WRAPPER(List_Sort)
+#line 21 "gperf/methods_list.txt"
 struct GperfMethod;
 
 #define TOTAL_KEYWORDS 11
@@ -199,32 +117,32 @@ in_list_set (register const char *str, register size_t len)
   static const struct GperfMethod wordlist[] =
     {
       {""}, {""}, {""},
-#line 119 "gperf/methods_list.txt"
+#line 37 "gperf/methods_list.txt"
       {"pop", PyList_Pop},
       {""}, {""},
-#line 118 "gperf/methods_list.txt"
+#line 36 "gperf/methods_list.txt"
       {"append", PyList_Append},
-#line 117 "gperf/methods_list.txt"
+#line 35 "gperf/methods_list.txt"
       {"__mul__", PyList_Multiply},
       {""},
-#line 120 "gperf/methods_list.txt"
+#line 38 "gperf/methods_list.txt"
       {"sort", PyList_Sort},
-#line 110 "gperf/methods_list.txt"
+#line 28 "gperf/methods_list.txt"
       {"__eq__", PyList_Equal},
-#line 115 "gperf/methods_list.txt"
+#line 33 "gperf/methods_list.txt"
       {"__le__", PyList_LessEqual},
-#line 116 "gperf/methods_list.txt"
+#line 34 "gperf/methods_list.txt"
       {"__add__", PyList_Add},
       {""}, {""},
-#line 111 "gperf/methods_list.txt"
+#line 29 "gperf/methods_list.txt"
       {"__ne__", PyList_NotEqual},
-#line 114 "gperf/methods_list.txt"
+#line 32 "gperf/methods_list.txt"
       {"__lt__", PyList_Less},
       {""}, {""}, {""}, {""},
-#line 113 "gperf/methods_list.txt"
+#line 31 "gperf/methods_list.txt"
       {"__ge__", PyList_GreaterEqual},
       {""}, {""}, {""}, {""},
-#line 112 "gperf/methods_list.txt"
+#line 30 "gperf/methods_list.txt"
       {"__gt__", PyList_Greater}
     };
 
@@ -242,5 +160,5 @@ in_list_set (register const char *str, register size_t len)
     }
   return 0;
 }
-#line 121 "gperf/methods_list.txt"
+#line 39 "gperf/methods_list.txt"
 

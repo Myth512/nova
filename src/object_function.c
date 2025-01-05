@@ -14,8 +14,7 @@ ObjUpvalue *createUpvalue(Value *slot) {
 
 ObjFunction* createFunction() {
     ObjFunction *function = (ObjFunction*)allocateObject(sizeof(ObjFunction), VAL_FUNCTION);
-    function->minArity = 0;
-    function->maxArity = 0;
+    function->arity = 0;
     function->upvalueCount = 0;
     function->name = NULL;
     initCodeVec(&function->code);
@@ -45,20 +44,16 @@ int Function_ToStr(Value value, char *buffer, size_t size) {
     return writeToBuffer(buffer, size, "<function %s>", AS_FUNCTION(value)->name->chars);
 }
 
-Value Closure_Call(Value callee, int argc, Value *argv) {
+Value Closure_Call(Value callee, int argc, int kwargc, Value *argv) {
     ObjClosure *closure = AS_CLOSURE(callee);
-    int minArity = closure->function->minArity;
-    int maxArity = closure->function->maxArity;
-    for (int i = argc; i < maxArity; i++)
-        push(closure->function->defaults->vec.values[i - minArity]);
-    call(closure, argc < maxArity ? maxArity : argc, false);
+    call(closure, argc, kwargc, false);
 }
 
 int Closure_ToStr(Value value, char *buffer, size_t size) {
     writeToBuffer(buffer, size, "<function %s at %p>", AS_CLOSURE(value)->function->name->chars, valueId(value));
 }
 
-Value Native_Call(Value callee, int argc, Value *argv) {
+Value Native_Call(Value callee, int argc, int kwargc, Value *argv) {
     ObjNative *native = AS_NATIVE(callee);
     Value res = native->function(argc, argv - argc);
     vm.top -= argc + 1;

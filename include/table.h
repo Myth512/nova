@@ -1,33 +1,29 @@
-#ifndef TABLE_H
-#define TABLE_H
+#ifndef QUADRATIC_TABLE_H
+#define QUADRATIC_TABLE_H
+
+#include <stdlib.h>
 
 #include "value.h"
 
 typedef struct {
-    ObjString *key;
+    Value key;
     Value value;
 } Entry;
 
 typedef struct {
-    int size;
-    int capacity;
+    size_t size;
+    size_t capacity;
     Entry *entries;
 } Table;
 
-void initTable(Table *table);
+void QuadraticTableInit(Table *table);
 
-void freeTable(Table *table);
+void QuadraticTableFree(Table *table);
 
-bool tableSet(Table *table, ObjString *key, Value value);
+Value QuadraticTableGet(Table *table, Value key);
 
-bool tableGet(Table *table, ObjString *key, Value *value);
+bool QuadraticTableSet(Table *table, Value key, Value value);
 
-bool tableDelete(Table *table, ObjString *key);
-
-void tableAddAll(Table *source, Table *destination);
-
-void markTable(Table *table);
-
-void printTable(Table *table);
+bool QuadraticTableDelete(Table *table, Value key);
 
 #endif

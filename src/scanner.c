@@ -271,10 +271,8 @@ Token scanToken() {
 
     char c = advance();
 
-    if (scanner.inFormattedString && c == '}') {
-        skipChar();
+    if (scanner.inFormattedString && c == '}')
         return scanFormattedString(scanner.stop);
-    }
 
     if (isDigit(c))
         return scanNumber();

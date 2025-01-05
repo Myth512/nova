@@ -5,99 +5,17 @@
 #include "value.h"
 #include "object_list.h"
 
-Value PyList_Equal(int argc, Value *argv) {
-    if (argc != 1)
-        reportArityError(1, 1, argc);
-    Value res = List_Equal(argv[0], argv[1]);
-    if (IS_NOT_IMPLEMENTED(res))
-        operatorNotImplemented("==", argv[0], argv[1]);
-    return res;
-}
-
-Value PyList_NotEqual(int argc, Value *argv) {
-    if (argc != 1)
-        reportArityError(1, 1, argc);
-    Value res = List_NotEqual(argv[0], argv[1]);
-    if (IS_NOT_IMPLEMENTED(res))
-        operatorNotImplemented("!=", argv[0], argv[1]);
-    return res;
-}
-
-Value PyList_Greater(int argc, Value *argv) {
-    if (argc != 1)
-        reportArityError(1, 1, argc);
-    Value res = List_Greater(argv[0], argv[1]);
-    if (IS_NOT_IMPLEMENTED(res))
-        operatorNotImplemented(">", argv[0], argv[1]);
-    return res;
-}
-
-Value PyList_GreaterEqual(int argc, Value *argv) {
-    if (argc != 1)
-        reportArityError(1, 1, argc);
-    Value res = List_GreaterEqual(argv[0], argv[1]);
-    if (IS_NOT_IMPLEMENTED(res))
-        operatorNotImplemented(">=", argv[0], argv[1]);
-    return res;
-}
-
-Value PyList_Less(int argc, Value *argv) {
-    if (argc != 1)
-        reportArityError(1, 1, argc);
-    Value res = List_Less(argv[0], argv[1]);
-    if (IS_NOT_IMPLEMENTED(res))
-        operatorNotImplemented("<", argv[0], argv[1]);
-    return res;
-}
-
-Value PyList_LessEqual(int argc, Value *argv) {
-    if (argc != 1)
-        reportArityError(1, 1, argc);
-    Value res = List_LessEqual(argv[0], argv[1]);
-    if (IS_NOT_IMPLEMENTED(res))
-        operatorNotImplemented("<=", argv[0], argv[1]);
-    return res;
-}
-
-Value PyList_Add(int argc, Value *argv) {
-    if (argc != 1)
-        reportArityError(1, 1, argc);
-    Value res = List_Add(argv[0], argv[1]);
-    if (IS_NOT_IMPLEMENTED(res))
-        operatorNotImplemented("+", argv[0], argv[1]);
-    return res;
-}
-
-Value PyList_Multiply(int argc, Value *argv) {
-    if (argc != 1)
-        reportArityError(1, 1, argc);
-    Value res = List_Multiply(argv[0], argv[1]);
-    if (IS_NOT_IMPLEMENTED(res))
-        operatorNotImplemented("*", argv[0], argv[1]);
-    return res;
-}
-
-Value PyList_Append(int argc, Value *argv) {
-    if (argc != 1)
-        reportArityError(1, 1, argc);
-    Value res = List_Append(argv[0], argv[1]);
-    return res;
-}
-
-Value PyList_Pop(int argc, Value *argv) {
-    if (argc != 0)
-        reportArityError(0, 0, argc);
-    Value res = List_Pop(argv[0]);
-    return res;
-}
-
-Value PyList_Sort(int argc, Value *argv) {
-    if (argc != 0)
-        reportArityError(0, 0, argc);
-    Value res = List_Sort(argv[0]);
-    return res;
-}
-
+BINARY_WRAPPER(List_Equal)
+BINARY_WRAPPER(List_NotEqual)
+BINARY_WRAPPER(List_Greater)
+BINARY_WRAPPER(List_GreaterEqual)
+BINARY_WRAPPER(List_Less)
+BINARY_WRAPPER(List_LessEqual)
+BINARY_WRAPPER(List_Add)
+BINARY_WRAPPER(List_Multiply)
+BINARY_WRAPPER(List_Append)
+UNARY_WRAPPER(List_Pop)
+UNARY_WRAPPER(List_Sort)
 %}
 
 struct GperfMethod

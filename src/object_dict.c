@@ -34,7 +34,7 @@ int Dict_ToStr(Value value, char *buffer, size_t size) {
     int c = 0;
 
     for (int i = 0; i < capacity; i++) {
-        QuadraticEntry *entry = &AS_DICT(value)->table.entries[i];
+        Entry *entry = &AS_DICT(value)->table.entries[i];
         if (IS_UNDEFINED(entry->key))
             continue;
         

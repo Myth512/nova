@@ -4,7 +4,7 @@
 #include <stdint.h>
 
 #include "value.h"
-#include "table.h"
+#include "name_table.h"
 #include "code.h"
 
 struct Obj {

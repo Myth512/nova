@@ -69,7 +69,7 @@ void valueDelItem(Value obj, Value key);
 
 Value valueInit(Value callee, int argc, Value *argv);
 
-Value valueCall(Value callee, int argc, Value *argv);
+Value valueCall(Value callee, int argc, int kwargc, Value *argv);
 
 Value valueClass(Value value);
 

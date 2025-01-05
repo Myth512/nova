@@ -319,10 +319,10 @@ static ObjFunction* endCompiler() {
             printCodeVec(currentCode(), function->name != NULL ? function->name->chars : "<top level>");
     #endif
 
-    ObjList *names = allocateList(current->localCount);
+    ObjTuple *names = allocateTuple(current->localCount);
     for (int i = 0; i < current->localCount; i++) {
         Token name = current->locals[i].name;
-        names->vec.values[i] = STRING_VAL(copyString(name.start, name.length));
+        names->values[i] = STRING_VAL(copyString(name.start, name.length));
     }
     function->localNames = names;
 
@@ -492,7 +492,7 @@ static void unary(bool canAssign, bool allowTuple) {
     advance();
 
     Precedence precedence = getRule(operator.type)->precedence + 1;
-    expression(true);
+    expression(allowTuple);
 
     switch (operator.type) {
         case TOKEN_PLUS:
@@ -929,16 +929,17 @@ static void function(FunctionType type) {
     if (!consume(TOKEN_LEFT_PAREN, false)) {
         reportError("Expect '(' after function name", &parser.current);
     }
-    
+
+    int arity = 0;
+    int defaultStart = -1;
     int defaultCount = 0;
-    int minArity = 0;
-    int maxArity = 0;
+
     TokenVec names;
     TokenVecInit(&names);
 
     if (!check(TOKEN_RIGHT_PAREN, false)) {
         do {
-            if (current->function->maxArity > 255) {
+            if (current->function->arity > 255) {
                 reportError("Can't have more than 255 parameters", &parser.current);
             }
 
@@ -946,26 +947,26 @@ static void function(FunctionType type) {
             advance();
 
             if (consume(TOKEN_EQUAL, true)) {
+                if (defaultCount == 0)
+                    defaultStart = arity;
                 expression(false);
                 defaultCount++;
             } else if (defaultCount > 0)
                 reportError("Non-default argument follows default argument", &parser.current);
-            else 
-                minArity++;
-            maxArity++;
+            arity++;
 
         } while (consume(TOKEN_COMMA, true));
     }
 
-    emitBytes(OP_BUILD_LIST, (uint8_t)defaultCount, parser.current);
+    emitBytes(OP_BUILD_TUPLE, (uint8_t)defaultCount, parser.current);
 
     if (!consume(TOKEN_RIGHT_PAREN, true))
         reportError("Expect ')' after parameters", &parser.current);
     
     initCompiler(&compiler, type, name);
 
-    current->function->minArity = minArity;
-    current->function->maxArity = maxArity;
+    current->function->arity = arity;
+    current->function->defaultStart = defaultStart;
 
     for (int i = 0; i < names.size; i++)
         createLocal(names.tokens[i]);
@@ -992,21 +993,30 @@ static void funcDeclaration() {
     defineVariable(name);
 }
 
-static uint8_t parseArguments() {
+static uint16_t parseArguments() {
     uint8_t argc = 0;
+    uint8_t kwargc = 0;
+
     if (!check(TOKEN_RIGHT_PAREN, false)) {
         do {
-            expression(false);
-            if (argc == 255)
-                reportError("Can't have more than 255 arguments", &parser.current);
-            argc++;
+            if (check(TOKEN_IDENTIFIER, false) && checkNext(TOKEN_EQUAL, false)) {
+                rstring(false, false);
+                advance();
+                expression(false);
+                kwargc++;
+            } else{
+                if (kwargc > 0)
+                    reportError("positional argument follows keyword argument", &parser.current);
+                expression(false);
+                argc++;
+            }
         } while (consume(TOKEN_COMMA, true));
     }
 
     if (!consume(TOKEN_RIGHT_PAREN, true))
         reportError("Expect ')' after arguments", &parser.current);
 
-    return argc;
+    return (argc << 8) | kwargc;
 }
 
 static void call(bool canAssign, bool allowTuple) {
@@ -1014,8 +1024,11 @@ static void call(bool canAssign, bool allowTuple) {
 
     Token name = parser.current;
     advance();
-    uint8_t argc = parseArguments();
+    uint16_t args = parseArguments();
+    uint8_t argc = args >> 8;
+    uint8_t kwargc = args & 0xff;
     emitBytes(OP_CALL, argc, name);
+    emitByte(kwargc, name);
 }
 
 static void method() {
@@ -1176,6 +1189,8 @@ ObjFunction* compile(const char *source) {
         statement(-1, -1);
 
     ObjFunction *function = endCompiler();
+    function->defaultStart = 0;
+    function->defaults = allocateTuple(0);
     return parser.errorCount != 0 ? NULL : function;
 }
 

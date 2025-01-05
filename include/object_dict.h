@@ -3,7 +3,7 @@
 
 #include "value.h"
 #include "object.h"
-#include "quadratic_table.h"
+#include "table.h"
 
 #define IS_DICT(value)        ((value).type == VAL_DICT) 
 
@@ -19,7 +19,7 @@
 
 typedef struct {
     Obj obj;
-    QuadraticTable table;
+    Table table;
 } ObjDict;
 
 ObjDict *allocateDict();

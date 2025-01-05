@@ -4,6 +4,7 @@
 #include "value_float.h"
 #include "value_type.h"
 #include "object_string.h"
+#include "object_list.h"
 #include "object_tuple.h"
 #include "object_dict.h"
 #include "object_class.h"
@@ -214,11 +215,11 @@ Value valueInit(Value callee, int argc, Value *argv) {
     return method(callee, argc, argv);
 }
 
-Value valueCall(Value callee, int argc, Value *argv) {
-    Value (*method)(Value, int, Value*) = GET_METHOD(callee, call);
+Value valueCall(Value callee, int argc, int kwargc, Value *argv) {
+    Value (*method)(Value, int, int, Value*) = GET_METHOD(callee, call);
     if (method == NULL)
         reportRuntimeError("no call :(");
-    method(callee, argc, argv);
+    method(callee, argc, kwargc, argv);
 }
 
 Value valueClass(Value value) {

@@ -9,6 +9,16 @@ ObjTuple* allocateTuple(size_t size) {
     return tuple;
 }
 
+int Tuple_Index(Value obj, Value value) {
+    size_t size = AS_TUPLE(obj)->size;
+
+    for (int i = 0; i < size; i++) {
+        if (valueToBool(valueEqual(AS_TUPLE(obj)->values[i], value)))
+            return i;
+    }
+    return -1;
+}
+
 int Tuple_ToStr(Value value, char *buffer, size_t size) {
     size_t bytesLeft = size;
     int bytesWritten = writeToBuffer(buffer, bytesLeft, "(");

@@ -39,12 +39,12 @@ struct Keyword {
     TokenType type;
 };
 
-#define TOTAL_KEYWORDS 34
+#define TOTAL_KEYWORDS 35
 #define MIN_WORD_LENGTH 2
 #define MAX_WORD_LENGTH 8
 #define MIN_HASH_VALUE 2
-#define MAX_HASH_VALUE 40
-/* maximum key range = 39, duplicates = 0 */
+#define MAX_HASH_VALUE 53
+/* maximum key range = 52, duplicates = 0 */
 
 #ifdef __GNUC__
 __inline
@@ -58,32 +58,32 @@ hash (register const char *str, register size_t len)
 {
   static const unsigned char asso_values[] =
     {
-      41, 41, 41, 41, 41, 41, 41, 41, 41, 41,
-      41, 41, 41, 41, 41, 41, 41, 41, 41, 41,
-      41, 41, 41, 41, 41, 41, 41, 41, 41, 41,
-      41, 41, 41, 41, 41, 41, 41, 41, 41, 41,
-      41, 41, 41, 41, 41, 41, 41, 41, 41, 41,
-      41, 41, 41, 41, 41, 41, 41, 41, 41, 41,
-      41, 41, 41, 41, 41, 41, 41, 41, 41, 41,
-      30, 41, 41, 41, 41, 41, 41, 41, 25, 41,
-      41, 41, 41, 41, 20, 41, 41, 41, 41, 41,
-      41, 41, 41, 41, 41, 41, 41, 10,  0, 15,
-       0,  5,  0,  5, 10,  0, 41,  0, 20,  0,
-       5,  5,  0, 41, 15, 15,  0, 41, 41, 10,
-      41,  5, 41, 41, 41, 41, 41, 41, 41, 41,
-      41, 41, 41, 41, 41, 41, 41, 41, 41, 41,
-      41, 41, 41, 41, 41, 41, 41, 41, 41, 41,
-      41, 41, 41, 41, 41, 41, 41, 41, 41, 41,
-      41, 41, 41, 41, 41, 41, 41, 41, 41, 41,
-      41, 41, 41, 41, 41, 41, 41, 41, 41, 41,
-      41, 41, 41, 41, 41, 41, 41, 41, 41, 41,
-      41, 41, 41, 41, 41, 41, 41, 41, 41, 41,
-      41, 41, 41, 41, 41, 41, 41, 41, 41, 41,
-      41, 41, 41, 41, 41, 41, 41, 41, 41, 41,
-      41, 41, 41, 41, 41, 41, 41, 41, 41, 41,
-      41, 41, 41, 41, 41, 41, 41, 41, 41, 41,
-      41, 41, 41, 41, 41, 41, 41, 41, 41, 41,
-      41, 41, 41, 41, 41, 41
+      54, 54, 54, 54, 54, 54, 54, 54, 54, 54,
+      54, 54, 54, 54, 54, 54, 54, 54, 54, 54,
+      54, 54, 54, 54, 54, 54, 54, 54, 54, 54,
+      54, 54, 54, 54, 54, 54, 54, 54, 54, 54,
+      54, 54, 54, 54, 54, 54, 54, 54, 54, 54,
+      54, 54, 54, 54, 54, 54, 54, 54, 54, 54,
+      54, 54, 54, 54, 54, 54, 54, 54, 54, 54,
+      15, 54, 54, 54, 54, 54, 54, 54, 25, 54,
+      54, 54, 54, 54, 20, 54, 54, 54, 54, 54,
+      54, 54, 54, 54, 54, 54, 54, 10,  0, 25,
+       0,  5,  0,  0,  5,  0, 54,  0, 30,  0,
+      15,  5,  0, 54, 20, 20,  0, 54, 54, 10,
+      54,  5, 54, 54, 54, 54, 54, 54, 54, 54,
+      54, 54, 54, 54, 54, 54, 54, 54, 54, 54,
+      54, 54, 54, 54, 54, 54, 54, 54, 54, 54,
+      54, 54, 54, 54, 54, 54, 54, 54, 54, 54,
+      54, 54, 54, 54, 54, 54, 54, 54, 54, 54,
+      54, 54, 54, 54, 54, 54, 54, 54, 54, 54,
+      54, 54, 54, 54, 54, 54, 54, 54, 54, 54,
+      54, 54, 54, 54, 54, 54, 54, 54, 54, 54,
+      54, 54, 54, 54, 54, 54, 54, 54, 54, 54,
+      54, 54, 54, 54, 54, 54, 54, 54, 54, 54,
+      54, 54, 54, 54, 54, 54, 54, 54, 54, 54,
+      54, 54, 54, 54, 54, 54, 54, 54, 54, 54,
+      54, 54, 54, 54, 54, 54, 54, 54, 54, 54,
+      54, 54, 54, 54, 54, 54
     };
   return len + asso_values[(unsigned char)str[len - 1]] + asso_values[(unsigned char)str[0]];
 }
@@ -104,13 +104,12 @@ in_keyword_set (register const char *str, register size_t len)
       {"break", TOKEN_BREAK},
 #line 38 "gperf/keywords.txt"
       {"import", TOKEN_IMPORT},
-#line 36 "gperf/keywords.txt"
-      {"in", TOKEN_IN},
-#line 47 "gperf/keywords.txt"
+      {""},
+#line 48 "gperf/keywords.txt"
       {"try", TOKEN_TRY},
 #line 27 "gperf/keywords.txt"
       {"elif", TOKEN_ELIF},
-#line 50 "gperf/keywords.txt"
+#line 51 "gperf/keywords.txt"
       {"yield", TOKEN_YIELD},
 #line 29 "gperf/keywords.txt"
       {"except", TOKEN_EXCEPT},
@@ -124,47 +123,58 @@ in_keyword_set (register const char *str, register size_t len)
       {"await", TOKEN_AWAIT},
 #line 19 "gperf/keywords.txt"
       {"assert", TOKEN_ASSERT},
+#line 36 "gperf/keywords.txt"
+      {"in", TOKEN_IN},
+#line 42 "gperf/keywords.txt"
+      {"not", TOKEN_NOT},
+#line 50 "gperf/keywords.txt"
+      {"with", TOKEN_WITH},
+#line 49 "gperf/keywords.txt"
+      {"while", TOKEN_WHILE},
+      {""},
 #line 37 "gperf/keywords.txt"
       {"is", TOKEN_IS},
 #line 32 "gperf/keywords.txt"
       {"for", TOKEN_FOR},
-#line 43 "gperf/keywords.txt"
-      {"pass", TOKEN_PASS},
-#line 48 "gperf/keywords.txt"
-      {"while", TOKEN_WHILE},
-      {""},
-#line 42 "gperf/keywords.txt"
-      {"or", TOKEN_OR},
-#line 26 "gperf/keywords.txt"
-      {"del", TOKEN_DEL},
-#line 49 "gperf/keywords.txt"
-      {"with", TOKEN_WITH},
 #line 44 "gperf/keywords.txt"
-      {"raise", TOKEN_RAISE},
+      {"pass", TOKEN_PASS},
+#line 30 "gperf/keywords.txt"
+      {"False", TOKEN_FALSE},
+      {""},
+#line 43 "gperf/keywords.txt"
+      {"or", TOKEN_OR},
+      {""},
+#line 47 "gperf/keywords.txt"
+      {"True", TOKEN_TRUE,},
 #line 45 "gperf/keywords.txt"
-      {"return", TOKEN_RETURN},
+      {"raise", TOKEN_RAISE},
+      {""},
 #line 18 "gperf/keywords.txt"
       {"as", TOKEN_AS},
-#line 24 "gperf/keywords.txt"
-      {"continue", TOKEN_CONTINUE},
-#line 46 "gperf/keywords.txt"
-      {"True", TOKEN_TRUE,},
-#line 20 "gperf/keywords.txt"
-      {"async", TOKEN_ASYNC},
+#line 26 "gperf/keywords.txt"
+      {"del", TOKEN_DEL},
+#line 40 "gperf/keywords.txt"
+      {"None", TOKEN_NONE},
+      {""},
 #line 34 "gperf/keywords.txt"
       {"global", TOKEN_GLOBAL},
       {""},
-#line 41 "gperf/keywords.txt"
-      {"nonlocal", TOKEN_NONLOCAL},
-#line 40 "gperf/keywords.txt"
-      {"None", TOKEN_NONE},
-#line 23 "gperf/keywords.txt"
-      {"class", TOKEN_CLASS},
+#line 24 "gperf/keywords.txt"
+      {"continue", TOKEN_CONTINUE},
+      {""},
+#line 20 "gperf/keywords.txt"
+      {"async", TOKEN_ASYNC},
+#line 46 "gperf/keywords.txt"
+      {"return", TOKEN_RETURN},
+      {""}, {""}, {""}, {""},
 #line 39 "gperf/keywords.txt"
       {"lambda", TOKEN_LAMBDA},
       {""}, {""}, {""},
-#line 30 "gperf/keywords.txt"
-      {"False", TOKEN_FALSE}
+#line 23 "gperf/keywords.txt"
+      {"class", TOKEN_CLASS},
+      {""}, {""},
+#line 41 "gperf/keywords.txt"
+      {"nonlocal", TOKEN_NONLOCAL}
     };
 
   if (len <= MAX_WORD_LENGTH && len >= MIN_WORD_LENGTH)

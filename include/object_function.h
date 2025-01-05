@@ -2,7 +2,7 @@
 #define OBJECT_FUNCTION_H
 
 #include "object.h"
-#include "object_list.h"
+#include "object_tuple.h"
 
 #define CLOSURE_VAL(closure)     ((Value){.type=VAL_CLOSURE, .as.object=(Obj*)closure})
 
@@ -24,10 +24,10 @@ typedef struct ObjUpvalue {
 
 typedef struct {
     Obj obj;
-    int minArity;
-    int maxArity;
-    ObjList *defaults;
-    ObjList *localNames;
+    int arity;
+    int defaultStart;
+    ObjTuple *defaults;
+    ObjTuple *localNames;
     int upvalueCount;
     CodeVec code;
     ObjString *name;
@@ -73,11 +73,11 @@ ObjNative* createNative(NativeFn function, const char *name);
 
 int Function_ToStr(Value value, char *buffer, size_t size);
 
-Value Closure_Call(Value callee, int argc, Value *argv);
+Value Closure_Call(Value callee, int argc, int kwargc, Value *argv);
 
 int Closure_ToStr(Value value, char *buffer, size_t size);
 
-Value Native_Call(Value callee, int argc, Value *argv);
+Value Native_Call(Value callee, int argc, int kwargc, Value *argv);
 
 int Native_ToStr(Value value, char *buffer, size_t size);
 

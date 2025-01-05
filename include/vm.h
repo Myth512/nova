@@ -3,7 +3,7 @@
 
 #include "common.h"
 #include "code.h"
-#include "table.h"
+#include "name_table.h"
 #include "object.h"
 #include "object_function.h"
 #include "object_class.h"
@@ -55,7 +55,6 @@ typedef struct {
     ObjString *str;
     ObjString *int_;
     ObjString *float_;
-    ObjString *unsupported;
 } MagicStrings;
 
 typedef struct {
@@ -77,8 +76,8 @@ typedef struct {
     uint8_t *ip;
     Value stack[STACK_SIZE];
     Value *top;
-    Table globals;
-    Table strings;
+    NameTable globals;
+    NameTable strings;
     MagicStrings magicStrings;
     BaseTypes types;
     ObjUpvalue *openUpvalues;
@@ -113,7 +112,7 @@ void operatorNotImplementedUnary(char *operator, Value a);
 
 void functionNotImplemented(char *function, Value a);
 
-void call(ObjClosure *closure, int argc, bool isMethod);
+void call(ObjClosure *closure, int argc, int kwargc, bool isMethod);
 
 Value callNovaValue(Value callee, int argc);
 

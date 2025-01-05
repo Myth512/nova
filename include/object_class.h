@@ -44,7 +44,7 @@
 typedef struct {
     Obj obj;
     ObjString *name;
-    Table methods;
+    NameTable methods;
 } ObjClass;
 
 typedef struct {
@@ -76,19 +76,19 @@ ObjNativeMethod *createNativeMethod(Value reciever, NativeFn function, const cha
 
 Value Class_Class(Value value);
 
-Value Class_Call(Value callee, int argc, Value *argv);
+Value Class_Call(Value callee, int argc, int kwargc, Value *argv);
 
 int Class_ToStr(Value value, char *buffer, size_t size);
 
-Value NativeClass_Call(Value value, int argc, Value *argv);
+Value NativeClass_Call(Value value, int argc, int kwargc, Value *argv);
 
 int NativeClass_ToStr(Value value, char *buffer, size_t size);
 
-Value Method_Call(Value callee, int argc, Value *argv);
+Value Method_Call(Value callee, int argc, int kwargc, Value *argv);
 
 int Method_ToStr(Value value, char *buffer, size_t size);
 
-Value NativeMethod_Call(Value callee, int argc, Value *argv);
+Value NativeMethod_Call(Value callee, int argc, int kwargc, Value *argv);
 
 int NativeMethod_ToStr(Value value, char *buffer, size_t size);
 

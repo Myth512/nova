@@ -47,7 +47,7 @@ test:
 
 .PHONY: gperf
 gperf:
-	python3 gperf/generate.py
+	gperf gperf/keywords.txt > include/keywords.h
 	gperf gperf/methods_none.txt > include/methods_none.h
 	gperf gperf/methods_int.txt > include/methods_int.h
 	gperf gperf/methods_float.txt > include/methods_float.h

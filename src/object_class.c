@@ -38,12 +38,12 @@ int Class_ToStr(Value value, char *buffer, size_t size) {
     return writeToBuffer(buffer, size, "<class '%s'>", AS_CLASS(value)->name->chars);
 }
 
-Value Class_Call(Value callee, int argc, Value *argv) {
+Value Class_Call(Value callee, int argc, int kwargc, Value *argv) {
     ObjClass *class = AS_CLASS(callee);
     insert(argc, OBJ_VAL(createInstance(class)));
     Value initializer;
     if (tableGet(&class->methods, vm.magicStrings.init, &initializer)) {
-        call(AS_CLOSURE(initializer), argc + 1, true);
+        call(AS_CLOSURE(initializer), argc + 1, kwargc, true);
     } else if (argc != 0) {
         reportRuntimeError("Expect 0 arguments but got %d", argc);
     }
@@ -57,17 +57,17 @@ int NativeClass_ToStr(Value value, char *buffer, size_t size) {
     return writeToBuffer(buffer, size, "<class '%s'>", AS_NATIVE_CLASS(value)->name->chars);
 }
 
-Value NativeClass_Call(Value callee, int argc, Value *argv) {
+Value NativeClass_Call(Value callee, int argc, int kwargc, Value *argv) {
     Value dummy = (Value){.type=AS_NATIVE_CLASS(callee)->type};
     Value res = valueInit(dummy, argc, argv - argc);
     vm.top -= argc + 1;
     push(res);
 }
 
-Value Method_Call(Value callee, int argc, Value *argv) {
+Value Method_Call(Value callee, int argc,  int kwargc, Value *argv) {
     ObjMethod *method = AS_METHOD(callee);
     insert(argc, method->reciever);
-    call(method->method, argc + 1, true);
+    call(method->method, argc + 1, kwargc, true);
 }
 
 int Method_ToStr(Value value, char *buffer, size_t size) {
@@ -78,7 +78,7 @@ int NativeMethod_ToStr(Value value, char *buffer, size_t size) {
     return writeToBuffer(buffer, size, "<method-wrapper '%s'>", AS_NATIVE_METHOD(value)->name);
 }
 
-Value NativeMethod_Call(Value callee, int argc, Value *argv) {
+Value NativeMethod_Call(Value callee, int argc, int kwargc, Value *argv) {
     ObjNativeMethod *method = AS_NATIVE_METHOD(callee);
     insert(argc, method->reciever);
     NativeFn native = method->method;

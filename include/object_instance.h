@@ -11,7 +11,7 @@
 typedef struct {
     Obj obj;
     ObjClass *class;
-    Table attributes;
+    NameTable attributes;
     bool isInitiazed;
 } ObjInstance;
 

@@ -39,6 +39,7 @@ import, TOKEN_IMPORT
 lambda, TOKEN_LAMBDA
 None, TOKEN_NONE
 nonlocal, TOKEN_NONLOCAL
+not, TOKEN_NOT
 or, TOKEN_OR
 pass, TOKEN_PASS
 raise, TOKEN_RAISE
