@@ -22,12 +22,14 @@ These differences mean that YAPI is primarily a tool for experimentation and lea
 To build and run YAPI:
 
 1. Clone the repository:
-
-    git clone https://github.com/yourusername/yapi.git  
-    cd yapi  
+```
+git clone https://github.com/myth512/yapi.git  
+cd yapi
+```
 2. Build
-    
-    make build
+``` 
+make build
+```
 
 ## Current State
 
