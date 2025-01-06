@@ -148,10 +148,12 @@ Value typeNative(int argc, Value *argv) {
     // return OBJ_VAL(string);
 }
 
-Value novaAddr(int argc, Value *argv) {
-    // if (argc != 1)
-    //     reportArityError(1, 1, argc);
-    // return NUMBER_VAL(valueAddr(argv[0]));
+Value Py_Id(int argc, int kwargc) {
+    static char *keywords[] = {"obj"};
+    Value obj;
+    PARSE_ARGS(&obj);
+
+    return INT_VAL(valueId(obj));
 }
 
 Value Py_Len(int argc, int kwargc) {
@@ -162,35 +164,13 @@ Value Py_Len(int argc, int kwargc) {
     return INT_VAL(valueLen(obj));
 }
 
-Value novaBool(int argc, Value *argv) {
-    // if (argc != 1)
-    //     reportArityError(1, 1, argc);
-    // return BOOL_VAL(valueToBool(argv[0]));
-}
+Value Py_Input(int argc, int kwargc) {
+    static char *keywords[] = {"promt"};
+    Value promt;
+    PARSE_ARGS(&promt);
 
-Value novaInt(int argc, Value *argv) {
-    // if (argc != 1)
-    //     reportArityError(1, 1, argc);
-    // return NUMBER_VAL(valueToInt(argv[0]));
-}
-
-Value novaFloat(int argc, Value *argv) {
-//     if (argc != 1)
-//         reportArityError(1, 1, argc);
-//     return NUMBER_VAL(valueToFloat(argv[0]));
-}
-
-Value novaStr(int argc, Value *argv) {
-    // if (argc != 1)
-    //     reportArityError(1, 1, argc);
-    // return OBJ_VAL(valueToStr(argv[0]));
-}
-
-Value novaInput(int argc, Value *argv) {
-    if (argc == 1)
-        valuePrint(argv[0]);
-    if (argc > 1)
-        reportArityError(0, 1, argc);
+    if (!IS_UNDEFINED(promt))
+        valuePrint(promt);
 
     const size_t size = 256;
     char buffer[size];

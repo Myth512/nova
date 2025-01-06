@@ -17,18 +17,10 @@ Value maxNative(int argc, Value *argv);
 
 Value typeNative(int argc, Value *argv);
 
-Value novaAddr(int argc, Value *argv);
+Value Py_Id(int argc, int kwargc);
 
 Value Py_Len(int argc, int kwargc);
 
-Value novaBool(int argc, Value *argv);
-
-Value novaInt(int argc, Value *argv);
-
-Value novaFloat(int argc, Value *argv);
-
-Value novaStr(int argc, Value *argv);
-
-Value novaInput(int argc, Value *argv);
+Value Py_Input(int argc, int kwargc);
 
 #endif

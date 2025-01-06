@@ -1192,6 +1192,7 @@ static void statement(int breakPointer, int continuePointer) {
     switch (parser.current.type) {
         case TOKEN_NEWLINE:
         case TOKEN_SEMICOLON:
+        case TOKEN_PASS:
             advance();
             break;
         case TOKEN_DEF:

@@ -235,9 +235,9 @@ static void defineNatives() {
     // defineNative("sqrt", sqrtNative);
     // defineNative("min", minNative);
     // defineNative("max", maxNative);
-    // defineNative("type", typeNative);
+    defineNative("id", Py_Id);
     defineNative("len", Py_Len);
-    // defineNative("input", novaInput);
+    defineNative("input", Py_Input);
 }
 
 static ObjNativeClass* defineNativeClass(const char *name, ValueType type) {
