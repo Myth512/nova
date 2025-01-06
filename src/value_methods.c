@@ -70,6 +70,10 @@ Value binaryMethod(Value a, Value b, BinaryMethod left, BinaryMethod right, char
     operatorNotImplemented(name, a, b);
 }
 
+Value valueIs(Value a, Value b) {
+    return BOOL_VAL(valueId(a) == valueId(b));
+}
+
 Value valueEqual(Value a, Value b) {
     BinaryMethod left = GET_METHOD(a, eq);
     if (left != NULL) {
@@ -83,7 +87,7 @@ Value valueEqual(Value a, Value b) {
         if (!IS_NOT_IMPLEMENTED(res))
             return res;
     }
-    return BOOL_VAL(valueId(a) == valueId(b));
+    return valueIs(a, b);
 }
 
 Value valueNotEqual(Value a, Value b) {

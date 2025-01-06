@@ -186,3 +186,18 @@ Value Py_Input(int argc, int kwargc) {
 
     return STRING_VAL(string);
 }
+
+Value Py_Hex(int argc, int kwargc) {
+    static char *keywords[] = {"number"};
+    Value number;
+    PARSE_ARGS(&number);
+
+    if (!IS_INT(number))
+        reportRuntimeError("expect int");
+
+    char buffer[19];
+    int len = snprintf(buffer, sizeof(buffer), "0x%llx", AS_INT(number));
+
+    ObjString *res = copyString(buffer, len + 1);
+    return OBJ_VAL(res);
+}

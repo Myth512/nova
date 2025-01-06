@@ -238,6 +238,7 @@ static void defineNatives() {
     defineNative("id", Py_Id);
     defineNative("len", Py_Len);
     defineNative("input", Py_Input);
+    defineNative("hex", Py_Hex);
 }
 
 static ObjNativeClass* defineNativeClass(const char *name, ValueType type) {
@@ -581,6 +582,9 @@ static Value run() {
             case OP_CONTAINS:
                 binary(valueContains);
                 break;
+            case OP_IS:
+                binary(valueIs);
+                break;
             case OP_BUILD_FSTRING:
                 buildFormattedString();
                 break;
@@ -790,9 +794,9 @@ void freeVM() {
 
 InterpretResult interpret(const char *source) {
     ObjFunction *function = compile(source);
-    function->name = copyString("script", 7);
     if (function == NULL)
         return INTERPRET_COMPILE_ERROR;
+    function->name = copyString("script", 7);
 
     push(OBJ_VAL(function));
     ObjClosure *closure = createClosure(function);

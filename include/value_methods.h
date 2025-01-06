@@ -13,6 +13,8 @@ int valuePrint(Value value);
 
 int valueRepr(Value value);
 
+Value valueIs(Value a, Value b);
+
 Value valueEqual(Value a, Value b);
 
 Value valueNotEqual(Value a, Value b);

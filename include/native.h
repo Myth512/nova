@@ -23,4 +23,6 @@ Value Py_Len(int argc, int kwargc);
 
 Value Py_Input(int argc, int kwargc);
 
+Value Py_Hex(int argc, int kwargc);
+
 #endif

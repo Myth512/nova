@@ -109,6 +109,10 @@ static void unary(bool canAssign, bool allowTuple);
 
 static void binary(bool canAssign, bool allowTuple);
 
+static void is(bool canAssign, bool allowTuple);
+
+static void in(bool canAssign, bool allowTuple);
+
 static void variable(bool canAssign, bool allowTuple);
 
 static void and(bool canAssign, bool allowTuple);
@@ -151,8 +155,9 @@ ParseRule rules[TOKEN_COUNT] = {
     [TOKEN_RIGHT_SHIFT]   = {NULL,     binary, PREC_SHIFT},
     [TOKEN_TILDE]         = {unary,    NULL,   PREC_UNARY},
     [TOKEN_LAMBDA]        = {lambda,   NULL,   PREC_NONE},
-    [TOKEN_NOT]           = {unary,    NULL,   PREC_NONE},
-    [TOKEN_IN]            = {NULL,     binary, PREC_COMPARISON},
+    [TOKEN_NOT]           = {unary,    in,     PREC_COMPARISON},
+    [TOKEN_IN]            = {NULL,     in,     PREC_COMPARISON},
+    [TOKEN_IS]            = {NULL,     is,     PREC_COMPARISON},
     [TOKEN_IDENTIFIER]    = {variable, NULL,   PREC_NONE},
     [TOKEN_STRING]        = {string,   NULL,   PREC_NONE},
     [TOKEN_RSTRING]       = {rstring,  NULL,   PREC_NONE},
@@ -521,6 +526,7 @@ static void binary(bool canAssign, bool allowTuple) {
     
     Token operator = parser.current;
     advance();
+
     parseExpression(getRule(operator.type)->precedence, false, allowTuple);
 
     switch (operator.type) {
@@ -584,6 +590,35 @@ static void binary(bool canAssign, bool allowTuple) {
         default:
             return;
     }
+}
+
+static void is(bool canAssign, bool allowTuple) {
+    Token operator = parser.current;
+    advance();
+
+    bool negate = consume(TOKEN_NOT, false);
+
+    parseExpression(PREC_COMPARISON, false, allowTuple);
+
+    emitByte(OP_IS, operator);
+    if (negate)
+        emitByte(OP_NOT, operator);
+}
+
+static void in(bool canAssign, bool allowTuple) {
+    Token operator = parser.current;
+    bool negate = consume(TOKEN_NOT, false);
+
+    if (!consume(TOKEN_IN, false)) {
+        reportError("invalid syntax", &operator);
+        return;
+    }
+    
+    parseExpression(PREC_COMPARISON, false, allowTuple);
+
+    emitByte(OP_CONTAINS, operator);
+    if (negate)
+        emitByte(OP_NOT, operator);
 }
 
 static bool identifierEqual(Token *a, Token *b) {

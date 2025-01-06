@@ -41,6 +41,7 @@ typedef enum {
     OP_INVERT,
     OP_NOT,
     OP_CONTAINS,
+    OP_IS,
     OP_BUILD_FSTRING,
     OP_BUILD_LIST,
     OP_BUILD_TUPLE,
