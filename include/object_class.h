@@ -6,9 +6,10 @@
 
 #define NATIVE_VAL(native)      ((Value){.type=VAL_NATIVE, .as.object=(Obj*)native})
 
-#define IS_CLASS(value)         isObjType(value, OBJ_CLASS)
-#define IS_METHOD(value)        isObjType(value, OBJ_METHOD)
-#define IS_NATIVE_METHOD(value) isObjType(value, OBJ_NATIVE_METHOD)
+#define IS_CLASS(value)         (value.type == VAL_CLASS) 
+#define IS_NATIVE_CLASS(value)  (value.type == VAL_NATIVE_CLASS)
+#define IS_METHOD(value)        (value.type == VAL_METHOD) 
+#define IS_NATIVE_METHOD(value) (value.type == VAL_NATIVE_METHOD) 
 
 #define AS_CLASS(value)         ((ObjClass*)value.as.object)
 #define AS_NATIVE_CLASS(value)  ((ObjNativeClass*)value.as.object)

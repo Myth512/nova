@@ -19,7 +19,7 @@ Value typeNative(int argc, Value *argv);
 
 Value novaAddr(int argc, Value *argv);
 
-Value Py_Len(int argc, Value *argv);
+Value Py_Len(int argc, int kwargc);
 
 Value novaBool(int argc, Value *argv);
 

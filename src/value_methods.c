@@ -13,7 +13,12 @@
 
 #define GET_METHOD(value, name) MethodTable[(value).type].name
 
+static int Undefined_ToStr(Value value, char *buffer, size_t size) {
+    writeToBuffer(buffer, size, "undefined");
+}
+
 ValueMethods MethodTable[] = {
+    [VAL_UNDEFINED] = (ValueMethods){.str=Undefined_ToStr, .repr=Undefined_ToStr},
     [VAL_NONE]   = NONE_METHODS, 
     [VAL_BOOL]   = BOOL_METHODS,
     [VAL_INT]    = INT_METHODS, 
@@ -33,10 +38,13 @@ ValueMethods MethodTable[] = {
     [VAL_INSTANCE] = INSTANCE_METHODS
 };
 
-void *checkForNull(void *p) {
-    if (p == NULL)
-        reportRuntimeError("Operation is not supported");
-    return p;
+char *getValueType(Value value) {
+    Value class = valueClass(value);
+    if (IS_CLASS(class))
+        return AS_CLASS(class)->name->chars;
+    if (IS_NATIVE_CLASS(class))
+        return AS_NATIVE_CLASS(class)->name->chars;
+    return "unknown type";
 }
 
 Value unaryMethod(Value a, UnaryMethod method, char *name) {
@@ -224,11 +232,15 @@ Value valueCall(Value callee, int argc, int kwargc, Value *argv) {
 
 Value valueClass(Value value) {
     Value (*method)(Value) = GET_METHOD(value, class);
+    if (method == NULL)
+        return UNDEFINED_VAL;
     return method(value);
 }
 
 uint64_t valueHash(Value value) {
-    uint64_t (*method)(Value) = checkForNull(MethodTable[value.type].hash);
+    uint64_t (*method)(Value) = GET_METHOD(value, hash);
+    if (method == NULL)
+        reportRuntimeError("unhashable type: '%s'", getValueType(value));
     return method(value);
 }
 
@@ -247,22 +259,30 @@ uint64_t valueId(Value value) {
 }
 
 long long valueLen(Value value) {
-    long long (*method)(Value) = checkForNull(MethodTable[value.type].len);
+    long long (*method)(Value) = GET_METHOD(value, len);
+    if (method == NULL)
+        reportRuntimeError("object of type '%s' has not len()", getValueType(value));
     return method(value);
 }
 
 bool valueToBool(Value value) {
-    bool (*method)(Value) = checkForNull(MethodTable[value.type].toBool);
+    bool (*method)(Value) = GET_METHOD(value, toBool);
+    if (method == NULL)
+        reportRuntimeError("object of type '%s' can not be converted to bool", getValueType(value));
     return method(value);
 }
 
 long long valueToInt(Value value) {
-    long long (*method)(Value) = checkForNull(MethodTable[value.type].toInt);
+    long long (*method)(Value) = GET_METHOD(value, toInt);
+    if (method == NULL)
+        reportRuntimeError("object of type '%s' can not be converted to int", getValueType(value));
     return method(value);
 }
 
 double valueToFloat(Value value) {
-    double (*method)(Value) = checkForNull(MethodTable[value.type].toFloat);
+    double (*method)(Value) = GET_METHOD(value, toFloat);
+    if (method == NULL)
+        reportRuntimeError("object of type '%s' can not be converted to float", getValueType(value));
     return method(value);
 }
 

@@ -134,6 +134,13 @@ static int byteInstruction(const char *name, CodeVec *vec, int offset) {
     return offset + 2;
 }
 
+static int callInstruction(const char *name, CodeVec *vec, int offset) {
+    uint8_t slot = vec->code[offset + 1];
+    uint8_t slot2 = vec->code[offset + 2];
+    printf("%-16s %4d %4d\n", name, slot, slot2);
+    return offset + 3;
+}
+
 static int constantInstruction(const char *name, CodeVec *vec, int offset) {
     uint8_t id = vec->code[offset + 1];
     Value value = vec->constants.values[id];
@@ -283,7 +290,7 @@ int printInstruction(CodeVec *vec, int offset) {
         case OP_LOOP_TRUE_POP:
             return jumpInstruction("LOOP TRUE POP", -1, vec, offset);
         case OP_CALL:
-            return byteInstruction("CALL", vec, offset);
+            return callInstruction("CALL", vec, offset);
         case OP_CLOSURE: {
             offset++;
             uint8_t constant = vec->code[offset++];

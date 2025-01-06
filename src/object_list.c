@@ -127,6 +127,10 @@ Value List_RightMultiply(Value a, Value b) {
     return List_Multiply(a, b);
 }
 
+Value List_Class(Value value) {
+    return OBJ_VAL(vm.types.list);
+}
+
 Value List_GetAttr(Value list, ObjString *name) {
     return getGperfMethod(list, name, in_list_set);
 }

@@ -33,6 +33,7 @@
     .rpow = Float_RightPower,            \
     .pos = Float_Positive,               \
     .neg = Float_Negative,               \
+    .init = Float_Init,                  \
     .class = Float_Class,                \
     .getattr = Float_GetAttr,            \
     .hash = Float_Hash,                  \
@@ -84,6 +85,8 @@ Value Float_Positive(Value a);
 Value Float_Negative(Value a);
 
 Value Float_Class(Value value);
+
+Value Float_Init(Value callee, int argc, Value *argv);
 
 Value Float_GetAttr(Value a, ObjString *name);
 

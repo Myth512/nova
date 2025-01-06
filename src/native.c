@@ -154,10 +154,12 @@ Value novaAddr(int argc, Value *argv) {
     // return NUMBER_VAL(valueAddr(argv[0]));
 }
 
-Value Py_Len(int argc, Value *argv) {
-    if (argc != 1)
-        reportArityError(1, 1, argc);
-    return INT_VAL(valueLen(argv[0]));
+Value Py_Len(int argc, int kwargc) {
+    static char *keywords[] = {"obj"};
+    Value obj;
+    PARSE_ARGS(&obj);
+
+    return INT_VAL(valueLen(obj));
 }
 
 Value novaBool(int argc, Value *argv) {

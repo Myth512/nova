@@ -23,6 +23,7 @@ typedef struct {
     .add = List_Add,                  \
     .mul = List_Multiply,             \
     .rmul = List_RightMultiply,       \
+    .class = List_Class,              \
     .getattr = List_GetAttr,          \
     .getitem = List_GetItem,          \
     .setitem = List_SetItem,          \
@@ -51,6 +52,8 @@ Value List_Add(Value a, Value b);
 Value List_Multiply(Value a, Value b);
 
 Value List_RightMultiply(Value a, Value b);
+
+Value List_Class(Value value);
 
 Value List_GetAttr(Value list, ObjString *name);
 

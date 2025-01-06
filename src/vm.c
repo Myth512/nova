@@ -236,7 +236,7 @@ static void defineNatives() {
     // defineNative("min", minNative);
     // defineNative("max", maxNative);
     // defineNative("type", typeNative);
-    // defineNative("len", Py_Len);
+    defineNative("len", Py_Len);
     // defineNative("input", novaInput);
 }
 

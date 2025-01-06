@@ -121,6 +121,8 @@ static void item(bool canAssign, bool allowTuple);
 
 static void dot(bool canAssign, bool allowTuple);
 
+static void lambda(bool canAssign, bool allowTuple);
+
 static void statement(int breakPointer, int continuePointer);
 
 ParseRule rules[TOKEN_COUNT] = {
@@ -148,6 +150,7 @@ ParseRule rules[TOKEN_COUNT] = {
     [TOKEN_LEFT_SHIFT]    = {NULL,     binary, PREC_SHIFT},
     [TOKEN_RIGHT_SHIFT]   = {NULL,     binary, PREC_SHIFT},
     [TOKEN_TILDE]         = {unary,    NULL,   PREC_UNARY},
+    [TOKEN_LAMBDA]        = {lambda,   NULL,   PREC_NONE},
     [TOKEN_NOT]           = {unary,    NULL,   PREC_NONE},
     [TOKEN_IDENTIFIER]    = {variable, NULL,   PREC_NONE},
     [TOKEN_STRING]        = {string,   NULL,   PREC_NONE},
@@ -517,7 +520,7 @@ static void binary(bool canAssign, bool allowTuple) {
     
     Token operator = parser.current;
     advance();
-    parseExpression(getRule(operator.type)->precedence, false, true);
+    parseExpression(getRule(operator.type)->precedence, false, allowTuple);
 
     switch (operator.type) {
         case TOKEN_BANG_EQUAL:
@@ -921,15 +924,7 @@ static void whileStatement() {
 //              Functions 
 // ======================================    
 
-static void function(FunctionType type) {
-    Compiler compiler;
-    Token name = parser.current;
-    advance();
-
-    if (!consume(TOKEN_LEFT_PAREN, false)) {
-        reportError("Expect '(' after function name", &parser.current);
-    }
-
+static void parseArgs(Compiler *compiler, FunctionType type, Token name) {
     int arity = 0;
     int defaultStart = -1;
     int defaultCount = 0;
@@ -941,7 +936,7 @@ static void function(FunctionType type) {
 
     if (!check(TOKEN_RIGHT_PAREN, false)) {
         do {
-            if (current->function->arity > 255) {
+            if (arity > 255) {
                 reportError("Can't have more than 255 parameters", &parser.current);
             }
 
@@ -976,10 +971,7 @@ static void function(FunctionType type) {
 
     emitBytes(OP_BUILD_TUPLE, (uint8_t)defaultCount, parser.current);
 
-    if (!consume(TOKEN_RIGHT_PAREN, true))
-        reportError("Expect ')' after parameters", &parser.current);
-    
-    initCompiler(&compiler, type, name);
+    initCompiler(compiler, type, name);
 
     current->function->arity = arity;
     current->function->defaultStart = defaultStart;
@@ -991,6 +983,21 @@ static void function(FunctionType type) {
     
     TokenVecFree(&names);
 
+}
+
+static void function(FunctionType type) {
+    Compiler compiler;
+    Token name = parser.current;
+    advance();
+
+    if (!consume(TOKEN_LEFT_PAREN, false))
+        reportError("Expect '(' after function name", &parser.current);
+
+    parseArgs(&compiler, type, name);
+
+    if (!consume(TOKEN_RIGHT_PAREN, true))
+        reportError("Expect ')' after parameters", &parser.current);
+    
     parseBlock(-1, -1);
 
     ObjFunction *function = endCompiler();
@@ -1009,6 +1016,31 @@ static void funcDeclaration() {
     declareVariable(name);
     function(TYPE_FUNCTION);
     defineVariable(name);
+}
+
+static void lambda(bool canAssign, bool AllowTuple) {
+    Compiler compiler;
+    Token name; 
+    name.start = "<lambda>";
+    name.length = 8;
+    advance();
+
+    parseArgs(&compiler, TYPE_FUNCTION, name);
+
+    if (!consume(TOKEN_COLON, true))
+        reportError("Expect ':' after parameters", &parser.current);
+
+    expression(false);
+    emitByte(OP_RETURN, name);
+
+    ObjFunction *function = endCompiler();
+
+    emitBytes(OP_CLOSURE, createConstant(STRING_VAL(function)), (Token){0});
+
+    for (int i = 0; i < function->upvalueCount; i++) {
+        emitByte(compiler.upvalues[i].isLocal ? 1 : 0, (Token){0});
+        emitByte(compiler.upvalues[i].index, (Token){0});
+    }
 }
 
 static uint16_t parseArguments() {
