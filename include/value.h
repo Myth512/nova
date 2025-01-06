@@ -47,11 +47,11 @@ typedef struct {
     Value value;
 } OptValue;
 
-typedef Value (*NativeFn)(int argc, Value *argv);
+typedef Value (*NativeFn)(int argc, int kwargc);
 
 typedef struct GperfMethod {
 	const char *name;
-    NativeFn method;
+    Value (*method)(int, Value*);
 } GperfMethod;
 
 typedef Value (*BinaryMethod)(Value, Value);

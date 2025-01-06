@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
+#include <stdarg.h>
 #include <time.h>
 
 #include "native.h"
@@ -21,6 +22,95 @@ Value printNative(int argc, Value *argv) {
         putchar(i < argc - 1 ? ' ' : '\n');
     }
     return NONE_VAL;
+}
+
+#define PARSE_ARGS(...) \
+    parseArgs(argc, kwargc, sizeof(keywords) / sizeof(char*), keywords, ##__VA_ARGS__)
+
+static int stringIndex(char *keywords[], char *keyword, size_t size) {
+    for (int i = 0; i < size; i++) {
+        if (strcmp(keywords[i], keyword) == 0)
+            return i;
+    }
+    return -1;
+}
+
+static void parseArgs(int argc, int kwargc, int arity, char *keywords[], ...) {
+    Value args[arity];
+    for (int i = 0; i < arity; i++)
+        args[i] = UNDEFINED_VAL;
+
+    vm.top -= argc + 2 * kwargc;
+
+    for (int i = 0; i < argc; i++) {
+        if (*keywords[i] == '*') {
+            size_t size = argc - i;
+            ObjTuple *tuple = allocateTuple(size);
+            for (int j = 0; j < size; j++) {
+                tuple->values[j] = *vm.top;
+                vm.top++;
+            }
+            args[i] = OBJ_VAL(tuple);
+            i = argc;
+        } else {
+            args[i] = *vm.top;
+            vm.top++;
+        }
+    }
+
+    for (int i = 0; i < kwargc; i++) {
+        Value name = vm.top[0];
+        Value value = vm.top[1];
+        vm.top += 2;
+        int index = stringIndex(keywords, AS_STRING(name)->chars, arity);
+        if (index == -1)
+            reportRuntimeError("got an unexpected keyword argument '%s'", AS_STRING(name)->chars);
+        if (!IS_UNDEFINED(args[index]))
+            reportRuntimeError("got multiple values for argument '%s'", AS_STRING(name)->chars);
+        
+        args[index] = value;
+    }
+
+    vm.top -= argc + 2 * kwargc;
+    frame->slots = vm.top;
+
+    va_list args1;
+    va_start(args1, arity);
+
+    for (int i = 0; i < arity; i++) {
+        Value *value = va_arg(args1, Value*);
+        *value = args[i];
+    }
+
+    va_end(args1);
+}
+
+Value Py_Print(int argc, int kwargc) {
+    static char *keywords[] = {"*objects", "sep", "end"};
+    Value objects, sep, end;
+    PARSE_ARGS(&objects, &sep, &end);
+
+    char *s;
+    if (IS_UNDEFINED(sep))
+        s = " ";
+    else
+        s = AS_STRING(sep)->chars;
+    
+    char *e;
+    if (IS_UNDEFINED(end))
+        e = "\n";
+    else
+        e = AS_STRING(end)->chars;
+
+    int size = AS_TUPLE(objects)->size;
+
+    for (int i = 0; i < size; i++) {
+        valuePrint(AS_TUPLE(objects)->values[i]);
+        if (i + 1 != size)
+            printf("%s", s);
+    }
+
+    printf("%s", e);
 }
 
 Value sqrtNative(int argc, Value *argv) {

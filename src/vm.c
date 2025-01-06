@@ -155,7 +155,7 @@ void call(ObjClosure *closure, int argc, int kwargc, bool isMethod) {
         Value name = vm.top[0];
         Value value = vm.top[1];
         vm.top += 2;
-        int index = Tuple_Index(OBJ_VAL(closure->function->localNames), name);
+        int index = Tuple_Index(OBJ_VAL(closure->function->localNames), name, 0, arity);
         if (index == -1)
             reportRuntimeError("got an unexpected keyword argument '%s'", AS_STRING(name)->chars);
         if (!IS_UNDEFINED(args[index]))
@@ -198,14 +198,14 @@ static void defineNative(const char *name, NativeFn function) {
 }
 
 static void defineNatives() {
-    defineNative("time", Py_Time);
-    defineNative("print", printNative);
-    defineNative("sqrt", sqrtNative);
-    defineNative("min", minNative);
-    defineNative("max", maxNative);
-    defineNative("type", typeNative);
-    defineNative("len", Py_Len);
-    defineNative("input", novaInput);
+    // defineNative("time", Py_Time);
+    defineNative("print", Py_Print);
+    // defineNative("sqrt", sqrtNative);
+    // defineNative("min", minNative);
+    // defineNative("max", maxNative);
+    // defineNative("type", typeNative);
+    // defineNative("len", Py_Len);
+    // defineNative("input", novaInput);
 }
 
 static ObjNativeClass* defineNativeClass(const char *name, ValueType type) {

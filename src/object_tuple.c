@@ -9,10 +9,12 @@ ObjTuple* allocateTuple(size_t size) {
     return tuple;
 }
 
-int Tuple_Index(Value obj, Value value) {
+int Tuple_Index(Value obj, Value value, int start, int end) {
     size_t size = AS_TUPLE(obj)->size;
+    if (end == 0)
+        end = size;
 
-    for (int i = 0; i < size; i++) {
+    for (int i = start; i < end; i++) {
         if (valueToBool(valueEqual(AS_TUPLE(obj)->values[i], value)))
             return i;
     }

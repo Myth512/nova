@@ -7,6 +7,8 @@ Value printNative(int argc, Value *argv);
 
 Value Py_Time(int argc, Value *argv);
 
+Value Py_Print(int argc, int kwargc);
+
 Value sqrtNative(int argc, Value *argv);
 
 Value minNative(int argc, Value *argv);

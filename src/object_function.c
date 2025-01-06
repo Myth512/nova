@@ -55,7 +55,7 @@ int Closure_ToStr(Value value, char *buffer, size_t size) {
 
 Value Native_Call(Value callee, int argc, int kwargc, Value *argv) {
     ObjNative *native = AS_NATIVE(callee);
-    Value res = native->function(argc, argv - argc);
+    Value res = native->function(argc, kwargc);
     vm.top -= argc + 1;
     push(res);
 }

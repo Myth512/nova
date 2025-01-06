@@ -82,7 +82,7 @@ Value NativeMethod_Call(Value callee, int argc, int kwargc, Value *argv) {
     ObjNativeMethod *method = AS_NATIVE_METHOD(callee);
     insert(argc, method->reciever);
     NativeFn native = method->method;
-    Value result = native(argc, vm.top - argc - 1);
+    // Value result = native(argc, vm.top - argc - 1);
     vm.top -= argc + 1;
-    push(result);
+    // push(result);
 }
