@@ -767,7 +767,7 @@ static bool isAssignment(Token operator) {
 }
 
 static void assignment(uint8_t getOp, uint8_t setOp, int arg, Token operator) {
-    if (operator.type != TOKEN_EQUAL)
+    if (operator.type != TOKEN_EQUAL && operator.type != TOKEN_COLON_EQUAL)
         emitAssignment(getOp, arg, operator);
     
     expression(false);
@@ -827,6 +827,10 @@ static void variable(bool canAssign, bool allowTuple) {
         advance();
         if (!canAssign)
             reportError("Variable assignment is now allowed here", &operator);
+        resolveVariableAssignment(&name, &getOp, &setOp, &arg);
+        assignment(getOp, setOp, arg, operator);
+    } else if (operator.type == TOKEN_COLON_EQUAL) {
+        advance();
         resolveVariableAssignment(&name, &getOp, &setOp, &arg);
         assignment(getOp, setOp, arg, operator);
     } else {
