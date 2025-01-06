@@ -933,6 +933,8 @@ static void function(FunctionType type) {
     int arity = 0;
     int defaultStart = -1;
     int defaultCount = 0;
+    int extraArgs = -1;
+    int extraKwargs = -1;
 
     TokenVec names;
     TokenVecInit(&names);
@@ -943,15 +945,29 @@ static void function(FunctionType type) {
                 reportError("Can't have more than 255 parameters", &parser.current);
             }
 
+            if (consume(TOKEN_STAR, false)) {
+                if (extraArgs != -1)
+                    reportError("* argument may appear only once", &parser.current);
+                extraArgs = arity;
+            }
+
+            if (consume(TOKEN_DOUBLE_STAR, false)) {
+                extraKwargs = arity;
+            }
+
             TokenVecPush(&names, parser.current);
             advance();
 
             if (consume(TOKEN_EQUAL, true)) {
                 if (defaultCount == 0)
                     defaultStart = arity;
+                if (extraArgs == arity)
+                    reportError("var-positional argument cannot have default value", &parser.current);
+                if (extraKwargs == arity)
+                    reportError("var-keyword argument cannot have default value", &parser.current);
                 expression(false);
                 defaultCount++;
-            } else if (defaultCount > 0)
+            } else if (defaultCount > 0 && extraArgs == -1)
                 reportError("Non-default argument follows default argument", &parser.current);
             arity++;
 
@@ -967,6 +983,8 @@ static void function(FunctionType type) {
 
     current->function->arity = arity;
     current->function->defaultStart = defaultStart;
+    current->function->extraArgs = extraArgs;
+    current->function->extraKwargs = extraKwargs;
 
     for (int i = 0; i < names.size; i++)
         createLocal(names.tokens[i]);

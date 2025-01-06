@@ -71,9 +71,6 @@ static void parseArgs(int argc, int kwargc, int arity, char *keywords[], ...) {
         args[index] = value;
     }
 
-    vm.top -= argc + 2 * kwargc;
-    frame->slots = vm.top;
-
     va_list args1;
     va_start(args1, arity);
 
@@ -111,6 +108,7 @@ Value Py_Print(int argc, int kwargc) {
     }
 
     printf("%s", e);
+    return NONE_VAL;
 }
 
 Value sqrtNative(int argc, Value *argv) {

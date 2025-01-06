@@ -25,6 +25,8 @@ typedef struct ObjUpvalue {
 typedef struct {
     Obj obj;
     int arity;
+    int extraArgs;
+    int extraKwargs;
     int defaultStart;
     ObjTuple *defaults;
     ObjTuple *localNames;

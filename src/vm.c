@@ -136,8 +136,10 @@ void call(ObjClosure *closure, int argc, int kwargc, bool isMethod) {
     int arity = closure->function->arity;
     int defaultStart = closure->function->defaultStart;
     int defaultCount = closure->function->defaults->size;
+    int extraArgs = closure->function->extraArgs;
+    int extraKwargs = closure->function->extraKwargs;
 
-    if (argc > arity)
+    if (argc > arity && extraArgs == -1 && extraKwargs == -1)
         reportArityError(arity - defaultCount, arity, argc);
 
     Value args[arity];
@@ -146,19 +148,49 @@ void call(ObjClosure *closure, int argc, int kwargc, bool isMethod) {
 
     vm.top -= argc + 2 * kwargc;
 
-    for (int i = 0; i < argc; i++) {
+    int i = 0;
+
+    for (; i < argc; i++) {
+        if (extraArgs != -1 && i >= extraArgs)
+            break;
         args[i] = *vm.top;
         vm.top++;
+    }
+
+    if (i <= extraArgs) {
+        size_t size = argc - i;
+        if (size < 0)
+            size = 0;
+        ObjTuple *tuple = allocateTuple(size);
+
+        for (int i = 0; i < size; i++) {
+            tuple->values[i] = *vm.top;
+            vm.top++;
+        }
+
+        args[extraArgs] = OBJ_VAL(tuple);
+    }
+
+    ObjDict *kwargs = NULL;
+    if (extraKwargs != -1)
+        kwargs = allocateDict();
+    Value kwargsVal;
+    if (kwargs != NULL) {
+        kwargsVal = OBJ_VAL(kwargs);
+        args[extraKwargs] = kwargsVal;
     }
 
     for (int i = 0; i < kwargc; i++) {
         Value name = vm.top[0];
         Value value = vm.top[1];
         vm.top += 2;
-        int index = Tuple_Index(OBJ_VAL(closure->function->localNames), name, 0, arity);
-        if (index == -1)
-            reportRuntimeError("got an unexpected keyword argument '%s'", AS_STRING(name)->chars);
-        if (!IS_UNDEFINED(args[index]))
+        int index = Tuple_Index(OBJ_VAL(closure->function->localNames), name, isMethod, arity);
+        if (index == -1) {
+            if (kwargs == NULL)
+                reportRuntimeError("got an unexpected keyword argument '%s'", AS_STRING(name)->chars);
+            Dict_SetItem(kwargsVal, name, value);
+        }
+        if (index > 0 && !IS_UNDEFINED(args[index]))
             reportRuntimeError("got multiple values for argument '%s'", AS_STRING(name)->chars);
         
         args[index] = value;

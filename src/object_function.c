@@ -15,6 +15,9 @@ ObjUpvalue *createUpvalue(Value *slot) {
 ObjFunction* createFunction() {
     ObjFunction *function = (ObjFunction*)allocateObject(sizeof(ObjFunction), VAL_FUNCTION);
     function->arity = 0;
+    function->defaultStart = -1;
+    function->extraArgs = -1;
+    function->extraKwargs = -1;
     function->upvalueCount = 0;
     function->name = NULL;
     initCodeVec(&function->code);
@@ -56,7 +59,7 @@ int Closure_ToStr(Value value, char *buffer, size_t size) {
 Value Native_Call(Value callee, int argc, int kwargc, Value *argv) {
     ObjNative *native = AS_NATIVE(callee);
     Value res = native->function(argc, kwargc);
-    vm.top -= argc + 1;
+    vm.top -= argc + 2 * kwargc + 1;
     push(res);
 }
 

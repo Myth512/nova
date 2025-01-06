@@ -12,7 +12,7 @@ ObjInstance *createInstance(ObjClass *class) {
 }
 
 Value Instance_Equal(Value a, Value b) {
-
+    return NOT_IMPLEMENTED_VAL;
 }
 
 Value Instance_NotEqual(Value a, Value b) {

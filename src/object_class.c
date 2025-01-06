@@ -66,7 +66,7 @@ Value NativeClass_Call(Value callee, int argc, int kwargc, Value *argv) {
 
 Value Method_Call(Value callee, int argc,  int kwargc, Value *argv) {
     ObjMethod *method = AS_METHOD(callee);
-    insert(argc, method->reciever);
+    insert(argc + 2*kwargc, method->reciever);
     call(method->method, argc + 1, kwargc, true);
 }
 
