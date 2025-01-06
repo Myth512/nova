@@ -159,6 +159,20 @@ Value String_RightMultiply(Value a, Value b) {
     return String_Multiply(a, b);
 }
 
+Value String_Contains(Value a, Value b) {
+    if (!IS_STRING(b))
+        reportRuntimeError("'in <string>' requires string as left operand, not int");
+
+    ObjString *s1 = AS_STRING(a);
+    ObjString *s2 = AS_STRING(b);
+
+    for (int offset = 0; offset <= s1->length - s2->length; offset++) {
+        if (strncmp(s1->chars + offset, s2->chars, s2->length) == 0)
+            return BOOL_VAL(true);
+    }
+    return BOOL_VAL(false);
+}
+
 Value String_Class(Value value) {
     return OBJ_VAL(vm.types.str);
 }

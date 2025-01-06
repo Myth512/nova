@@ -55,6 +55,8 @@ Value valueLeftShift(Value a, Value b);
 
 Value valueRightShift(Value a, Value b);
 
+Value valueContains(Value a, Value b);
+
 Value valueGetAttr(Value obj, ObjString *name);
 
 void valueSetAttr(Value obj, ObjString *name, Value value);

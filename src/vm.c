@@ -578,6 +578,9 @@ static Value run() {
             case OP_NOT:
                 push(BOOL_VAL(!valueToBool(pop())));
                 break;
+            case OP_CONTAINS:
+                binary(valueContains);
+                break;
             case OP_BUILD_FSTRING:
                 buildFormattedString();
                 break;

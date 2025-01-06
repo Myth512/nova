@@ -28,7 +28,7 @@ int List_ToStr(Value value, char *buffer, size_t size) {
     size -= movePointer(&buffer, bytesWritten);
     size_t length = list->vec.size;
     for (int i = 0; i < length; i++) {
-        bytesWritten = valueWrite(list->vec.values[i], buffer, size);
+        bytesWritten = valueReprWrite(list->vec.values[i], buffer, size);
         size -= movePointer(&buffer, bytesWritten);
         if (i + 1 != length) {
             bytesWritten = writeToBuffer(buffer, size, ", ");
@@ -125,6 +125,15 @@ Value List_Multiply(Value a, Value b) {
 
 Value List_RightMultiply(Value a, Value b) {
     return List_Multiply(a, b);
+}
+
+Value List_Contains(Value a, Value b) {
+    ObjList *list = AS_LIST(a);
+    for (int i = 0; i < list->vec.size; i++) {
+        if (valueToBool(valueEqual(list->vec.values[i], b)))
+            return BOOL_VAL(true);
+    }
+    return BOOL_VAL(false);
 }
 
 Value List_Class(Value value) {

@@ -178,6 +178,13 @@ Value valueRightShift(Value a, Value b) {
     return binaryMethod(a, b, GET_METHOD(a, rshift), GET_METHOD(b, rrshift), ">>");
 }
 
+Value valueContains(Value a, Value b) {
+    BinaryMethod method = GET_METHOD(b, contains);
+    if (method == NULL)
+        reportRuntimeError("no contains");
+    return method(b, a);
+}
+
 Value valueGetAttr(Value obj, ObjString *name) {
     Value (*method)(Value, ObjString*) = GET_METHOD(obj, getattr);
     return method(obj, name);

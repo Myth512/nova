@@ -152,6 +152,7 @@ ParseRule rules[TOKEN_COUNT] = {
     [TOKEN_TILDE]         = {unary,    NULL,   PREC_UNARY},
     [TOKEN_LAMBDA]        = {lambda,   NULL,   PREC_NONE},
     [TOKEN_NOT]           = {unary,    NULL,   PREC_NONE},
+    [TOKEN_IN]            = {NULL,     binary, PREC_COMPARISON},
     [TOKEN_IDENTIFIER]    = {variable, NULL,   PREC_NONE},
     [TOKEN_STRING]        = {string,   NULL,   PREC_NONE},
     [TOKEN_RSTRING]       = {rstring,  NULL,   PREC_NONE},
@@ -576,6 +577,9 @@ static void binary(bool canAssign, bool allowTuple) {
             break;
         case TOKEN_RIGHT_SHIFT:
             emitByte(OP_RIGHT_SHIFT, operator);
+            break;
+        case TOKEN_IN:
+            emitByte(OP_CONTAINS, operator);
             break;
         default:
             return;

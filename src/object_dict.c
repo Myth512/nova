@@ -1,11 +1,17 @@
 #include "object_dict.h"
 #include "value_methods.h"
 #include "vm.h"
+#include "value_int.h"
 
 ObjDict *allocateDict() {
     ObjDict *dict = (ObjDict*)allocateObject(sizeof(ObjDict), VAL_DICT);
     QuadraticTableInit(&dict->table);
     return dict;
+}
+
+Value Dict_Contains(Value a, Value b) {
+    Value res = QuadraticTableGet(&AS_DICT(a)->table, b);
+    return BOOL_VAL(!IS_UNDEFINED(res));
 }
 
 Value Dict_GetAttr(Value obj, ObjString *name) {

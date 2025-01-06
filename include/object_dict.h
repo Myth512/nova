@@ -10,6 +10,7 @@
 #define AS_DICT(value)        ((ObjDict*)((value).as.object))
 
 #define DICT_METHODS (ValueMethods) { \
+    .contains = Dict_Contains,        \
     .getattr = Dict_GetAttr,          \
     .getitem = Dict_GetItem,          \
     .setitem = Dict_SetItem,          \
@@ -23,6 +24,8 @@ typedef struct {
 } ObjDict;
 
 ObjDict *allocateDict();
+
+Value Dict_Contains(Value a, Value b);
 
 Value Dict_GetAttr(Value obj, ObjString *name);
 

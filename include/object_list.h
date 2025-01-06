@@ -23,6 +23,7 @@ typedef struct {
     .add = List_Add,                  \
     .mul = List_Multiply,             \
     .rmul = List_RightMultiply,       \
+    .contains = List_Contains,        \
     .class = List_Class,              \
     .getattr = List_GetAttr,          \
     .getitem = List_GetItem,          \
@@ -52,6 +53,8 @@ Value List_Add(Value a, Value b);
 Value List_Multiply(Value a, Value b);
 
 Value List_RightMultiply(Value a, Value b);
+
+Value List_Contains(Value a, Value b);
 
 Value List_Class(Value value);
 

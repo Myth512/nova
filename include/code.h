@@ -40,6 +40,7 @@ typedef enum {
     OP_RIGHT_SHIFT,
     OP_INVERT,
     OP_NOT,
+    OP_CONTAINS,
     OP_BUILD_FSTRING,
     OP_BUILD_LIST,
     OP_BUILD_TUPLE,

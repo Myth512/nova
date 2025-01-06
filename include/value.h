@@ -91,6 +91,7 @@ typedef struct {
     BinaryMethod rlshift;
     BinaryMethod rshift;
     BinaryMethod rrshift;
+    BinaryMethod contains;
     Value (*init)(Value, int, Value*);
     Value (*call)(Value, int, int, Value*);
     UnaryMethod class;

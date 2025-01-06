@@ -4,11 +4,12 @@
 #include "object.h"
 #include "value_methods.h"
 
-#define IS_TUPLE(value)         isObjType(value, OBJ_TUPLE)
+#define IS_TUPLE(value)         (value.type == VAL_TUPLE) 
 
 #define AS_TUPLE(value)         ((ObjTuple*)value.as.object)
 
 #define TUPLE_METHODS (ValueMethods) { \
+    .contains = Tuple_Contains,        \
     .str = Tuple_ToStr,                \
     .repr = Tuple_ToStr,               \
 }
@@ -20,6 +21,8 @@ typedef struct {
 } ObjTuple;
 
 ObjTuple* allocateTuple(size_t size);
+
+Value Tuple_Contains(Value a, Value b);
 
 int Tuple_Index(Value obj, Value value, int start, int end);
 
