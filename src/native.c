@@ -201,3 +201,12 @@ Value Py_Hex(int argc, int kwargc) {
     ObjString *res = copyString(buffer, len + 1);
     return OBJ_VAL(res);
 }
+
+
+Value Py_IsInstance(int argc, int kwargc) {
+    static char *keywords[] = {"obj", "class"};
+    Value obj, class;
+    PARSE_ARGS(&obj, &class);
+
+    return BOOL_VAL(isInstance(obj, class));
+}

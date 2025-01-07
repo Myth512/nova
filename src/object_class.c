@@ -13,10 +13,11 @@ ObjClass *createClass(ObjString *name, Value super) {
     return class;
 }
 
-ObjNativeClass *createNativeClass(ObjString *name, ValueType type) {
+ObjNativeClass *createNativeClass(ObjString *name, ValueType type, ValueType super) {
     ObjNativeClass *class = (ObjNativeClass*)allocateObject(sizeof(ObjNativeClass), VAL_NATIVE_CLASS);
     class->name = name;
     class->type = type;
+    class->super = super;
     return class;
 }
 

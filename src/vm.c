@@ -241,26 +241,28 @@ static void defineNatives() {
     defineNative("len", Py_Len);
     defineNative("input", Py_Input);
     defineNative("hex", Py_Hex);
+    defineNative("isinstance", Py_IsInstance);
 }
 
-static ObjNativeClass* defineNativeClass(const char *name, ValueType type) {
+static ObjNativeClass* defineNativeClass(const char *name, ValueType type, ValueType super) {
     ObjString *n = copyString(name, strlen(name));
-    ObjNativeClass *class = createNativeClass(n, type);
+    ObjNativeClass *class = createNativeClass(n, type, super);
     tableSet(&vm.globals, n, OBJ_VAL(class));
     return class;
 }
 
 static void defineNativeTypes() {
-    vm.types.bool_ = defineNativeClass("bool", VAL_BOOL);
-    vm.types.int_ = defineNativeClass("int", VAL_INT);
-    vm.types.float_ = defineNativeClass("float", VAL_FLOAT);
-    vm.types.type = defineNativeClass("type", VAL_TYPE);
-    vm.types.str = defineNativeClass("str", VAL_STRING);
-    vm.types.list = defineNativeClass("list", VAL_LIST);
-    vm.types.tuple = defineNativeClass("tuple", VAL_TUPLE);
-    vm.types.dict = defineNativeClass("dict", VAL_DICT);
-    vm.types.exception = defineNativeClass("Exception", VAL_EXCEPTION);
-    defineNativeClass("super", VAL_SUPER);
+    vm.types.object = defineNativeClass("object", VAL_OBJECT, VAL_UNDEFINED);
+    vm.types.int_ = defineNativeClass("int", VAL_INT, VAL_OBJECT);
+    vm.types.bool_ = defineNativeClass("bool", VAL_BOOL, VAL_INT);
+    vm.types.float_ = defineNativeClass("float", VAL_FLOAT, VAL_OBJECT);
+    vm.types.type = defineNativeClass("type", VAL_TYPE, VAL_OBJECT);
+    vm.types.str = defineNativeClass("str", VAL_STRING, VAL_OBJECT);
+    vm.types.list = defineNativeClass("list", VAL_LIST, VAL_OBJECT);
+    vm.types.tuple = defineNativeClass("tuple", VAL_TUPLE, VAL_OBJECT);
+    vm.types.dict = defineNativeClass("dict", VAL_DICT, VAL_OBJECT);
+    vm.types.exception = defineNativeClass("Exception", VAL_EXCEPTION, VAL_OBJECT);
+    defineNativeClass("super", VAL_SUPER, VAL_OBJECT);
 }
 
 static void callValue(Value callee, int argc, int kwargc) {

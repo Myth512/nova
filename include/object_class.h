@@ -54,6 +54,7 @@ typedef struct {
     Obj obj;
     ObjString *name;
     ValueType type;
+    ValueType super;
 } ObjNativeClass;
 
 typedef struct {
@@ -71,7 +72,7 @@ typedef struct {
 
 ObjClass *createClass(ObjString *name, Value super);
 
-ObjNativeClass *createNativeClass(ObjString *name, ValueType type);
+ObjNativeClass *createNativeClass(ObjString *name, ValueType type, ValueType super);
 
 ObjMethod *createMethod(Value reciever, ObjClosure *method);
 

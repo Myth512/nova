@@ -95,6 +95,10 @@ Value Instance_RightShift(Value a, Value b) {
 
 }
 
+Value Instance_Class(Value value) {
+    return OBJ_VAL(AS_INSTANCE(value)->class);
+}
+
 Value Instance_GetAttr(Value obj, ObjString *name) {
     Value value;
     ObjInstance *instance = AS_INSTANCE(obj);

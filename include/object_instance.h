@@ -37,6 +37,7 @@ typedef struct {
     .invert = Instance_Invert,            \
     .lshift = Instance_LeftShift,         \
     .rshift = Instance_RightShift,        \
+    .class = Instance_Class,              \
     .getattr = Instance_GetAttr,          \
     .setattr = Instance_SetAttr,          \
     .delattr = Instance_DelAttr,          \
@@ -95,6 +96,8 @@ Value Instance_Invert(Value a);
 Value Instance_LeftShift(Value a, Value b);
 
 Value Instance_RightShift(Value a, Value b);
+
+Value Instance_Class(Value value);
 
 Value Instance_GetAttr(Value obj, ObjString *name);
 

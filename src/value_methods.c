@@ -42,6 +42,11 @@ ValueMethods MethodTable[] = {
     [VAL_EXCEPTION] = EXCEPTION_METHODS,
 };
 
+static void *getMethod(Value value, int offset) {
+    void *method = &MethodTable[value.type] + offset;
+    return method;
+}
+
 char *getValueType(Value value) {
     Value class = valueClass(value);
     if (IS_CLASS(class))
@@ -349,4 +354,28 @@ ObjString *valueToRepr(Value value) {
 
     ObjString *string = copyString(buffer, length);
     return string;
+}
+
+static Value getSuperClass(Value obj) {
+    if (IS_CLASS(obj))
+        return AS_CLASS(obj)->super;
+    if (IS_NATIVE_CLASS(obj)) {
+        ValueType superType = AS_NATIVE_CLASS(obj)->super;
+        Value dummy = (Value){.type=superType};
+        return valueClass(dummy);
+    }
+    reportRuntimeError("you are not supposed to be here :<");
+}
+
+static bool r(Value obj, Value class) {
+    if (valueToBool(valueEqual(obj, class)))
+        return true;
+    Value super = getSuperClass(obj);
+    if (IS_NONE(super))
+        return false;
+    return r(super, class);
+}
+
+bool isInstance(Value obj, Value class) {
+    return r(valueClass(obj), class);
 }

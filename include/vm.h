@@ -59,6 +59,7 @@ typedef struct {
 } MagicStrings;
 
 typedef struct {
+    ObjNativeClass *object;
     ObjNativeClass *none;
     ObjNativeClass *bool_;
     ObjNativeClass *int_;

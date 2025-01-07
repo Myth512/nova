@@ -10,6 +10,7 @@ typedef struct ObjString ObjString;
 
 typedef enum {
     // Values
+    VAL_OBJECT,
     VAL_UNDEFINED,
     VAL_NONE,
     VAL_BOOL,

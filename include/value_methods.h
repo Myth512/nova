@@ -13,6 +13,8 @@ int valuePrint(Value value);
 
 int valueRepr(Value value);
 
+char *getValueType(Value value);
+
 Value valueIs(Value a, Value b);
 
 Value valueEqual(Value a, Value b);
@@ -92,5 +94,7 @@ double valueToFloat(Value value);
 ObjString *valueToStr(Value value);
 
 ObjString *valueToRepr(Value value);
+
+bool isInstance(Value obj, Value class);
 
 #endif
