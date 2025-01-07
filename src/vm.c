@@ -15,6 +15,7 @@
 #include "object_class.h"
 #include "object_instance.h"
 #include "object_function.h"
+#include "object_exception.h"
 #include "memory.h"
 #include "compiler.h"
 #include "native.h"
@@ -132,6 +133,7 @@ void call(ObjClosure *closure, int argc, int kwargc, bool isMethod) {
     frame->closure = closure;
     frame->ip = closure->function->code.code;
     frame->isMethod = isMethod;
+    frame->exceptAddr = NULL;
 
     int arity = closure->function->arity;
     int defaultStart = closure->function->defaultStart;
@@ -256,6 +258,8 @@ static void defineNativeTypes() {
     vm.types.str = defineNativeClass("str", VAL_STRING);
     vm.types.list = defineNativeClass("list", VAL_LIST);
     vm.types.tuple = defineNativeClass("tuple", VAL_TUPLE);
+    vm.types.dict = defineNativeClass("dict", VAL_DICT);
+    vm.types.exception = defineNativeClass("Exception", VAL_EXCEPTION);
 }
 
 static void callValue(Value callee, int argc, int kwargc) {
@@ -383,15 +387,33 @@ static void buildDict() {
     push(res);
 }
 
+void raise() {
+    Value exception = pop();
+    if (frame->exceptAddr == NULL) {
+        fprintf(stderr, "Exception: ");
+        valuePrint(exception);
+        printf("\n");
+        printErrorInCode();
+        exit(1);
+    }
+    frame->ip = frame->exceptAddr;
+}
+
 static void binary(Value (*func)(Value, Value)) {
     Value b = pop();
     Value a = pop();
-    push(func(a, b));
+    Value res = func(a, b);
+    push(res);
+    if (IS_EXCEPTION(res))
+        raise();
 }
 
 static void unary(Value (*func)(Value)) {
     Value a = pop();
-    push(func(a));
+    Value res = func(a);
+    push(res);
+    if (IS_EXCEPTION(res))
+        raise();
 }
 
 static void getLocal() {
@@ -637,6 +659,14 @@ static Value run() {
                     frame->ip -= offset;
                 break;
             }
+            case OP_SETUP_TRY: {
+                uint16_t offset = READ_SHORT();
+                frame->exceptAddr = frame->ip + offset;
+                break;
+            }
+            case OP_RAISE:
+                raise();
+                break;
             case OP_CALL: {
                 int argc = READ_BYTE();
                 int kwargc = READ_BYTE();

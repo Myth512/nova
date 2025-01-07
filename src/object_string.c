@@ -18,6 +18,8 @@ ObjString *allocateString(size_t length) {
 }
 
 ObjString *copyString(const char *chars, size_t length) {
+    if (length == 0)
+        length = strlen(chars);
     ObjString *string = allocateString(length);
     memcpy(string->chars, chars, length);
     string->chars[string->length] = '\0';

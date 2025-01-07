@@ -293,6 +293,8 @@ int printInstruction(CodeVec *vec, int offset) {
             return jumpInstruction("LOOP", -1, vec, offset);
         case OP_LOOP_TRUE_POP:
             return jumpInstruction("LOOP TRUE POP", -1, vec, offset);
+        case OP_SETUP_TRY:
+            return jumpInstruction("SETUP TRY", 1, vec, offset);
         case OP_CALL:
             return callInstruction("CALL", vec, offset);
         case OP_CLOSURE: {

@@ -963,6 +963,24 @@ static void whileStatement() {
     patchJump(jumpToEndIfFalse);
 }
 
+static void tryStatement(int breakPointer, int continuePointer) {
+    advance();
+
+    int jumpToExcept = emitJump(OP_SETUP_TRY);
+
+    parseBlock(breakPointer, continuePointer);
+
+    int jumpToFinally = emitJump(OP_JUMP);
+
+    patchJump(jumpToExcept);
+    if (!consume(TOKEN_EXCEPT, false))
+        reportError("expected 'except' or 'finally' block", &parser.current);
+    
+    parseBlock(breakPointer, continuePointer);
+
+    patchJump(jumpToFinally);
+}
+
 // ======================================
 //              Functions 
 // ======================================    
@@ -1258,6 +1276,9 @@ static void statement(int breakPointer, int continuePointer) {
             break;
         case TOKEN_RETURN:
             returnStatement();
+            break;
+        case TOKEN_TRY:
+            tryStatement(breakPointer, continuePointer);
             break;
         default:
             expressionStatement();

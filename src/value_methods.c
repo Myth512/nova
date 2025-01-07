@@ -9,6 +9,7 @@
 #include "object_dict.h"
 #include "object_class.h"
 #include "object_instance.h"
+#include "object_exception.h"
 #include "vm.h"
 
 #define GET_METHOD(value, name) MethodTable[(value).type].name
@@ -35,7 +36,8 @@ ValueMethods MethodTable[] = {
     [VAL_NATIVE_CLASS] = NATIVE_CLASS_METHODS,
     [VAL_METHOD] = MEHTOD_METHODS,
     [VAL_NATIVE_METHOD] = NATIVE_METHOD_METHODS,
-    [VAL_INSTANCE] = INSTANCE_METHODS
+    [VAL_INSTANCE] = INSTANCE_METHODS,
+    [VAL_EXCEPTION] = EXCEPTION_METHODS,
 };
 
 char *getValueType(Value value) {

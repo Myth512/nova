@@ -15,6 +15,7 @@ typedef struct {
     ObjClosure *closure;
     uint8_t *ip;
     Value *slots;
+    uint8_t *exceptAddr;
     bool isMethod;
 } CallFrame;
 
@@ -66,6 +67,8 @@ typedef struct {
     ObjNativeClass *str;
     ObjNativeClass *list;
     ObjNativeClass *tuple;
+    ObjNativeClass *dict;
+    ObjNativeClass *exception;
 } BaseTypes;
 
 typedef struct {
@@ -101,6 +104,8 @@ void push(Value value);
 Value pop();
 
 void insert(int distance, Value value);
+
+void raise();
 
 void reportRuntimeError(const char *format, ...);
 

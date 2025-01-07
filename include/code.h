@@ -56,6 +56,8 @@ typedef enum {
     OP_JUMP_FALSE_POP,
     OP_LOOP,
     OP_LOOP_TRUE_POP,
+    OP_SETUP_TRY,
+    OP_RAISE,
     OP_CALL,
     OP_CLOSURE,
     OP_CLOSE_UPVALUE,

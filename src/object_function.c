@@ -1,6 +1,7 @@
 #include "object_function.h"
 #include "object_string.h"
 #include "value_methods.h"
+#include "object_exception.h"
 #include "memory.h"
 #include "vm.h"
 
@@ -61,6 +62,8 @@ Value Native_Call(Value callee, int argc, int kwargc, Value *argv) {
     Value res = native->function(argc, kwargc);
     vm.top -= argc + 2 * kwargc + 1;
     push(res);
+    if (IS_EXCEPTION(res))
+        raise();
 }
 
 int Native_ToStr(Value value, char *buffer, size_t size) {

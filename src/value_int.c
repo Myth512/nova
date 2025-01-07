@@ -5,6 +5,7 @@
 #include "value_float.h"
 #include "value_methods.h"
 #include "methods_int.h"
+#include "object_exception.h"
 #include "vm.h"
 #include "table.h"
 
@@ -72,8 +73,8 @@ Value Int_Multiply(Value a, Value b) {
 Value Int_TrueDivide(Value a, Value b) {
     if (b.type == VAL_INT || b.type == VAL_BOOL) {
         if (AS_INT(b) == 0)
-            reportRuntimeError("Division by zero");
-        return FLOAT_VAL(AS_INT(a) / AS_INT(b));
+            return createMsgException("Division by zero");
+        return FLOAT_VAL((double)AS_INT(a) / AS_INT(b));
     }
     return NOT_IMPLEMENTED_VAL;
 }
@@ -81,7 +82,7 @@ Value Int_TrueDivide(Value a, Value b) {
 Value Int_RightTrueDivide(Value a, Value b) {
     if (b.type == VAL_INT || b.type == VAL_BOOL) {
         if (AS_INT(a) == 0)
-            reportRuntimeError("Division by zero");
+            return createMsgException("Division by zero");
         return FLOAT_VAL(AS_INT(b) / AS_INT(a));
     }
     return NOT_IMPLEMENTED_VAL;
@@ -90,7 +91,7 @@ Value Int_RightTrueDivide(Value a, Value b) {
 Value Int_FloorDivide(Value a, Value b) {
     if (b.type == VAL_INT || b.type == VAL_BOOL) {
         if (AS_INT(b) == 0)
-            reportRuntimeError("Division by zero");
+            return createMsgException("Division by zero");
         return INT_VAL(AS_INT(a) / AS_INT(b));
     }
     return NOT_IMPLEMENTED_VAL;
@@ -99,7 +100,7 @@ Value Int_FloorDivide(Value a, Value b) {
 Value Int_RightFloorDivide(Value a, Value b) {
     if (b.type == VAL_INT || b.type == VAL_BOOL) {
         if (AS_INT(a) == 0)
-            reportRuntimeError("Division by zero");
+            return createMsgException("Division by zero");
         return INT_VAL(AS_INT(b) / AS_INT(a));
     }
     return NOT_IMPLEMENTED_VAL;
@@ -108,7 +109,7 @@ Value Int_RightFloorDivide(Value a, Value b) {
 Value Int_Modulo(Value a, Value b) {
     if (b.type == VAL_INT || b.type == VAL_BOOL) {
         if (AS_INT(b) == 0)
-            reportRuntimeError("Division by zero");
+            return createMsgException("Division by zero");
         return INT_VAL(AS_INT(a) % AS_INT(b));
     }
     return NOT_IMPLEMENTED_VAL;
@@ -117,7 +118,7 @@ Value Int_Modulo(Value a, Value b) {
 Value Int_RightModulo(Value a, Value b) {
     if (b.type == VAL_INT || b.type == VAL_BOOL) {
         if (AS_INT(a) == 0)
-            reportRuntimeError("Division by zero");
+            return createMsgException("Division by zero");
         return INT_VAL(AS_INT(b) % AS_INT(a));
     }
     return NOT_IMPLEMENTED_VAL;
