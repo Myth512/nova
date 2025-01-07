@@ -9,6 +9,7 @@
 #include "object_dict.h"
 #include "object_class.h"
 #include "object_instance.h"
+#include "object_super.h"
 #include "object_exception.h"
 #include "vm.h"
 
@@ -37,6 +38,7 @@ ValueMethods MethodTable[] = {
     [VAL_METHOD] = MEHTOD_METHODS,
     [VAL_NATIVE_METHOD] = NATIVE_METHOD_METHODS,
     [VAL_INSTANCE] = INSTANCE_METHODS,
+    [VAL_SUPER] = SUPER_METHODS,
     [VAL_EXCEPTION] = EXCEPTION_METHODS,
 };
 
@@ -193,6 +195,8 @@ Value valueContains(Value a, Value b) {
 
 Value valueGetAttr(Value obj, ObjString *name) {
     Value (*method)(Value, ObjString*) = GET_METHOD(obj, getattr);
+    if (method == NULL)
+        reportRuntimeError("no method %s", name->chars);
     return method(obj, name);
 }
 

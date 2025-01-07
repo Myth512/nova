@@ -260,6 +260,7 @@ static void defineNativeTypes() {
     vm.types.tuple = defineNativeClass("tuple", VAL_TUPLE);
     vm.types.dict = defineNativeClass("dict", VAL_DICT);
     vm.types.exception = defineNativeClass("Exception", VAL_EXCEPTION);
+    defineNativeClass("super", VAL_SUPER);
 }
 
 static void callValue(Value callee, int argc, int kwargc) {
@@ -696,7 +697,8 @@ static Value run() {
                 break;
             case OP_CLASS: {
                 ObjString *name = READ_STRING();
-                push(OBJ_VAL(createClass(name)));
+                Value super = pop();
+                push(OBJ_VAL(createClass(name, super)));
                 break;
             }
             case OP_METHOD:

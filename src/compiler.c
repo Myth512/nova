@@ -1164,8 +1164,27 @@ static void method() {
 static void classDeclaration() {
     advance();
     Token name = parser.current;
+    Token super = (Token){.type=TOKEN_EOF}; 
     if (!consume(TOKEN_IDENTIFIER, false))
         reportError("Expect class name", &parser.current);
+    
+    if (consume(TOKEN_LEFT_PAREN, false)) {
+        if (!consume(TOKEN_RIGHT_PAREN, false)) {
+            super = parser.current;
+            if (!consume(TOKEN_IDENTIFIER, false))
+                reportError("Expect super class name", &parser.current);
+            if (!consume(TOKEN_RIGHT_PAREN, false))    
+                reportError("Expect ')' after super class name", &parser.current);
+        }
+    }
+
+    uint8_t getOp, arg;
+    if (super.type != TOKEN_EOF) {
+        resolveVariableReference(&super, &getOp, &arg);
+        emitBytes(getOp, arg, super);
+    } else {
+        emitByte(OP_NONE, name);
+    }
     
     uint8_t nameConstant = identifierConstant(&name);
     
@@ -1177,7 +1196,6 @@ static void classDeclaration() {
     classCompiler.enclosing = currentClass;
     currentClass = &classCompiler;
 
-    uint8_t getOp, arg;
     resolveVariableReference(&name, &getOp, &arg); 
     emitBytes(getOp, arg, name);
 

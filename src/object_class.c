@@ -5,9 +5,10 @@
 #include "object_instance.h"
 #include "vm.h"
 
-ObjClass *createClass(ObjString *name) {
+ObjClass *createClass(ObjString *name, Value super) {
     ObjClass *class = (ObjClass*)allocateObject(sizeof(ObjClass), VAL_CLASS);
     class->name = name;
+    class->super = super;
     initTable(&class->methods);
     return class;
 }
@@ -47,6 +48,14 @@ Value Class_Call(Value callee, int argc, int kwargc, Value *argv) {
     } else if (argc != 0) {
         reportRuntimeError("Expect 0 arguments but got %d", argc);
     }
+}
+
+Value Class_GetAttr(Value obj, ObjString *name) {
+    ObjClass *class = AS_CLASS(obj);
+    Value value;
+    if (tableGet(&class->methods, name, &value))
+        return value;
+    return valueGetAttr(class->super, name);
 }
 
 Value Class_Class(Value value) {

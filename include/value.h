@@ -31,6 +31,7 @@ typedef enum {
     VAL_METHOD,
     VAL_NATIVE_METHOD,
     VAL_INSTANCE,
+    VAL_SUPER,
     VAL_EXCEPTION,
 } ValueType;
 

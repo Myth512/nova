@@ -98,15 +98,13 @@ Value Instance_RightShift(Value a, Value b) {
 Value Instance_GetAttr(Value obj, ObjString *name) {
     Value value;
     ObjInstance *instance = AS_INSTANCE(obj);
-    bool res = tableGet(&instance->attributes, name, &value);
-    if (res)
+
+    if (tableGet(&instance->attributes, name, &value))
         return value;
 
-    res = tableGet(&instance->class->methods, name, &value);
-    if (res)
-        return OBJ_VAL(createMethod(obj, AS_CLOSURE(value)));
+    value = Class_GetAttr(OBJ_VAL(instance->class), name);
 
-    reportRuntimeError("'%s' object has no attribute '%s'", AS_INSTANCE(obj)->class->name->chars, name->chars);
+    return OBJ_VAL(createMethod(obj, AS_CLOSURE(value)));
 }
 
 Value Instance_SetAttr(Value obj, ObjString *name, Value value) {

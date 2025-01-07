@@ -19,6 +19,7 @@
 #define CLASS_METHODS (ValueMethods){ \
     .call = Class_Call,               \
     .class = Class_Class,             \
+    .getattr = Class_GetAttr,         \
     .str = Class_ToStr,               \
     .repr = Class_ToStr,              \
 }
@@ -46,6 +47,7 @@ typedef struct {
     Obj obj;
     ObjString *name;
     NameTable methods;
+    Value super;
 } ObjClass;
 
 typedef struct {
@@ -67,7 +69,7 @@ typedef struct {
     NativeFn method;
 } ObjNativeMethod;
 
-ObjClass *createClass(ObjString *name);
+ObjClass *createClass(ObjString *name, Value super);
 
 ObjNativeClass *createNativeClass(ObjString *name, ValueType type);
 
@@ -78,6 +80,8 @@ ObjNativeMethod *createNativeMethod(Value reciever, NativeFn function, const cha
 Value Class_Class(Value value);
 
 Value Class_Call(Value callee, int argc, int kwargc, Value *argv);
+
+Value Class_GetAttr(Value obj, ObjString *name);
 
 int Class_ToStr(Value value, char *buffer, size_t size);
 
