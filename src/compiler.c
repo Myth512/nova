@@ -981,6 +981,14 @@ static void tryStatement(int breakPointer, int continuePointer) {
     patchJump(jumpToFinally);
 }
 
+static void raiseStatement() {
+    advance();
+
+    expression(false);
+
+    emitByte(OP_RAISE, (Token){0});
+}
+
 // ======================================
 //              Functions 
 // ======================================    
@@ -1279,6 +1287,9 @@ static void statement(int breakPointer, int continuePointer) {
             break;
         case TOKEN_TRY:
             tryStatement(breakPointer, continuePointer);
+            break;
+        case TOKEN_RAISE:
+            raiseStatement();
             break;
         default:
             expressionStatement();
