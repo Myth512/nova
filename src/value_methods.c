@@ -12,6 +12,7 @@
 #include "object_instance.h"
 #include "object_super.h"
 #include "object_range.h"
+#include "object_range_iterator.h"
 #include "object_exception.h"
 #include "vm.h"
 
@@ -42,6 +43,7 @@ ValueMethods MethodTable[] = {
     [VAL_INSTANCE] = INSTANCE_METHODS,
     [VAL_SUPER] = SUPER_METHODS,
     [VAL_RANGE] = RANGE_METHODS,
+    [VAL_RANGE_ITERATOR] = RANGE_ITERATOR_METHODS,
     [VAL_EXCEPTION] = EXCEPTION_METHODS,
     [VAL_ZERO_DIVISON_ERROR] = ZERO_DIVISON_ERROR_METHODS,
     [VAL_STOP_ITERATION] = STOP_ITERATION_METHODS,
@@ -255,12 +257,27 @@ Value valueCall(Value callee, int argc, int kwargc, Value *argv) {
     if (method == NULL)
         reportRuntimeError("no call :(");
     method(callee, argc, kwargc, argv);
+    return NONE_VAL;
 }
 
 Value valueClass(Value value) {
     Value (*method)(Value) = GET_METHOD(value, class);
     if (method == NULL)
         return UNDEFINED_VAL;
+    return method(value);
+}
+
+Value valueIter(Value value) {
+    Value (*method)(Value) = GET_METHOD(value, iter);
+    if (method == NULL)
+        reportRuntimeError("no iter");
+    return method(value);
+}
+
+Value valueNext(Value value) {
+    Value (*method)(Value) = GET_METHOD(value, next);
+    if (method == NULL)
+        reportRuntimeError("no next");
     return method(value);
 }
 

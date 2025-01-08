@@ -242,6 +242,8 @@ static void defineNatives() {
     defineNative("input", Py_Input);
     defineNative("hex", Py_Hex);
     defineNative("isinstance", Py_IsInstance);
+    defineNative("iter", Py_Iter);
+    defineNative("next", Py_Next);
 }
 
 static ObjNativeClass* defineNativeClass(const char *name, ValueType type, ValueType super) {

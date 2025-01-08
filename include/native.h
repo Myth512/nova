@@ -27,4 +27,8 @@ Value Py_Hex(int argc, int kwargc);
 
 Value Py_IsInstance(int argc, int kwargc);
 
+Value Py_Iter(int argc, int kwargc);
+
+Value Py_Next(int argc, int kwargc);
+
 #endif

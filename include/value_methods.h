@@ -79,6 +79,10 @@ Value valueCall(Value callee, int argc, int kwargc, Value *argv);
 
 Value valueClass(Value value);
 
+Value valueIter(Value value);
+
+Value valueNext(Value value);
+
 uint64_t valueHash(Value value);
 
 uint64_t valueId(Value value);

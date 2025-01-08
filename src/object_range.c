@@ -1,4 +1,5 @@
 #include "object_range.h"
+#include "object_range_iterator.h"
 #include "value_int.h"
 #include "value_methods.h"
 #include "vm.h"
@@ -36,7 +37,7 @@ Value Range_Contains(Value a, Value b) {
 }
 
 Value Range_Iter(Value value) {
-
+    return OBJ_VAL(allocateRangeIter(value));
 }
 
 Value Range_GetItem(Value value, Value key) {
