@@ -40,6 +40,8 @@ ValueMethods MethodTable[] = {
     [VAL_INSTANCE] = INSTANCE_METHODS,
     [VAL_SUPER] = SUPER_METHODS,
     [VAL_EXCEPTION] = EXCEPTION_METHODS,
+    [VAL_ZERO_DIVISON_ERROR] = ZERO_DIVISON_ERROR_METHODS,
+    [VAL_STOP_ITERATION] = STOP_ITERATION_METHODS,
 };
 
 static void *getMethod(Value value, int offset) {
@@ -364,6 +366,8 @@ static Value getSuperClass(Value obj) {
         Value dummy = (Value){.type=superType};
         return valueClass(dummy);
     }
+    if (IS_UNDEFINED(obj))
+        return NONE_VAL;
     reportRuntimeError("you are not supposed to be here :<");
 }
 

@@ -262,6 +262,8 @@ static void defineNativeTypes() {
     vm.types.tuple = defineNativeClass("tuple", VAL_TUPLE, VAL_OBJECT);
     vm.types.dict = defineNativeClass("dict", VAL_DICT, VAL_OBJECT);
     vm.types.exception = defineNativeClass("Exception", VAL_EXCEPTION, VAL_OBJECT);
+    vm.types.zeroDivisionError = defineNativeClass("ZeroDivisionError", VAL_ZERO_DIVISON_ERROR, VAL_EXCEPTION);
+    vm.types.stopIteration = defineNativeClass("StopIteration", VAL_STOP_ITERATION, VAL_EXCEPTION);
     defineNativeClass("super", VAL_SUPER, VAL_OBJECT);
 }
 
@@ -393,7 +395,7 @@ static void buildDict() {
 void raise() {
     Value exception = pop();
     if (frame->exceptAddr == NULL) {
-        fprintf(stderr, "Exception: ");
+        fprintf(stderr, "%s: ", getValueType(exception));
         valuePrint(exception);
         printf("\n");
         printErrorInCode();
@@ -407,7 +409,7 @@ static void binary(Value (*func)(Value, Value)) {
     Value a = pop();
     Value res = func(a, b);
     push(res);
-    if (IS_EXCEPTION(res))
+    if (isInstance(res, OBJ_VAL(vm.types.exception)))
         raise();
 }
 
@@ -415,7 +417,7 @@ static void unary(Value (*func)(Value)) {
     Value a = pop();
     Value res = func(a);
     push(res);
-    if (IS_EXCEPTION(res))
+    if (isInstance(res, OBJ_VAL(vm.types.exception)))
         raise();
 }
 

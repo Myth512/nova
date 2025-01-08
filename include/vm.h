@@ -70,6 +70,8 @@ typedef struct {
     ObjNativeClass *tuple;
     ObjNativeClass *dict;
     ObjNativeClass *exception;
+    ObjNativeClass *zeroDivisionError;
+    ObjNativeClass *stopIteration;
 } BaseTypes;
 
 typedef struct {

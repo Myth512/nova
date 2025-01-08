@@ -34,6 +34,8 @@ typedef enum {
     VAL_INSTANCE,
     VAL_SUPER,
     VAL_EXCEPTION,
+    VAL_ZERO_DIVISON_ERROR,
+    VAL_STOP_ITERATION,
 } ValueType;
 
 typedef struct {
