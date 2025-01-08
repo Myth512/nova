@@ -971,6 +971,8 @@ static void forStatement() {
 
     if (!consume(TOKEN_IN, false))
         reportError("Syntax error", &name);
+
+    int jumpToEnd = breakJump();
     
     expression(true);
     emitByte(OP_MAKE_ITERATOR, name);
@@ -985,10 +987,11 @@ static void forStatement() {
     emitBytes(setOp, arg, name);
     emitByte(OP_POP, name);
 
-    parseBlock(-1, -1);
+    parseBlock(jumpToEnd, jumpToExcept + 2);
 
     emitLoop(OP_LOOP, jumpToExcept + 2);
     patchJump(jumpToExcept);
+    patchJump(jumpToEnd);
     emitByte(OP_POP, name);
 }
 
