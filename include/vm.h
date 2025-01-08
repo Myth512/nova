@@ -68,9 +68,13 @@ typedef struct {
     ObjNativeClass *float_;
     ObjNativeClass *type;
     ObjNativeClass *str;
+    ObjNativeClass *strIterator;
     ObjNativeClass *list;
+    ObjNativeClass *listIterator;
     ObjNativeClass *tuple;
+    ObjNativeClass *tupleIterator;
     ObjNativeClass *dict;
+    ObjNativeClass *dictIterator;
     ObjNativeClass *exception;
     ObjNativeClass *zeroDivisionError;
     ObjNativeClass *stopIteration;

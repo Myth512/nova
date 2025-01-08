@@ -1,6 +1,7 @@
 #include <stdio.h>
 
 #include "object_list.h"
+#include "object_list_iterator.h"
 #include "object_string.h"
 #include "object_class.h"
 #include "object_range.h"
@@ -135,6 +136,10 @@ Value List_Contains(Value a, Value b) {
             return BOOL_VAL(true);
     }
     return BOOL_VAL(false);
+}
+
+Value List_Iter(Value value) {
+    return OBJ_VAL(allocateListIterator(value));
 }
 
 Value List_Init(Value callee, int argc, Value *argv) {

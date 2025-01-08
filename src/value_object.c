@@ -11,5 +11,5 @@ Value Object_NotEqual(Value a, Value b) {
 }
 
 int Object_ToStr(Value value, char *buffer, const size_t size) {
-    writeToBuffer(buffer, size, "%s object at %p", getValueType(value), valueId(value));
+    writeToBuffer(buffer, size, "<%s object at %p>", getValueType(value), valueId(value));
 }

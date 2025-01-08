@@ -1,4 +1,5 @@
 #include "object_dict.h"
+#include "object_dict_iterator.h"
 #include "value_methods.h"
 #include "vm.h"
 #include "value_int.h"
@@ -12,6 +13,14 @@ ObjDict *allocateDict() {
 Value Dict_Contains(Value a, Value b) {
     Value res = QuadraticTableGet(&AS_DICT(a)->table, b);
     return BOOL_VAL(!IS_UNDEFINED(res));
+}
+
+Value Dict_Class(Value value) {
+    return TYPE_CLASS(dict);
+}
+
+Value Dict_Iter(Value value) {
+    return OBJ_VAL(allocateDictIterator(value));
 }
 
 Value Dict_GetAttr(Value obj, ObjString *name) {

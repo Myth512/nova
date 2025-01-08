@@ -73,12 +73,6 @@ typedef enum {
     PREC_PRIMARY
 } Precedence;
 
-typedef enum {
-    VAR_MODE_READ,
-    VAR_MODE_ASSIGNMENT,
-    VAR_MODE_DECLARATION
-} VarAccessMode;
-
 typedef void (*ParseFn)(bool, bool);
 
 typedef struct {
@@ -769,7 +763,7 @@ static void assignment(uint8_t getOp, uint8_t setOp, int arg, Token operator) {
     if (operator.type != TOKEN_EQUAL && operator.type != TOKEN_COLON_EQUAL)
         emitAssignment(getOp, arg, operator);
     
-    expression(false);
+    expression(true);
 
     switch (operator.type) {
         case TOKEN_PLUS_EQUAL:

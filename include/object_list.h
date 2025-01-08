@@ -25,6 +25,7 @@ typedef struct {
     .rmul = List_RightMultiply,       \
     .contains = List_Contains,        \
     .init = List_Init,                \
+    .iter = List_Iter,                \
     .class = List_Class,              \
     .getattr = List_GetAttr,          \
     .getitem = List_GetItem,          \
@@ -58,6 +59,8 @@ Value List_RightMultiply(Value a, Value b);
 Value List_Contains(Value a, Value b);
 
 Value List_Init(Value callee, int argc, Value *argv);
+
+Value List_Iter(Value value);
 
 Value List_Class(Value value);
 

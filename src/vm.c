@@ -266,9 +266,13 @@ static void defineNativeTypes() {
     vm.types.float_ = defineNativeClass("float", VAL_FLOAT, VAL_OBJECT);
     vm.types.type = defineNativeClass("type", VAL_TYPE, VAL_OBJECT);
     vm.types.str = defineNativeClass("str", VAL_STRING, VAL_OBJECT);
+    vm.types.strIterator = createNativeclass("str_iterator", VAL_STRING_ITERATOR, VAL_OBJECT);
     vm.types.list = defineNativeClass("list", VAL_LIST, VAL_OBJECT);
+    vm.types.listIterator = createNativeclass("list_iterator", VAL_LIST_ITERATOR, VAL_OBJECT);
     vm.types.tuple = defineNativeClass("tuple", VAL_TUPLE, VAL_OBJECT);
+    vm.types.tupleIterator = createNativeclass("tuple_iterator", VAL_TUPLE_ITERATOR, VAL_OBJECT);
     vm.types.dict = defineNativeClass("dict", VAL_DICT, VAL_OBJECT);
+    vm.types.dictIterator = createNativeclass("dict_iterator", VAL_TUPLE_ITERATOR, VAL_OBJECT);
     vm.types.exception = defineNativeClass("Exception", VAL_EXCEPTION, VAL_OBJECT);
     vm.types.zeroDivisionError = defineNativeClass("ZeroDivisionError", VAL_ZERO_DIVISON_ERROR, VAL_EXCEPTION);
     vm.types.stopIteration = defineNativeClass("StopIteration", VAL_STOP_ITERATION, VAL_EXCEPTION);

@@ -20,9 +20,13 @@ typedef enum {
     VAL_TYPE,
     // Objects
     VAL_STRING,
+    VAL_STRING_ITERATOR,
     VAL_LIST,
+    VAL_LIST_ITERATOR,
     VAL_TUPLE,
+    VAL_TUPLE_ITERATOR,
     VAL_DICT,
+    VAL_DICT_ITERATOR,
     VAL_FUNCTION,
     VAL_CLOSURE,
     VAL_UPVALUE,

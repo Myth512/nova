@@ -11,6 +11,8 @@
 
 #define DICT_METHODS (ValueMethods) { \
     .contains = Dict_Contains,        \
+    .class = Dict_Class,              \
+    .iter = Dict_Iter,                \
     .getattr = Dict_GetAttr,          \
     .getitem = Dict_GetItem,          \
     .setitem = Dict_SetItem,          \
@@ -26,6 +28,10 @@ typedef struct {
 ObjDict *allocateDict();
 
 Value Dict_Contains(Value a, Value b);
+
+Value Dict_Class(Value value);
+
+Value Dict_Iter(Value value);
 
 Value Dict_GetAttr(Value obj, ObjString *name);
 

@@ -2,7 +2,9 @@
 
 #include "value_methods.h"
 #include "object_tuple.h"
+#include "object_tuple_iterator.h"
 #include "value_int.h"
+#include "vm.h"
 
 ObjTuple* allocateTuple(size_t size) {
     ObjTuple *tuple = (ObjTuple*)allocateObject(sizeof(ObjTuple) + size * sizeof(Value), VAL_TUPLE);
@@ -17,6 +19,14 @@ Value Tuple_Contains(Value a, Value b) {
             return BOOL_VAL(true);
     }
     return BOOL_VAL(false);
+}
+
+Value Tuple_Class(Value value) {
+    return TYPE_CLASS(tuple);
+}
+
+Value Tuple_Iter(Value value) {
+    return OBJ_VAL(allocateTupleIterator(value));
 }
 
 int Tuple_Index(Value obj, Value value, int start, int end) {

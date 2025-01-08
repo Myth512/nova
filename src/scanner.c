@@ -205,10 +205,9 @@ static Token scanFormattedString(char stop) {
     while (peek(0) != stop && peek(0) != '\n' && !reachEnd()) {
         if (peek(0) == '\\' && peek(1) == stop)
             advance();
-        if (peek(0) != '\\' && peek(1) == '{') {
+        if (peek(0) == '{' && peek(1) != '{') {
             scanner.inFormattedString = true;
             scanner.stop = stop;
-            advance();
             Token token = createToken(TOKEN_FSTRING);
             advance();
             return token;

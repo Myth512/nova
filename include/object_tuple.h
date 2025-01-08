@@ -10,6 +10,8 @@
 
 #define TUPLE_METHODS (ValueMethods) { \
     .contains = Tuple_Contains,        \
+    .class = Tuple_Class,              \
+    .iter = Tuple_Iter,                \
     .str = Tuple_ToStr,                \
     .repr = Tuple_ToStr,               \
 }
@@ -23,6 +25,10 @@ typedef struct {
 ObjTuple* allocateTuple(size_t size);
 
 Value Tuple_Contains(Value a, Value b);
+
+Value Tuple_Class(Value value);
+
+Value Tuple_Iter(Value value);
 
 int Tuple_Index(Value obj, Value value, int start, int end);
 

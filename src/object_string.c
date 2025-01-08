@@ -4,6 +4,7 @@
 #include "value.h"
 #include "value_int.h"
 #include "object_string.h"
+#include "object_string_iterator.h"
 #include "object_class.h"
 #include "methods_string.h"
 #include "vm.h"
@@ -177,6 +178,10 @@ Value String_Contains(Value a, Value b) {
 
 Value String_Class(Value value) {
     return TYPE_CLASS(str);
+}
+
+Value String_Iter(Value value) {
+    return OBJ_VAL(allocateStringIterator(value));
 }
 
 Value String_GetAttr(Value value, ObjString *name) {

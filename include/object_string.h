@@ -23,6 +23,7 @@
     .rmul = String_RightMultiply,      \
     .contains = String_Contains,       \
     .class = String_Class,             \
+    .iter = String_Iter,               \
     .getattr = String_GetAttr,         \
     .getitem = String_GetItem,         \
     .hash = String_Hash,               \
@@ -70,6 +71,8 @@ Value String_RightMultiply(Value a, Value b);
 Value String_Contains(Value a, Value b);
 
 Value String_Class(Value value);
+
+Value String_Iter(Value value);
 
 Value String_GetAttr(Value value, ObjString *name);
 

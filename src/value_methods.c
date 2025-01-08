@@ -5,9 +5,13 @@
 #include "value_type.h"
 #include "value_object.h"
 #include "object_string.h"
+#include "object_string_iterator.h"
 #include "object_list.h"
+#include "object_list_iterator.h"
 #include "object_tuple.h"
+#include "object_tuple_iterator.h"
 #include "object_dict.h"
+#include "object_dict_iterator.h"
 #include "object_class.h"
 #include "object_instance.h"
 #include "object_super.h"
@@ -30,9 +34,13 @@ ValueMethods MethodTable[] = {
     [VAL_FLOAT]  = FLOAT_METHODS,
     [VAL_TYPE] = TYPE_METHODS,
     [VAL_STRING] = STRING_METHODS,
+    [VAL_STRING_ITERATOR] = STRING_ITERATOR_METHODS,
     [VAL_LIST] = LIST_METHODS,
+    [VAL_LIST_ITERATOR] = LIST_ITERATOR_METHODS,
     [VAL_TUPLE] = TUPLE_METHODS,
+    [VAL_TUPLE_ITERATOR] = TUPLE_ITERATOR_METHODS,
     [VAL_DICT] = DICT_METHODS,
+    [VAL_DICT_ITERATOR] = DICT_ITERATOR_METHODS,
     [VAL_NATIVE] = NATIVE_METHODS,
     [VAL_FUNCTION] = FUNCTION_METHODS,
     [VAL_CLOSURE] = CLOSURE_METHODS,
