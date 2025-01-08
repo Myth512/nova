@@ -264,6 +264,7 @@ static void defineNativeTypes() {
     vm.types.exception = defineNativeClass("Exception", VAL_EXCEPTION, VAL_OBJECT);
     vm.types.zeroDivisionError = defineNativeClass("ZeroDivisionError", VAL_ZERO_DIVISON_ERROR, VAL_EXCEPTION);
     vm.types.stopIteration = defineNativeClass("StopIteration", VAL_STOP_ITERATION, VAL_EXCEPTION);
+    defineNativeClass("range", VAL_RANGE, VAL_OBJECT);
     defineNativeClass("super", VAL_SUPER, VAL_OBJECT);
 }
 

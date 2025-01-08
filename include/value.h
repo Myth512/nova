@@ -33,6 +33,7 @@ typedef enum {
     VAL_NATIVE_METHOD,
     VAL_INSTANCE,
     VAL_SUPER,
+    VAL_RANGE,
     VAL_EXCEPTION,
     VAL_ZERO_DIVISON_ERROR,
     VAL_STOP_ITERATION,
@@ -100,6 +101,7 @@ typedef struct {
     Value (*init)(Value, int, Value*);
     Value (*call)(Value, int, int, Value*);
     UnaryMethod class;
+    UnaryMethod iter;
     Value (*getattr)(Value, ObjString *name);
     Value (*setattr)(Value, ObjString *name, Value);
     Value (*delattr)(Value, ObjString *name);

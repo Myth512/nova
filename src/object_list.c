@@ -3,6 +3,7 @@
 #include "object_list.h"
 #include "object_string.h"
 #include "object_class.h"
+#include "object_range.h"
 #include "methods_list.h"
 #include "value_int.h"
 #include "value_methods.h"
@@ -134,6 +135,17 @@ Value List_Contains(Value a, Value b) {
             return BOOL_VAL(true);
     }
     return BOOL_VAL(false);
+}
+
+Value List_Init(Value callee, int argc, Value *argv) {
+    if (argc == 1 && IS_RANGE(argv[0])) {
+        long long len = Range_Len(argv[0]);
+        ObjList *list = allocateList(len);
+        for (int i = 0; i < len; i++)
+            list->vec.values[i] = Range_GetItem(argv[0], INT_VAL(i));
+        return OBJ_VAL(list);
+    }
+    return NOT_IMPLEMENTED_VAL;
 }
 
 Value List_Class(Value value) {

@@ -500,8 +500,7 @@ static void unary(bool canAssign, bool allowTuple) {
     Token operator = parser.current;
     advance();
 
-    Precedence precedence = getRule(operator.type)->precedence + 1;
-    expression(allowTuple);
+    parseExpression(getRule(operator.type)->precedence, false, allowTuple);
 
     switch (operator.type) {
         case TOKEN_PLUS:

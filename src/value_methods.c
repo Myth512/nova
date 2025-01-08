@@ -3,6 +3,7 @@
 #include "value_int.h"
 #include "value_float.h"
 #include "value_type.h"
+#include "value_object.h"
 #include "object_string.h"
 #include "object_list.h"
 #include "object_tuple.h"
@@ -10,6 +11,7 @@
 #include "object_class.h"
 #include "object_instance.h"
 #include "object_super.h"
+#include "object_range.h"
 #include "object_exception.h"
 #include "vm.h"
 
@@ -39,6 +41,7 @@ ValueMethods MethodTable[] = {
     [VAL_NATIVE_METHOD] = NATIVE_METHOD_METHODS,
     [VAL_INSTANCE] = INSTANCE_METHODS,
     [VAL_SUPER] = SUPER_METHODS,
+    [VAL_RANGE] = RANGE_METHODS,
     [VAL_EXCEPTION] = EXCEPTION_METHODS,
     [VAL_ZERO_DIVISON_ERROR] = ZERO_DIVISON_ERROR_METHODS,
     [VAL_STOP_ITERATION] = STOP_ITERATION_METHODS,
@@ -312,27 +315,29 @@ double valueToFloat(Value value) {
 
 int valueWrite(Value value, char *buffer, size_t size) {
     int (*str)(Value, char*, size_t) = GET_METHOD(value, str);
+    if (str == NULL)
+        return Object_ToStr(value, NULL, 0);
     return str(value, buffer, size);
 }
 
 int valuePrint(Value value) {
     int (*str)(Value, char*, size_t) = GET_METHOD(value, str);
     if (str == NULL)
-        return printf("TODO");
+        return Object_ToStr(value, NULL, 0);
     return str(value, NULL, 0);
 }
 
 int valueReprWrite(Value value, char *buffer, size_t size) {
     int (*repr)(Value, char*, size_t) = GET_METHOD(value, repr);
     if (repr == NULL)
-        return printf("TODO");
+        return Object_ToStr(value, buffer, size);
     return repr(value, buffer, size);
 }
 
 int valueRepr(Value value) {
     int (*repr)(Value, char*, size_t) = GET_METHOD(value, repr);
     if (repr == NULL)
-        return printf("TODO");
+        return Object_ToStr(value, NULL, 0);
     return repr(value, NULL, 0);
 }
 
