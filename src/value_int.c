@@ -203,11 +203,11 @@ Value Bool_Init(Value callee, int argc, Value *argv) {
 }
 
 Value Int_Class(Value value) {
-    return OBJ_VAL(vm.types.int_);
+    return TYPE_CLASS(int_);
 }
 
 Value Bool_Class(Value value) {
-    return OBJ_VAL(vm.types.bool_);
+    return TYPE_CLASS(bool_);
 }
 
 uint64_t Int_Hash(Value value) {

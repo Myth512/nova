@@ -397,7 +397,7 @@ static bool r(Value obj, Value class) {
     if (valueToBool(valueEqual(obj, class)))
         return true;
     Value super = getSuperClass(obj);
-    if (IS_NONE(super))
+    if (IS_NONE(super) || IS_UNDEFINED(super))
         return false;
     return r(super, class);
 }

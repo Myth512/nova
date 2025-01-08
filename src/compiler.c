@@ -962,6 +962,36 @@ static void whileStatement() {
     patchJump(jumpToEndIfFalse);
 }
 
+static void forStatement() {
+    advance();
+
+    Token name = parser.current;
+    if (!consume(TOKEN_IDENTIFIER, false))
+        reportError("Syntax error", &name);
+
+    if (!consume(TOKEN_IN, false))
+        reportError("Syntax error", &name);
+    
+    expression(true);
+    emitByte(OP_MAKE_ITERATOR, name);
+
+    int jumpToExcept = emitJump(OP_SETUP_TRY);
+
+    emitByte(OP_NEXT, name);
+    emitByte(OP_CHECK, name);
+
+    uint8_t getOp, setOp, arg;
+    resolveVariableAssignment(&name, &getOp, &setOp, &arg);
+    emitBytes(setOp, arg, name);
+    emitByte(OP_POP, name);
+
+    parseBlock(-1, -1);
+
+    emitLoop(OP_LOOP, jumpToExcept + 2);
+    patchJump(jumpToExcept);
+    emitByte(OP_POP, name);
+}
+
 static void tryStatement(int breakPointer, int continuePointer) {
     advance();
 
@@ -1292,6 +1322,9 @@ static void statement(int breakPointer, int continuePointer) {
             break;
         case TOKEN_WHILE:
             whileStatement();
+            break;
+        case TOKEN_FOR:
+            forStatement();
             break;
         case TOKEN_BREAK:
             breakStatement(breakPointer);

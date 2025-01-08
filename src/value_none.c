@@ -15,7 +15,7 @@ Value None_GetAttr(Value value, ObjString *name) {
 }
 
 Value None_Class(Value value) {
-    return OBJ_VAL(vm.types.none);
+    return TYPE_CLASS(none);
 }
 
 uint64_t None_Hash(Value value) {

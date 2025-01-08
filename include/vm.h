@@ -11,6 +11,8 @@
 #define FRAMES_SIZE 64
 #define STACK_SIZE (FRAMES_SIZE * UINT8_MAX)
 
+#define TYPE_CLASS(name)    (OBJ_VAL(vm.types.name))
+
 typedef struct {
     ObjClosure *closure;
     uint8_t *ip;
@@ -72,6 +74,9 @@ typedef struct {
     ObjNativeClass *exception;
     ObjNativeClass *zeroDivisionError;
     ObjNativeClass *stopIteration;
+    ObjNativeClass *super;
+    ObjNativeClass *range;
+    ObjNativeClass *rangeIterator;
 } BaseTypes;
 
 typedef struct {

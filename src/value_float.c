@@ -205,7 +205,7 @@ Value Float_Init(Value callee, int argc, Value *argv) {
 }
 
 Value Float_Class(Value value) {
-    return OBJ_VAL(vm.types.float_);
+    return TYPE_CLASS(float_);
 }
 
 uint64_t Float_Hash(Value value) {

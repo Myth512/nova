@@ -176,7 +176,7 @@ Value String_Contains(Value a, Value b) {
 }
 
 Value String_Class(Value value) {
-    return OBJ_VAL(vm.types.str);
+    return TYPE_CLASS(str);
 }
 
 Value String_GetAttr(Value value, ObjString *name) {

@@ -4,11 +4,12 @@
 #include "value.h"
 #include "object.h"
 
-#define AS_RANGE_ITERATOR(value)    ((ObjRangeIter*)value.as.object)
+#define AS_RANGE_ITERATOR(value)    ((ObjRangeIterator*)value.as.object)
 
 #define RANGE_ITERATOR_METHODS (ValueMethods) { \
-    .iter = RangeIter_Iter,                     \
-    .next = RangeIter_Next                      \
+    .iter = RangeIterator_Iter,                 \
+    .next = RangeIterator_Next,                 \
+    .class = RangeIterator_Class,               \
 }
 
 typedef struct {
@@ -16,12 +17,14 @@ typedef struct {
     long long current;
     long long end;
     long long step;
-} ObjRangeIter;
+} ObjRangeIterator;
 
-ObjRangeIter *allocateRangeIter(Value value);
+ObjRangeIterator *allocateRangeIterator(Value value);
 
-Value RangeIter_Iter(Value value);
+Value RangeIterator_Iter(Value value);
 
-Value RangeIter_Next(Value value);
+Value RangeIterator_Next(Value value);
+
+Value RangeIterator_Class(Value value);
 
 #endif

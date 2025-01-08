@@ -269,6 +269,10 @@ int printInstruction(CodeVec *vec, int offset) {
             return simpleInstruction("RETURN", offset);
         case OP_CONTAINS:
             return simpleInstruction("CONTAINS", offset);
+        case OP_MAKE_ITERATOR:
+            return simpleInstruction("MAKE ITERATOR", offset);
+        case OP_NEXT:
+            return simpleInstruction("NEXT", offset);
         case OP_IS:
             return simpleInstruction("IS", offset);
         case OP_BUILD_FSTRING:

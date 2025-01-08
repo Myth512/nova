@@ -149,7 +149,7 @@ Value List_Init(Value callee, int argc, Value *argv) {
 }
 
 Value List_Class(Value value) {
-    return OBJ_VAL(vm.types.list);
+    return TYPE_CLASS(list);
 }
 
 Value List_GetAttr(Value list, ObjString *name) {

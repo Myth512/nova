@@ -37,7 +37,7 @@ Value Range_Contains(Value a, Value b) {
 }
 
 Value Range_Iter(Value value) {
-    return OBJ_VAL(allocateRangeIter(value));
+    return OBJ_VAL(allocateRangeIterator(value));
 }
 
 Value Range_GetItem(Value value, Value key) {
@@ -47,6 +47,10 @@ Value Range_GetItem(Value value, Value key) {
     long long len = Range_Len(value);
     long long index = calculateIndex(AS_INT(key), len);
     return INT_VAL(range->start + range->step * index);
+}
+
+Value Range_Class(Value value) {
+    return TYPE_CLASS(range);
 }
 
 long long Range_Len(Value value) {

@@ -253,6 +253,12 @@ static ObjNativeClass* defineNativeClass(const char *name, ValueType type, Value
     return class;
 }
 
+static ObjNativeClass* createNativeclass(const char *name, ValueType type, ValueType super) {
+    ObjString *n = copyString(name, strlen(name));
+    ObjNativeClass *class = createNativeClass(n, type, super);
+    return class;
+}
+
 static void defineNativeTypes() {
     vm.types.object = defineNativeClass("object", VAL_OBJECT, VAL_UNDEFINED);
     vm.types.int_ = defineNativeClass("int", VAL_INT, VAL_OBJECT);
@@ -266,8 +272,9 @@ static void defineNativeTypes() {
     vm.types.exception = defineNativeClass("Exception", VAL_EXCEPTION, VAL_OBJECT);
     vm.types.zeroDivisionError = defineNativeClass("ZeroDivisionError", VAL_ZERO_DIVISON_ERROR, VAL_EXCEPTION);
     vm.types.stopIteration = defineNativeClass("StopIteration", VAL_STOP_ITERATION, VAL_EXCEPTION);
-    defineNativeClass("range", VAL_RANGE, VAL_OBJECT);
-    defineNativeClass("super", VAL_SUPER, VAL_OBJECT);
+    vm.types.super = defineNativeClass("super", VAL_SUPER, VAL_OBJECT);
+    vm.types.range = defineNativeClass("range", VAL_RANGE, VAL_OBJECT);
+    vm.types.rangeIterator = createNativeclass("range_iterator", VAL_RANGE_ITERATOR, VAL_OBJECT);
 }
 
 static void callValue(Value callee, int argc, int kwargc) {
@@ -612,6 +619,21 @@ static Value run() {
             case OP_CONTAINS:
                 binary(valueContains);
                 break;
+            case OP_MAKE_ITERATOR:
+                unary(valueIter);
+                break;
+            case OP_NEXT: {
+                Value tmp = peek(0);
+                Value tmp2 = valueNext(tmp);
+                push(tmp2);
+                break;
+            }
+            case OP_CHECK: {
+                Value tmp = peek(0);
+                if (isInstance(tmp, TYPE_CLASS(exception)))
+                    raise();
+                break;
+            }
             case OP_IS:
                 binary(valueIs);
                 break;

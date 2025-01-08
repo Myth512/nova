@@ -32,11 +32,12 @@ Value Range_Contains(Value a, Value b);
 
 Value Range_GetItem(Value value, Value key);
 
+Value Range_Class(Value value);
+
 Value Range_Iter(Value value);
 
 long long Range_Len(Value value);
 
 int Range_ToStr(Value value, char *buffer, size_t size);
-
 
 #endif
