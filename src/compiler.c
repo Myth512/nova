@@ -407,14 +407,16 @@ static void list(bool canAssign, bool allowTuple) {
 
     size_t size = 0;
     advance(true);
-    if (!consume(TOKEN_RIGHT_BRACKET, false)) {
-        do {
-            expression(false);
-            size++;
-        } while (consume(TOKEN_COMMA, true));
-        if (!consume(TOKEN_RIGHT_BRACKET, true))
-            reportError("Expect ']'", &parser.current);
-    }
+    do {
+        if (check(TOKEN_RIGHT_BRACKET, false))
+            break;
+        expression(false);
+        size++;
+    } while (consume(TOKEN_COMMA, true));
+
+    if (!consume(TOKEN_RIGHT_BRACKET, true))
+        reportError("Expect ']'", &parser.current);
+
     emitBytes(OP_BUILD_LIST, (uint8_t)size, (Token){0});
 }
 
@@ -425,11 +427,12 @@ static void tuple(bool canAssign, bool allowTuple) {
     advance();
 
     size_t size = 1;
-
-    while (consume(TOKEN_COMMA, false) && !check(TOKEN_NEWLINE, false) && !check(TOKEN_RIGHT_PAREN, false)) {
+    do {
+        if (check(TOKEN_NEWLINE, false) || check(TOKEN_RIGHT_PAREN, false))
+            break;
         expression(false);
         size++;
-    }
+    } while (consume(TOKEN_COMMA, false));
 
     emitBytes(OP_BUILD_TUPLE, (uint8_t)size, (Token){0});
 }
@@ -438,18 +441,18 @@ static void dict(bool canAssign, bool allowTuple) {
     advance();
 
     size_t size = 0;
-    if (!consume(TOKEN_RIGHT_BRACE, false)) {
-        do  {
-            expression(false);
-            if (!consume(TOKEN_COLON, false))
-                reportError("':' expected after dictionary key", &parser.current);
-            expression(false);
-            size++;
-        } while (consume(TOKEN_COMMA, false));
+    do  {
+        if (check(TOKEN_RIGHT_BRACE, false))
+            break;
+        expression(false);
+        if (!consume(TOKEN_COLON, false))
+            reportError("':' expected after dictionary key", &parser.current);
+        expression(false);
+        size++;
+    } while (consume(TOKEN_COMMA, false));
 
-        if (!consume(TOKEN_RIGHT_BRACE, false))
-            reportError("Expect '}'", &parser.current);
-    }
+    if (!consume(TOKEN_RIGHT_BRACE, false))
+        reportError("Expect '}'", &parser.current);
 
     emitBytes(OP_BUILD_DICT, (uint8_t)size, (Token){0});
 }
@@ -481,8 +484,13 @@ static void fstring(bool canAssign, bool allowTuple) {
 
 static void grouping(bool canAssign, bool allowTuple) {
     (void)canAssign;
-
     advance();
+
+    if (consume(TOKEN_RIGHT_PAREN, false)) {
+        emitBytes(OP_BUILD_TUPLE, 0, (Token){0});
+        return;
+    }
+
     expression(true);
 
     if (!consume(TOKEN_RIGHT_PAREN, true))
@@ -495,7 +503,7 @@ static void unary(bool canAssign, bool allowTuple) {
     Token operator = parser.current;
     advance();
 
-    parseExpression(getRule(operator.type)->precedence, false, allowTuple);
+    parseExpression(getRule(operator.type)->precedence, false, false);
 
     switch (operator.type) {
         case TOKEN_PLUS:
@@ -521,7 +529,7 @@ static void binary(bool canAssign, bool allowTuple) {
     Token operator = parser.current;
     advance();
 
-    parseExpression(getRule(operator.type)->precedence, false, allowTuple);
+    parseExpression(getRule(operator.type)->precedence, false, false);
 
     switch (operator.type) {
         case TOKEN_BANG_EQUAL:
@@ -592,7 +600,7 @@ static void is(bool canAssign, bool allowTuple) {
 
     bool negate = consume(TOKEN_NOT, false);
 
-    parseExpression(PREC_COMPARISON, false, allowTuple);
+    parseExpression(PREC_COMPARISON, false, false);
 
     emitByte(OP_IS, operator);
     if (negate)
@@ -608,7 +616,7 @@ static void in(bool canAssign, bool allowTuple) {
         return;
     }
     
-    parseExpression(PREC_COMPARISON, false, allowTuple);
+    parseExpression(PREC_COMPARISON, false, false);
 
     emitByte(OP_CONTAINS, operator);
     if (negate)
