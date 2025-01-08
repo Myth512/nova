@@ -46,6 +46,14 @@ int Tuple_ToStr(Value value, char *buffer, size_t size) {
     int bytesWritten = writeToBuffer(buffer, bytesLeft, "(");
     bytesLeft -= movePointer(&buffer, bytesWritten);
     size_t length = AS_TUPLE(value)->size; 
+
+    if (length == 1) {
+        bytesWritten = valueReprWrite(AS_TUPLE(value)->values[0], buffer, bytesLeft);
+        bytesLeft -= movePointer(&buffer, bytesWritten);
+        writeToBuffer(buffer, bytesLeft, ",)");
+        return 0;
+    }
+
     for (int i = 0; i < length; i++) {
         bytesWritten = valueReprWrite(AS_TUPLE(value)->values[i], buffer, bytesLeft);
         bytesLeft -= movePointer(&buffer, bytesWritten);

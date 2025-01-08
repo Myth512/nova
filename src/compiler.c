@@ -425,10 +425,11 @@ static void tuple(bool canAssign, bool allowTuple) {
     advance();
 
     size_t size = 1;
-    do {
+
+    while (consume(TOKEN_COMMA, false) && !check(TOKEN_NEWLINE, false) && !check(TOKEN_RIGHT_PAREN, false)) {
         expression(false);
         size++;
-    } while (consume(TOKEN_COMMA, false));
+    }
 
     emitBytes(OP_BUILD_TUPLE, (uint8_t)size, (Token){0});
 }
