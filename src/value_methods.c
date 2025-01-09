@@ -55,6 +55,11 @@ ValueMethods MethodTable[] = {
     [VAL_EXCEPTION] = EXCEPTION_METHODS,
     [VAL_ZERO_DIVISON_ERROR] = ZERO_DIVISON_ERROR_METHODS,
     [VAL_STOP_ITERATION] = STOP_ITERATION_METHODS,
+    [VAL_TYPE_ERROR] = TYPE_ERROR_METHODS,
+    [VAL_VALUE_ERROR] = VALUE_ERROR_METHODS,
+    [VAL_INDEX_ERROR] = INDEX_ERROR_METHODS, 
+    [VAL_KEY_ERROR] = KEY_ERROR_METHODS, 
+    [VAL_ATTRIBUTE_ERROR] = ATTRIBUTE_ERROR_METHODS, 
     [VAL_NAME_ERROR] = NAME_ERROR_METHODS,
 };
 
@@ -78,7 +83,7 @@ Value unaryMethod(Value a, UnaryMethod method, char *name) {
         if (!IS_NOT_IMPLEMENTED(res))
             return res;
     }
-    operatorNotImplementedUnary(name, a);
+    return createException(VAL_TYPE_ERROR, "bad operand type for unary %s: '%s'", name, getValueType(a));
 }
 
 Value binaryMethod(Value a, Value b, BinaryMethod left, BinaryMethod right, char *name) {
@@ -92,7 +97,7 @@ Value binaryMethod(Value a, Value b, BinaryMethod left, BinaryMethod right, char
         if (!IS_NOT_IMPLEMENTED(res))
             return res;
     }
-    operatorNotImplemented(name, a, b);
+    return createException(VAL_TYPE_ERROR, "unsupported operand type(s) for %s: '%s' and '%s'", name, getValueType(a), getValueType(b));
 }
 
 Value valueIs(Value a, Value b) {
@@ -210,7 +215,7 @@ Value valueRightShift(Value a, Value b) {
 Value valueContains(Value a, Value b) {
     BinaryMethod method = GET_METHOD(b, contains);
     if (method == NULL)
-        reportRuntimeError("no contains");
+        return createException(VAL_TYPE_ERROR, "argument of type '%s' is not iterable", getValueType(a));
     return method(b, a);
 }
 
@@ -238,14 +243,14 @@ void valueDelAttr(Value obj, ObjString *name) {
 Value valueGetItem(Value obj, Value key) {
     Value (*method)(Value, Value) = GET_METHOD(obj, getitem);
     if (method == NULL)
-        reportRuntimeError("not subscriptable");
+        return createException(VAL_TYPE_ERROR, "'%s' object is not subscriptable", getValueType(obj));
     return method(obj, key);
 }
 
-void valueSetItem(Value obj, Value key, Value value) {
+Value valueSetItem(Value obj, Value key, Value value) {
     Value (*method)(Value, Value, Value) = GET_METHOD(obj, setitem);
     if (method == NULL)
-        reportRuntimeError("not subscriptable");
+        return createException(VAL_TYPE_ERROR, "'%s' object does not support item assignment", getValueType(obj));
     method(obj, key, value);
 }
 
@@ -264,7 +269,7 @@ Value valueInit(Value callee, int argc, Value *argv) {
 Value valueCall(Value callee, int argc, int kwargc, Value *argv) {
     Value (*method)(Value, int, int, Value*) = GET_METHOD(callee, call);
     if (method == NULL)
-        reportRuntimeError("no call :(");
+        return createException(VAL_TYPE_ERROR, "'%s' object is not callable", getValueType(callee));
     method(callee, argc, kwargc, argv);
     return NONE_VAL;
 }
@@ -279,14 +284,14 @@ Value valueClass(Value value) {
 Value valueIter(Value value) {
     Value (*method)(Value) = GET_METHOD(value, iter);
     if (method == NULL)
-        reportRuntimeError("no iter");
+        return createException(VAL_TYPE_ERROR, "'%s' object is not iterable", getValueType(value));
     return method(value);
 }
 
 Value valueNext(Value value) {
     Value (*method)(Value) = GET_METHOD(value, next);
     if (method == NULL)
-        reportRuntimeError("no next");
+        return createException(VAL_TYPE_ERROR, "'%s' object is not an iterator", getValueType(value));
     return method(value);
 }
 

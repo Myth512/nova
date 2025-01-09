@@ -69,7 +69,7 @@ void valueDelAttr(Value obj, ObjString *name);
 
 Value valueGetItem(Value obj, Value key);
 
-void valueSetItem(Value obj, Value key, Value value);
+Value valueSetItem(Value obj, Value key, Value value);
 
 void valueDelItem(Value obj, Value key);
 

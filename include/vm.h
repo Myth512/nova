@@ -79,6 +79,11 @@ typedef struct {
     ObjNativeClass *zeroDivisionError;
     ObjNativeClass *stopIteration;
     ObjNativeClass *nameError;
+    ObjNativeClass *typeError;
+    ObjNativeClass *valueError;
+    ObjNativeClass *indexError;
+    ObjNativeClass *keyError;
+    ObjNativeClass *attributeError;
     ObjNativeClass *super;
     ObjNativeClass *range;
     ObjNativeClass *rangeIterator;

@@ -16,7 +16,7 @@ Value StringIterator_Next(Value value) {
     ObjStringIterator *iter = AS_STRING_ITERATOR(value);
     char res = *iter->current;
     if (res == '\0')
-        return createMsgException("", VAL_STOP_ITERATION);
+        return createException(VAL_STOP_ITERATION, "");
     iter->current++;
     return OBJ_VAL(copyString(&res, 1));
 }

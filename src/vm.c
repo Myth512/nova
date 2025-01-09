@@ -277,6 +277,11 @@ static void defineNativeTypes() {
     vm.types.zeroDivisionError = defineNativeClass("ZeroDivisionError", VAL_ZERO_DIVISON_ERROR, VAL_EXCEPTION);
     vm.types.stopIteration = defineNativeClass("StopIteration", VAL_STOP_ITERATION, VAL_EXCEPTION);
     vm.types.nameError = defineNativeClass("NameError", VAL_NAME_ERROR, VAL_EXCEPTION);
+    vm.types.typeError = defineNativeClass("TypeError", VAL_TYPE_ERROR, VAL_EXCEPTION);
+    vm.types.valueError = defineNativeClass("ValueError", VAL_VALUE_ERROR, VAL_EXCEPTION);
+    vm.types.indexError = defineNativeClass("IndexError", VAL_INDEX_ERROR, VAL_EXCEPTION);
+    vm.types.keyError = defineNativeClass("KeyError", VAL_KEY_ERROR, VAL_EXCEPTION);
+    vm.types.attributeError = defineNativeClass("AttributeError", VAL_ATTRIBUTE_ERROR, VAL_EXCEPTION);
     vm.types.super = defineNativeClass("super", VAL_SUPER, VAL_OBJECT);
     vm.types.range = defineNativeClass("range", VAL_RANGE, VAL_OBJECT);
     vm.types.rangeIterator = createNativeclass("range_iterator", VAL_RANGE_ITERATOR, VAL_OBJECT);
@@ -462,10 +467,10 @@ static void getLocal() {
     uint8_t slot = READ_BYTE();
     Value value = frame->slots[slot];
     if (IS_UNDEFINED(value)) {
-        push(createMsgException("Undefined variable", VAL_NAME_ERROR));
+        char *name = AS_STRING(frame->closure->function->localNames->values[slot])->chars;
+        push(createException(VAL_NAME_ERROR, "name '%s' is not defined", name));
         raise();
     }
-    // reportRuntimeError("Undefined variable '%s'", AS_STRING(frame->closure->function->localNames->values[slot])->chars);
     push(frame->slots[slot]);
 }
 
@@ -486,7 +491,10 @@ static void getItem(bool popValues) {
         object = peek(1);
     }
 
-    push(valueGetItem(object, key));
+    Value res = valueGetItem(object, key);
+    push(res);
+    if (isInstance(res, OBJ_VAL(vm.types.exception)))
+        raise();
 }
 
 static void setItem() {
@@ -501,8 +509,11 @@ static void getAttrtibute() {
     Value obj = pop();
     ObjString *name = READ_STRING();
     Value result = valueGetAttr(obj, name);
-    if (IS_UNDEFINED(result))
-        reportRuntimeError("No attr :(");
+    if (IS_UNDEFINED(result)) {
+        push(createException(VAL_ATTRIBUTE_ERROR, "'%s' object has no attribute '%s'", getValueType(obj), name->chars));
+        raise();
+        return;
+    }
     push(result);
 }
 
@@ -539,7 +550,7 @@ static Value run() {
                 ObjString *name = READ_STRING();
                 Value value;
                 if (!tableGet(&vm.globals, name, &value)) {
-                    push(createMsgException("undefined variable", VAL_NAME_ERROR));
+                    push(createException(VAL_NAME_ERROR, "name '%s' is not defined", name->chars));
                     raise();
                     break;
                 }

@@ -25,7 +25,7 @@ Value DictIterator_Next(Value value) {
             continue;
         return entry->key;
     }
-    return createMsgException("", VAL_STOP_ITERATION);
+    return createException(VAL_STOP_ITERATION, "");
 }
 
 Value DictIterator_Class(Value value) {

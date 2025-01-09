@@ -5,6 +5,7 @@
 #include "value_int.h"
 #include "object_string.h"
 #include "object_string_iterator.h"
+#include "object_exception.h"
 #include "object_class.h"
 #include "methods_string.h"
 #include "vm.h"
@@ -164,7 +165,7 @@ Value String_RightMultiply(Value a, Value b) {
 
 Value String_Contains(Value a, Value b) {
     if (!IS_STRING(b))
-        reportRuntimeError("'in <string>' requires string as left operand, not int");
+        return createException(VAL_TYPE_ERROR, "'in <string>' requires string as left operand, not %s", getValueType(b));
 
     ObjString *s1 = AS_STRING(a);
     ObjString *s2 = AS_STRING(b);
@@ -190,10 +191,11 @@ Value String_GetAttr(Value value, ObjString *name) {
 
 Value String_GetItem(Value value, Value key) {
     if (!IS_INT(key))
-        reportRuntimeError("Indicies only int");
+        return createException(VAL_NAME_ERROR, "string indices must be integers, not '%s'", getValueType(key));
+
     int index = calculateIndex(AS_INT(key), AS_STRING(value)->length);
     if (index == -1)
-        reportRuntimeError("Index is out of bounds");
+        return createException(VAL_INDEX_ERROR, "string index out of range");
     
     ObjString *res = copyString(AS_STRING(value)->chars + index, 1);
     return OBJ_VAL(res);

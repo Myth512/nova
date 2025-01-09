@@ -1,3 +1,5 @@
+#include <stdarg.h>
+
 #include "object_exception.h"
 #include "object_string.h"
 #include "value_methods.h"
@@ -9,9 +11,16 @@ ObjException *allocateException(Value value, ValueType type) {
     return exception;
 }
 
-Value createMsgException(char *msg, ValueType type) {
-    ObjString *string = copyString(msg, 0);
+Value createException(ValueType type, char *format, ...) {
+    static char buffer[1024];
+    va_list args;
+    va_start(args, format);
+
+    int len = vsnprintf(buffer, sizeof(buffer), format, args);
+    ObjString *string = copyString(buffer, len);
     ObjException *exception = allocateException(OBJ_VAL(string), type);
+
+    va_end(args);
     return OBJ_VAL(exception);
 }
 
@@ -68,4 +77,44 @@ Value NameError_Init(Value callee, int argc, Value *argv) {
 
 Value NameError_Class(Value value) {
     return TYPE_CLASS(nameError);
+}
+
+Value TypeError_Init(Value callee, int argc, Value *argv) {
+    return init(argc, argv, VAL_TYPE_ERROR);
+}
+
+Value TypeError_Class(Value value) {
+    return TYPE_CLASS(typeError);
+}
+
+Value ValueError_Init(Value callee, int argc, Value *argv) {
+    return init(argc, argv, VAL_VALUE_ERROR);
+}
+
+Value ValueError_Class(Value value) {
+    return TYPE_CLASS(valueError);
+}
+
+Value IndexError_Init(Value callee, int argc, Value *argv) {
+    return init(argc, argv, VAL_INDEX_ERROR);
+}
+
+Value IndexError_Class(Value value) {
+    return TYPE_CLASS(indexError);
+}
+
+Value KeyError_Init(Value callee, int argc, Value *argv) {
+    return init(argc, argv, VAL_KEY_ERROR);
+}
+
+Value KeyError_Class(Value value) {
+    return TYPE_CLASS(keyError);
+}
+
+Value AttributeError_Init(Value callee, int argc, Value *argv) {
+    return init(argc, argv, VAL_ATTRIBUTE_ERROR);
+}
+
+Value AttributeError_Class(Value value) {
+    return TYPE_CLASS(attributeError);
 }

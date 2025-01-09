@@ -19,7 +19,7 @@ Value ListIterator_Iter(Value value) {
 Value ListIterator_Next(Value value) {
     ObjListIterator *iter = AS_LIST_ITERATOR(value);
     if (iter->current >= iter->end)
-        return createMsgException("", VAL_STOP_ITERATION);
+        return createException(VAL_STOP_ITERATION, "");
     Value res = *iter->current;
     iter->current++;
     return res;
