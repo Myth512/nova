@@ -44,6 +44,7 @@ typedef enum {
     OP_MAKE_ITERATOR,
     OP_NEXT,
     OP_CHECK,
+    OP_IS_INSTANCE,
     OP_IS,
     OP_BUILD_FSTRING,
     OP_BUILD_LIST,

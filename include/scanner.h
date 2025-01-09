@@ -7,6 +7,6 @@
 
 void initScanner(const char *source);
 
-Token scanToken();
+Token scanToken(bool skip);
 
 #endif

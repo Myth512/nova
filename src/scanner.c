@@ -77,7 +77,7 @@ static int peekIndent() {
     return scanner.indentationStack[scanner.indentationPointer - 1];
 }
 
-static void skipWhitespace() {
+static void skipWhitespace(bool skip) {
     while (true) {
         char c = peek(0);
 
@@ -90,6 +90,11 @@ static void skipWhitespace() {
             case '#':
                 while (peek(0) != '\n')
                     advance();
+                break;
+            case '\n':
+                if (!skip)
+                    return;
+                advance();
                 break;
             default:
                 return;
@@ -239,27 +244,29 @@ void initScanner(const char *source) {
     pushIndent(0);
 }
 
-Token scanToken() {
-    if (scanner.column == 1) {
-        int indent = 0;
-        while (match(' '))
-            indent++;
-        if (peek(0) != '\n')
-            scanner.indent = indent;
+Token scanToken(bool skip) {
+    if (!skip) {
+        if (scanner.column == 1) {
+            int indent = 0;
+            while (match(' '))
+                indent++;
+            if (peek(0) != '\n')
+                scanner.indent = indent;
+        }
+
+        if (scanner.indent > peekIndent()) {
+            pushIndent(scanner.indent);
+            return createToken(TOKEN_INDENT);
+        }
+
+        if (scanner.indent < peekIndent()) {
+            popIndent();
+            scanner.indent = peekIndent();
+            return createToken(TOKEN_DEDENT);
+        }
     }
 
-    if (scanner.indent > peekIndent()) {
-        pushIndent(scanner.indent);
-        return createToken(TOKEN_INDENT);
-    }
-
-    if (scanner.indent < peekIndent()) {
-        popIndent();
-        scanner.indent = peekIndent();
-        return createToken(TOKEN_DEDENT);
-    }
-
-    skipWhitespace();
+    skipWhitespace(skip);
 
     scanner.start = scanner.current;
     scanner.startLine = scanner.line;

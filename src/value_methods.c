@@ -55,6 +55,7 @@ ValueMethods MethodTable[] = {
     [VAL_EXCEPTION] = EXCEPTION_METHODS,
     [VAL_ZERO_DIVISON_ERROR] = ZERO_DIVISON_ERROR_METHODS,
     [VAL_STOP_ITERATION] = STOP_ITERATION_METHODS,
+    [VAL_NAME_ERROR] = NAME_ERROR_METHODS,
 };
 
 static void *getMethod(Value value, int offset) {

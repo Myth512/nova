@@ -23,7 +23,19 @@ static Value init(int argc, Value *argv, ValueType type) {
     return OBJ_VAL(exception);
 }
 
-static int repr(Value value, char *buffer, const size_t size) {
+Value Exception_Init(Value callee, int argc, Value *argv) {
+    return init(argc, argv, VAL_EXCEPTION);
+}
+
+Value Exception_Class(Value value) {
+    return TYPE_CLASS(exception);
+}
+
+int Exception_ToStr(Value value, char *buffer, const size_t size) {
+    valueWrite(AS_EXCEPTION(value)->value, buffer, size);
+}
+
+int Exception_ToRepr(Value value, char *buffer, const size_t size) {
     size_t bytesLeft = size;
     int bytesWritten = writeToBuffer(buffer, bytesLeft, "%s(", getValueType(value));
     bytesLeft -= movePointer(&buffer, bytesWritten);
@@ -34,32 +46,12 @@ static int repr(Value value, char *buffer, const size_t size) {
     writeToBuffer(buffer, bytesLeft, ")");
 }
 
-Value Exception_Init(Value callee, int argc, Value *argv) {
-    return init(argc, argv, VAL_EXCEPTION);
-}
-
-Value Exception_Class(Value value) {
-    return OBJ_VAL(vm.types.exception);
-}
-
-int Exception_ToStr(Value value, char *buffer, const size_t size) {
-    valueWrite(AS_EXCEPTION(value)->value, buffer, size);
-}
-
-int Exception_ToRepr(Value value, char *buffer, const size_t size) {
-    return repr(value, buffer, size);
-}
-
 Value ZeroDivisionError_Init(Value callee, int argc, Value *argv) {
     return init(argc, argv, VAL_ZERO_DIVISON_ERROR);
 }
 
 Value ZeroDivisionError_Class(Value value) {
-    return OBJ_VAL(vm.types.zeroDivisionError);
-}
-
-int ZeroDivisionError_ToRepr(Value value, char *buffer, const size_t size) {
-    return repr(value, buffer, size);
+    return TYPE_CLASS(zeroDivisionError);
 }
 
 Value StopIteration_Init(Value callee, int argc, Value *argv) {
@@ -67,9 +59,13 @@ Value StopIteration_Init(Value callee, int argc, Value *argv) {
 }
 
 Value StopIteration_Class(Value value) {
-    return OBJ_VAL(vm.types.stopIteration);
+    return TYPE_CLASS(stopIteration);
 }
 
-int StopIteration_ToRepr(Value value, char *buffer, const size_t size) {
-    return repr(value, buffer, size);
+Value NameError_Init(Value callee, int argc, Value *argv) {
+    return init(argc, argv, VAL_NAME_ERROR);
+}
+
+Value NameError_Class(Value value) {
+    return TYPE_CLASS(nameError);
 }

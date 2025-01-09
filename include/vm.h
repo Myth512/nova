@@ -78,6 +78,7 @@ typedef struct {
     ObjNativeClass *exception;
     ObjNativeClass *zeroDivisionError;
     ObjNativeClass *stopIteration;
+    ObjNativeClass *nameError;
     ObjNativeClass *super;
     ObjNativeClass *range;
     ObjNativeClass *rangeIterator;

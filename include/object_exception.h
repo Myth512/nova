@@ -18,14 +18,21 @@
     .init = ZeroDivisionError_Init,                 \
     .class = ZeroDivisionError_Class,               \
     .str = Exception_ToStr,                         \
-    .repr = ZeroDivisionError_ToRepr                \
+    .repr = Exception_ToRepr,                       \
 }
 
 #define STOP_ITERATION_METHODS (ValueMethods) { \
     .init = StopIteration_Init,                 \
     .class = StopIteration_Class,               \
     .str = Exception_ToStr,                     \
-    .repr = StopIteration_ToRepr                \
+    .repr = Exception_ToRepr,                   \
+}
+
+#define NAME_ERROR_METHODS (ValueMethods) { \
+    .init = NameError_Init,                 \
+    .class = NameError_Class,               \
+    .str = Exception_ToStr,                 \
+    .repr = Exception_ToRepr,               \
 }
 
 typedef struct {
@@ -49,12 +56,12 @@ Value ZeroDivisionError_Init(Value callee, int argc, Value *argv);
 
 Value ZeroDivisionError_Class(Value value);
 
-int ZeroDivisionError_ToRepr(Value value, char *buffer, const size_t size);
-
 Value StopIteration_Init(Value callee, int argc, Value *argv);
 
 Value StopIteration_Class(Value value);
 
-int StopIteration_ToRepr(Value value, char *buffer, const size_t size);
+Value NameError_Init(Value callee, int argc, Value *argv);
+
+Value NameError_Class(Value value);
 
 #endif

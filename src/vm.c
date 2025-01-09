@@ -276,6 +276,7 @@ static void defineNativeTypes() {
     vm.types.exception = defineNativeClass("Exception", VAL_EXCEPTION, VAL_OBJECT);
     vm.types.zeroDivisionError = defineNativeClass("ZeroDivisionError", VAL_ZERO_DIVISON_ERROR, VAL_EXCEPTION);
     vm.types.stopIteration = defineNativeClass("StopIteration", VAL_STOP_ITERATION, VAL_EXCEPTION);
+    vm.types.nameError = defineNativeClass("NameError", VAL_NAME_ERROR, VAL_EXCEPTION);
     vm.types.super = defineNativeClass("super", VAL_SUPER, VAL_OBJECT);
     vm.types.range = defineNativeClass("range", VAL_RANGE, VAL_OBJECT);
     vm.types.rangeIterator = createNativeclass("range_iterator", VAL_RANGE_ITERATOR, VAL_OBJECT);
@@ -406,8 +407,28 @@ static void buildDict() {
     push(res);
 }
 
+static bool return_() {
+    Value result = pop();
+    
+    closeUpvalues(frame->slots);
+    if (strcmp(frame->closure->function->name->chars, "_init_") == 0)
+        AS_INSTANCE(result)->isInitiazed = true;
+
+    vm.frameSize--;
+    vm.top = frame->slots - !frame->isMethod;
+    frame = &vm.frames[vm.frameSize - 1];
+
+    push(result);
+    return !vm.frameSize;
+}
+
 void raise() {
     Value exception = pop();
+
+    while (frame->exceptAddr == NULL && vm.frameSize > 1) {
+        return_();
+    }
+
     if (frame->exceptAddr == NULL) {
         fprintf(stderr, "%s: ", getValueType(exception));
         valuePrint(exception);
@@ -415,6 +436,8 @@ void raise() {
         printErrorInCode();
         exit(1);
     }
+    vm.top = frame->slots + frame->closure->function->localNames->size;
+    push(exception);
     frame->ip = frame->exceptAddr;
 }
 
@@ -438,8 +461,11 @@ static void unary(Value (*func)(Value)) {
 static void getLocal() {
     uint8_t slot = READ_BYTE();
     Value value = frame->slots[slot];
-    if (IS_UNDEFINED(value))
-        reportRuntimeError("Undefined variable '%s'", AS_STRING(frame->closure->function->localNames->values[slot])->chars);
+    if (IS_UNDEFINED(value)) {
+        push(createMsgException("Undefined variable", VAL_NAME_ERROR));
+        raise();
+    }
+    // reportRuntimeError("Undefined variable '%s'", AS_STRING(frame->closure->function->localNames->values[slot])->chars);
     push(frame->slots[slot]);
 }
 
@@ -513,7 +539,9 @@ static Value run() {
                 ObjString *name = READ_STRING();
                 Value value;
                 if (!tableGet(&vm.globals, name, &value)) {
-                    reportRuntimeError("Undefined variable '%s'", name->chars);
+                    push(createMsgException("undefined variable", VAL_NAME_ERROR));
+                    raise();
+                    break;
                 }
                 push(value);
                 break;
@@ -638,6 +666,12 @@ static Value run() {
                     raise();
                 break;
             }
+            case OP_IS_INSTANCE: {
+                Value a = pop();
+                Value b = peek(0);
+                push(BOOL_VAL(isInstance(b, a)));
+                break;
+            }
             case OP_IS:
                 binary(valueIs);
                 break;
@@ -744,20 +778,8 @@ static Value run() {
                 setAttribute();
                 break;
             case OP_RETURN: {
-                Value result = pop();
-                
-                closeUpvalues(frame->slots);
-                if (strcmp(frame->closure->function->name->chars, "_init_") == 0)
-                    AS_INSTANCE(result)->isInitiazed = true;
-                vm.frameSize--;
-
-                vm.top = frame->slots - !frame->isMethod;
-                frame = &vm.frames[vm.frameSize - 1];
-                if (vm.frameSize == startFrame) {
-                    return result;
-                } else {
-                    push(result);
-                }
+                if (return_())
+                    return pop();
                 break;
             }
         }

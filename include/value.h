@@ -42,6 +42,7 @@ typedef enum {
     VAL_EXCEPTION,
     VAL_ZERO_DIVISON_ERROR,
     VAL_STOP_ITERATION,
+    VAL_NAME_ERROR,
 } ValueType;
 
 typedef struct {

@@ -73,7 +73,7 @@ typedef enum {
     PREC_PRIMARY
 } Precedence;
 
-typedef void (*ParseFn)(bool, bool);
+typedef void (*ParseFn)(bool, bool, bool);
 
 typedef struct {
     ParseFn prefix;
@@ -81,45 +81,45 @@ typedef struct {
     Precedence precedence;
 } ParseRule;
 
-static void literal(bool canAssign, bool allowTuple);
+static void literal(bool assign, bool tuple, bool skip);
 
-static void number(bool canAssign, bool allowTuple);
+static void number(bool assign, bool tuple, bool skip);
 
-static void string(bool canAssign, bool allowTuple);
+static void string(bool assign, bool tuple, bool skip);
 
-static void rstring(bool canAssign, bool allowTuple);
+static void rstring(bool assign, bool tuple, bool skip);
 
-static void fstring(bool canAssign, bool allowTuple);
+static void fstring(bool assign, bool tuple, bool skip);
 
-static void list(bool canAssign, bool allowTuple);
+static void list(bool assign, bool tuple, bool skip);
 
-static void tuple(bool canAssign, bool allowTuple);
+static void tuple(bool assign, bool tuple, bool skip);
 
-static void dict(bool canAssign, bool allowTuple);
+static void dict(bool assign, bool tuple, bool skip);
 
-static void grouping(bool canAssign, bool allowTuple);
+static void grouping(bool assign, bool tuple, bool skip);
 
-static void unary(bool canAssign, bool allowTuple);
+static void unary(bool assign, bool tuple, bool skip);
 
-static void binary(bool canAssign, bool allowTuple);
+static void binary(bool assign, bool tuple, bool skip);
 
-static void is(bool canAssign, bool allowTuple);
+static void is(bool assign, bool tuple, bool skip);
 
-static void in(bool canAssign, bool allowTuple);
+static void in(bool assign, bool tuple, bool skip);
 
-static void variable(bool canAssign, bool allowTuple);
+static void variable(bool assign, bool tuple, bool skip);
 
-static void and(bool canAssign, bool allowTuple);
+static void and(bool assign, bool tuple, bool skip);
 
-static void or(bool canAssign, bool allowTuple);
+static void or(bool assign, bool tuple, bool skip);
 
-static void call(bool canAssign, bool allowTuple);
+static void call(bool assign, bool tuple, bool skip);
 
-static void item(bool canAssign, bool allowTuple);
+static void item(bool assign, bool tuple, bool skip);
 
-static void dot(bool canAssign, bool allowTuple);
+static void dot(bool assign, bool tuple, bool skip);
 
-static void lambda(bool canAssign, bool allowTuple);
+static void lambda(bool assign, bool tuple, bool skip);
 
 static void statement(int breakPointer, int continuePointer);
 
@@ -164,7 +164,9 @@ ParseRule rules[TOKEN_COUNT] = {
     [TOKEN_NONE]          = {literal,  NULL,   PREC_NONE},
 };
 
-static ParseRule* getRule(TokenType type) {
+static ParseRule* getRule(TokenType type, bool tuple) {
+    if (!tuple && type == TOKEN_COMMA)
+        return &rules[TOKEN_NONE];
     return &rules[type];
 }
 
@@ -177,9 +179,8 @@ static CodeVec* currentCode() {
     return &current->function->code;
 }
 
-static void advance() {
-    parser.current = parser.next;
-    parser.next = scanToken();
+static void advance(bool skip) {
+    parser.current = scanToken(skip);
     #ifdef DEBUG_PRINT_TOKENS
         printToken(&parser.current);
     #endif
@@ -203,8 +204,7 @@ static void synchronize() {
             default:
                 break;
         }
-
-        advance();
+        advance(false);
     }
 }
 
@@ -219,24 +219,20 @@ static bool reportError(const char *message, Token *token) {
     return true;
 }
 
-static bool check(TokenType type, bool skip) {
-    if (skip)
-        while (parser.current.type == TOKEN_NEWLINE)
-            advance();
+static bool check(TokenType type) {
     return parser.current.type == type;
 }
 
 static bool checkNext(TokenType type, bool skip) {
-    if (skip)
-        while (parser.next.type == TOKEN_NEWLINE)
-            parser.next = scanToken();
+    if (skip && (parser.next.type == TOKEN_NEWLINE || parser.next.type == TOKEN_INDENT || parser.next.type == TOKEN_DEDENT) )
+        parser.next = scanToken(true);
     return parser.next.type == type;
 }
 
 static bool consume(TokenType type, bool skip) {
-    if (!check(type, skip))
+    if (!check(type))
         return false;
-    advance();
+    advance(skip);
     return true;
 }
 
@@ -333,8 +329,8 @@ static ObjFunction* endCompiler() {
     return function;
 }
 
-static void parseExpression(Precedence precedence, bool canAssign, bool allowTuple) {
-    ParseFn prefixFunc = getRule(parser.current.type)->prefix;
+static void parseExpression(Precedence precedence, bool assign, bool tuple, bool skip) {
+    ParseFn prefixFunc = getRule(parser.current.type, tuple)->prefix;
 
     if (prefixFunc == NULL) {
         reportError("Expect expression", &parser.current);
@@ -342,25 +338,21 @@ static void parseExpression(Precedence precedence, bool canAssign, bool allowTup
         return;
     }
 
-    canAssign &= precedence <= PREC_ASSIGNMENT;
+    assign &= precedence <= PREC_ASSIGNMENT;
 
-    prefixFunc(canAssign, allowTuple);
+    prefixFunc(assign, tuple, skip);
 
-    while (precedence < getRule(parser.current.type)->precedence) {
-        ParseFn infixFunc = getRule(parser.current.type)->infix;
-        if (infixFunc == tuple && !allowTuple)
-            return;
-        infixFunc(canAssign, allowTuple);
+    while (precedence < getRule(parser.current.type, tuple)->precedence) {
+        ParseFn infixFunc = getRule(parser.current.type, tuple)->infix;
+        infixFunc(assign, tuple, skip);
     }
 }
 
-static void expression(bool tuple) {
-    parseExpression(PREC_ASSIGNMENT, false, tuple);
+static void expression(bool tuple, bool skip) {
+    parseExpression(PREC_ASSIGNMENT, false, tuple, skip);
 }
 
-static void literal(bool canAssign, bool allowTuple) {
-    (void)canAssign;
-
+static void literal(bool assign, bool tuple, bool skip) {
     switch (parser.current.type) {
         case TOKEN_TRUE:
             emitByte(OP_TRUE, parser.current); 
@@ -374,136 +366,118 @@ static void literal(bool canAssign, bool allowTuple) {
         default:
             return;
     }
-    advance();
+    advance(skip);
 }
 
-static void number(bool canAssign, bool allowTuple) {
-    (void)canAssign;
-
+static void number(bool assign, bool tuple, bool skip) {
     double value = strtod(parser.current.start, NULL);
     if ((long long)value == value)
         emitConstant(INT_VAL(value));
     else
         emitConstant(FLOAT_VAL(value));
-    advance();
+    advance(skip);
 }
 
-static void string(bool canAssign, bool allowTuple) {
-    (void)canAssign;
-
+static void string(bool assign, bool tuple, bool skip) {
     emitConstant(STRING_VAL(copyEscapedString(parser.current.start, parser.current.length)));
-    advance();
+    advance(skip);
 }
 
-static void rstring(bool canAssign, bool allowTuple) {
-    (void)canAssign;
-
+static void rstring(bool assign, bool tuple, bool skip) {
     emitConstant(STRING_VAL(copyString(parser.current.start, parser.current.length)));
-    advance();
+    advance(skip);
 }
 
-static void list(bool canAssign, bool allowTuple) {
-    (void)canAssign;
-
+static void list(bool assign, bool tuple, bool skip) {
     size_t size = 0;
     advance(true);
     do {
-        if (check(TOKEN_RIGHT_BRACKET, false))
+        if (check(TOKEN_RIGHT_BRACKET))
             break;
-        expression(false);
+        expression(false, true);
         size++;
     } while (consume(TOKEN_COMMA, true));
 
-    if (!consume(TOKEN_RIGHT_BRACKET, true))
+    if (!consume(TOKEN_RIGHT_BRACKET, false))
         reportError("Expect ']'", &parser.current);
 
     emitBytes(OP_BUILD_LIST, (uint8_t)size, (Token){0});
 }
 
-static void tuple(bool canAssign, bool allowTuple) {
-    (void)canAssign;
-    if (!allowTuple)
-        return;
-    advance();
+static void tuple(bool assign, bool tuple, bool skip) {
+    advance(true);
 
     size_t size = 1;
     do {
-        if (check(TOKEN_NEWLINE, false) || check(TOKEN_RIGHT_PAREN, false))
+        if (check(TOKEN_NEWLINE) || check(TOKEN_RIGHT_PAREN))
             break;
-        expression(false);
+        expression(false, true);
         size++;
-    } while (consume(TOKEN_COMMA, false));
+    } while (consume(TOKEN_COMMA, true));
 
     emitBytes(OP_BUILD_TUPLE, (uint8_t)size, (Token){0});
 }
 
-static void dict(bool canAssign, bool allowTuple) {
-    advance();
-
+static void dict(bool assign, bool tuple, bool skip) {
     size_t size = 0;
     do  {
-        if (check(TOKEN_RIGHT_BRACE, false))
+        if (check(TOKEN_RIGHT_BRACE))
             break;
-        expression(false);
-        if (!consume(TOKEN_COLON, false))
+        expression(true, true);
+        if (!consume(TOKEN_COLON, true))
             reportError("':' expected after dictionary key", &parser.current);
-        expression(false);
+        expression(true, true);
         size++;
-    } while (consume(TOKEN_COMMA, false));
+    } while (consume(TOKEN_COMMA, true));
 
-    if (!consume(TOKEN_RIGHT_BRACE, false))
+    if (!consume(TOKEN_RIGHT_BRACE, true))
         reportError("Expect '}'", &parser.current);
 
     emitBytes(OP_BUILD_DICT, (uint8_t)size, (Token){0});
 }
 
-static void fstring(bool canAssign, bool allowTuple) {
-    (void)canAssign;
-
+static void fstring(bool assign, bool tuple, bool skip) {
     int count = 0;
 
-    while (!check(TOKEN_STRING, false)) {
+    while (!check(TOKEN_STRING)) {
         if (parser.current.length > 0) {
-            string(true, true);
+            string(true, true, skip);
             count++;
         } else {
-            advance();
+            advance(skip);
         }
-        expression(false);
+        expression(true, skip);
         count++;
     }
 
     if (parser.current.length > 0) {
-        string(true, true);
+        string(true, true, skip);
         count++;
     } else {
-        advance();
+        advance(skip);
     }
     emitBytes(OP_BUILD_FSTRING, (uint8_t)count, (Token){0});
 }
 
-static void grouping(bool canAssign, bool allowTuple) {
-    (void)canAssign;
-    advance();
+static void grouping(bool assign, bool tuple, bool skip) {
+    advance(true);
 
     if (consume(TOKEN_RIGHT_PAREN, false)) {
         emitBytes(OP_BUILD_TUPLE, 0, (Token){0});
         return;
     }
 
-    expression(true);
+    expression(true, true);
 
-    if (!consume(TOKEN_RIGHT_PAREN, true))
+    if (!consume(TOKEN_RIGHT_PAREN, false))
         reportError("Opening parenthesis does not closed", NULL);
 }
 
-static void unary(bool canAssign, bool allowTuple) {
-    (void)canAssign;
-
+static void unary(bool assign, bool tuple, bool skip) {
     Token operator = parser.current;
-    advance();
+    advance(skip);
 
-    parseExpression(getRule(operator.type)->precedence, false, false);
+    parseExpression(getRule(operator.type, tuple)->precedence, false, false, skip);
 
     switch (operator.type) {
         case TOKEN_PLUS:
@@ -523,13 +497,11 @@ static void unary(bool canAssign, bool allowTuple) {
     }
 }
 
-static void binary(bool canAssign, bool allowTuple) {
-    (void)canAssign;
-    
+static void binary(bool assign, bool tuple, bool skip) {
     Token operator = parser.current;
-    advance();
+    advance(skip);
 
-    parseExpression(getRule(operator.type)->precedence, false, false);
+    parseExpression(getRule(operator.type, tuple)->precedence, false, false, skip);
 
     switch (operator.type) {
         case TOKEN_BANG_EQUAL:
@@ -594,29 +566,29 @@ static void binary(bool canAssign, bool allowTuple) {
     }
 }
 
-static void is(bool canAssign, bool allowTuple) {
+static void is(bool assign, bool tuple, bool skip) {
     Token operator = parser.current;
-    advance();
+    advance(skip);
 
-    bool negate = consume(TOKEN_NOT, false);
+    bool negate = consume(TOKEN_NOT, skip);
 
-    parseExpression(PREC_COMPARISON, false, false);
+    parseExpression(PREC_COMPARISON, false, false, skip);
 
     emitByte(OP_IS, operator);
     if (negate)
         emitByte(OP_NOT, operator);
 }
 
-static void in(bool canAssign, bool allowTuple) {
+static void in(bool assign, bool tuple, bool skip) {
     Token operator = parser.current;
-    bool negate = consume(TOKEN_NOT, false);
+    bool negate = consume(TOKEN_NOT, skip);
 
-    if (!consume(TOKEN_IN, false)) {
+    if (!consume(TOKEN_IN, skip)) {
         reportError("invalid syntax", &operator);
         return;
     }
     
-    parseExpression(PREC_COMPARISON, false, false);
+    parseExpression(PREC_COMPARISON, false, false, skip);
 
     emitByte(OP_CONTAINS, operator);
     if (negate)
@@ -635,7 +607,7 @@ static uint8_t identifierConstant(Token *name) {
 }
 
 static void expressionStatement() {
-    parseExpression(PREC_ASSIGNMENT, true, true);
+    parseExpression(PREC_ASSIGNMENT, true, true, false);
     
     if (!consumeEOS())
         reportError("Expect eos after statement", &parser.current);
@@ -654,14 +626,14 @@ static void patchJump(int offset) {
 }
 
 static void block(int breakPoiner, int continuePointer) {
-    while (!check(TOKEN_DEDENT, false) && !check(TOKEN_EOF, false))
+    while (!check(TOKEN_DEDENT) && !check(TOKEN_EOF))
         statement(breakPoiner, continuePointer);
     
     consume(TOKEN_DEDENT, false);
 }
 
 static void oneLineBlock(int breakPointer, int continuePointer) {
-    while (!check(TOKEN_NEWLINE, false) && !check(TOKEN_EOF, false))
+    while (!check(TOKEN_NEWLINE) && !check(TOKEN_EOF))
         statement(breakPointer, continuePointer);
     
     consume(TOKEN_NEWLINE, false);
@@ -772,7 +744,7 @@ static void assignment(uint8_t getOp, uint8_t setOp, int arg, Token operator) {
     if (operator.type != TOKEN_EQUAL && operator.type != TOKEN_COLON_EQUAL)
         emitAssignment(getOp, arg, operator);
     
-    expression(true);
+    expression(true, false);
 
     switch (operator.type) {
         case TOKEN_PLUS_EQUAL:
@@ -819,20 +791,20 @@ static void assignment(uint8_t getOp, uint8_t setOp, int arg, Token operator) {
     emitAssignment(setOp, arg, operator);
 }
 
-static void variable(bool canAssign, bool allowTuple) {
+static void variable(bool assign, bool tuple, bool skip) {
     uint8_t getOp, setOp, arg;
     Token name = parser.current;
-    advance();
+    advance(skip);
     Token operator = parser.current;
 
     if (isAssignment(operator)) {
-        advance();
-        if (!canAssign)
+        advance(skip);
+        if (!assign)
             reportError("Variable assignment is now allowed here", &operator);
         resolveVariableAssignment(&name, &getOp, &setOp, &arg);
         assignment(getOp, setOp, arg, operator);
     } else if (operator.type == TOKEN_COLON_EQUAL) {
-        advance();
+        advance(skip);
         resolveVariableAssignment(&name, &getOp, &setOp, &arg);
         assignment(getOp, setOp, arg, operator);
     } else {
@@ -845,26 +817,23 @@ static void variable(bool canAssign, bool allowTuple) {
 //            Control flow
 // ======================================    
 
-static void and(bool canAssign, bool allowTuple) {
-    (void)canAssign;
-
-    advance();
+static void and(bool assign, bool tuple, bool skip) {
+    advance(skip);
     int endJump = emitJump(OP_JUMP_FALSE);
 
     emitByte(OP_POP, (Token){0});
-    parseExpression(PREC_BOOL_AND, false, true);
+    // question
+    parseExpression(PREC_BOOL_AND, false, true, skip);
 
     patchJump(endJump);
 }
 
-static void or(bool canAssign, bool allowTuple){
-    (void)canAssign;
-
-    advance();
+static void or(bool assign, bool tuple, bool skip){
+    advance(skip);
     int endJump = emitJump(OP_JUMP_TRUE);
 
     emitByte(OP_POP, (Token){0});
-    parseExpression(PREC_BOOL_OR, false, true);
+    parseExpression(PREC_BOOL_OR, false, true, skip);
 
     patchJump(endJump);
 }
@@ -884,7 +853,7 @@ static void parseBlock(int breakPointer, int continuePointer) {
 
 static void ifStatement(int breakPointer, int continuePointer) {
     advance(false);
-    expression(false);
+    expression(false, false);
 
     int jumpToNextBranch = emitJump(OP_JUMP_FALSE_POP);
     int jumpToEnd = -1;
@@ -895,7 +864,7 @@ static void ifStatement(int breakPointer, int continuePointer) {
         jumpToEnd = emitJump(OP_JUMP);
         while (consume(TOKEN_ELIF, false)) {
             patchJump(jumpToNextBranch);
-            expression(false);
+            expression(false, false);
             jumpToNextBranch = emitJump(OP_JUMP_FALSE_POP);
 
             parseBlock(breakPointer, continuePointer);
@@ -919,7 +888,7 @@ static void breakStatement(int breakPointer) {
     if (breakPointer == -1)
         reportError("Can't use 'break' outside of loop body", &parser.current);
 
-    advance();
+    advance(false);
     
     emitLoop(OP_LOOP, breakPointer - 1);
 
@@ -931,7 +900,7 @@ static void continueStatement(int continuePointer) {
     if (continuePointer == -1)
         reportError("Can't use 'continue' outside of loop body", &parser.current);
     
-    advance();
+    advance(false);
 
     emitLoop(OP_LOOP, continuePointer);
 
@@ -946,7 +915,7 @@ static int breakJump() {
 }
 
 static void whileStatement() {
-    advance();
+    advance(false);
 
     int jumpToEnd, jumpToEndIfFalse;
     int conditionPointer;
@@ -954,7 +923,7 @@ static void whileStatement() {
     jumpToEnd = breakJump();
     conditionPointer = currentCode()->size;
 
-    expression(false);
+    expression(false, false);
     jumpToEndIfFalse = emitJump(OP_JUMP_FALSE_POP);
 
     parseBlock(jumpToEnd, conditionPointer);
@@ -966,7 +935,7 @@ static void whileStatement() {
 }
 
 static void forStatement() {
-    advance();
+    advance(false);
 
     Token name = parser.current;
     if (!consume(TOKEN_IDENTIFIER, false))
@@ -977,7 +946,8 @@ static void forStatement() {
 
     int jumpToEnd = breakJump();
     
-    expression(true);
+    // question
+    expression(true, false);
     emitByte(OP_MAKE_ITERATOR, name);
 
     int jumpToExcept = emitJump(OP_SETUP_TRY);
@@ -999,7 +969,7 @@ static void forStatement() {
 }
 
 static void tryStatement(int breakPointer, int continuePointer) {
-    advance();
+    advance(false);
 
     int jumpToExcept = emitJump(OP_SETUP_TRY);
 
@@ -1008,18 +978,39 @@ static void tryStatement(int breakPointer, int continuePointer) {
     int jumpToFinally = emitJump(OP_JUMP);
 
     patchJump(jumpToExcept);
-    if (!consume(TOKEN_EXCEPT, false))
+
+    if (!check(TOKEN_EXCEPT))
         reportError("expected 'except' or 'finally' block", &parser.current);
-    
-    parseBlock(breakPointer, continuePointer);
+
+    int jumpToNextBranch = -1;
+
+    while (consume(TOKEN_EXCEPT, false)) {
+        if (jumpToNextBranch != -1)
+            patchJump(jumpToNextBranch);
+
+        if (!check(TOKEN_COLON)) {
+            expression(false, false);
+            emitByte(OP_IS_INSTANCE, (Token){0});
+            jumpToNextBranch = emitJump(OP_JUMP_FALSE_POP);
+        }
+
+        parseBlock(breakPointer, continuePointer);
+
+        emitLoop(OP_LOOP, jumpToFinally - 1);
+    }
+
+    if (jumpToNextBranch != -1)
+        patchJump(jumpToNextBranch);
 
     patchJump(jumpToFinally);
+
+    emitByte(OP_POP, (Token){0});
 }
 
 static void raiseStatement() {
-    advance();
+    advance(false);
 
-    expression(false);
+    expression(false, false);
 
     emitByte(OP_RAISE, (Token){0});
 }
@@ -1038,24 +1029,24 @@ static void parseArgs(Compiler *compiler, FunctionType type, Token name) {
     TokenVec names;
     TokenVecInit(&names);
 
-    if (!check(TOKEN_RIGHT_PAREN, false)) {
+    if (!check(TOKEN_RIGHT_PAREN)) {
         do {
             if (arity > 255) {
                 reportError("Can't have more than 255 parameters", &parser.current);
             }
 
-            if (consume(TOKEN_STAR, false)) {
+            if (consume(TOKEN_STAR, true)) {
                 if (extraArgs != -1)
                     reportError("* argument may appear only once", &parser.current);
                 extraArgs = arity;
             }
 
-            if (consume(TOKEN_DOUBLE_STAR, false)) {
+            if (consume(TOKEN_DOUBLE_STAR, true)) {
                 extraKwargs = arity;
             }
 
             TokenVecPush(&names, parser.current);
-            advance();
+            advance(true);
 
             if (consume(TOKEN_EQUAL, true)) {
                 if (defaultCount == 0)
@@ -1064,7 +1055,7 @@ static void parseArgs(Compiler *compiler, FunctionType type, Token name) {
                     reportError("var-positional argument cannot have default value", &parser.current);
                 if (extraKwargs == arity)
                     reportError("var-keyword argument cannot have default value", &parser.current);
-                expression(false);
+                expression(false, true);
                 defaultCount++;
             } else if (defaultCount > 0 && extraArgs == -1)
                 reportError("Non-default argument follows default argument", &parser.current);
@@ -1092,7 +1083,7 @@ static void parseArgs(Compiler *compiler, FunctionType type, Token name) {
 static void function(FunctionType type) {
     Compiler compiler;
     Token name = parser.current;
-    advance();
+    advance(false);
 
     if (!consume(TOKEN_LEFT_PAREN, false))
         reportError("Expect '(' after function name", &parser.current);
@@ -1115,26 +1106,26 @@ static void function(FunctionType type) {
 }
 
 static void funcDeclaration() {
-    advance();
+    advance(false);
     Token name = parser.current;
     declareVariable(name);
     function(TYPE_FUNCTION);
     defineVariable(name);
 }
 
-static void lambda(bool canAssign, bool AllowTuple) {
+static void lambda(bool assign, bool tuple, bool skip) {
     Compiler compiler;
     Token name; 
     name.start = "<lambda>";
     name.length = 8;
-    advance();
+    advance(skip);
 
     parseArgs(&compiler, TYPE_FUNCTION, name);
 
     if (!consume(TOKEN_COLON, true))
         reportError("Expect ':' after parameters", &parser.current);
 
-    expression(false);
+    expression(false, skip);
     emitByte(OP_RETURN, name);
 
     ObjFunction *function = endCompiler();
@@ -1151,33 +1142,34 @@ static uint16_t parseArguments() {
     uint8_t argc = 0;
     uint8_t kwargc = 0;
 
-    if (!check(TOKEN_RIGHT_PAREN, false)) {
+    if (check(TOKEN_NEWLINE))
+        advance(true);
+
+    if (!check(TOKEN_RIGHT_PAREN)) {
         do {
-            if (check(TOKEN_IDENTIFIER, false) && checkNext(TOKEN_EQUAL, false)) {
-                rstring(false, false);
-                advance();
-                expression(false);
+            if (check(TOKEN_IDENTIFIER) && checkNext(TOKEN_EQUAL, false)) {
+                rstring(false, false, true);
+                advance(true);
+                expression(false, true);
                 kwargc++;
             } else{
                 if (kwargc > 0)
                     reportError("positional argument follows keyword argument", &parser.current);
-                expression(false);
+                expression(false, true);
                 argc++;
             }
         } while (consume(TOKEN_COMMA, true));
     }
 
-    if (!consume(TOKEN_RIGHT_PAREN, true))
+    if (!consume(TOKEN_RIGHT_PAREN, false))
         reportError("Expect ')' after arguments", &parser.current);
 
     return (argc << 8) | kwargc;
 }
 
-static void call(bool canAssign, bool allowTuple) {
-    (void)canAssign;
-
+static void call(bool assign, bool tuple, bool skip) {
     Token name = parser.current;
-    advance();
+    advance(skip);
     uint16_t args = parseArguments();
     uint8_t argc = args >> 8;
     uint8_t kwargc = args & 0xff;
@@ -1197,7 +1189,7 @@ static void method() {
 }
 
 static void classDeclaration() {
-    advance();
+    advance(false);
     Token name = parser.current;
     Token super = (Token){.type=TOKEN_EOF}; 
     if (!consume(TOKEN_IDENTIFIER, false))
@@ -1241,7 +1233,7 @@ static void classDeclaration() {
         if (!consume(TOKEN_INDENT, false))
             reportError("expect indent", &parser.current);
         
-        while (!check(TOKEN_DEDENT, false) && !check(TOKEN_EOF, false))
+        while (!check(TOKEN_DEDENT) && !check(TOKEN_EOF))
             if (consume(TOKEN_DEF, false))
                 method();
         
@@ -1253,39 +1245,37 @@ static void classDeclaration() {
     currentClass = currentClass->enclosing;
 }
 
-static void dot(bool canAssign, bool allowTuple) {
-    advance();
+static void dot(bool assign, bool tuple, bool skip) {
+    advance(skip);
     Token name = parser.current;
-    if (!consume(TOKEN_IDENTIFIER, false)) {
+    if (!consume(TOKEN_IDENTIFIER, skip)) {
         reportError("Expect property name after '.'", &parser.current);
     }
     uint8_t arg = identifierConstant(&name);
 
     Token operator = parser.current;
     if (isAssignment(operator)) {
-        if (!canAssign)
+        if (!assign)
             reportError("Assignment is not allowed here", &operator);
         
-        advance();
+        advance(skip);
         assignment(OP_GET_ATTRIBUTE, OP_SET_ATTRIBUTE, arg, operator);
     } else {
         emitBytes(OP_GET_ATTRIBUTE, arg, name);
     }
 }
 
-static void item(bool canAssign, bool allowTuple) {
-    (void)canAssign;
-
+static void item(bool assign, bool tuple, bool skip) {
     advance(true);
     Token index = parser.current;
-    expression(false);
-    advance(false);
+    expression(true, true);
+    advance(true);
 
     Token operator = parser.current;
 
     if (isAssignment(operator)) {
         advance(true);
-        if (!canAssign)
+        if (!assign)
             reportError("Assignment is not allowed here", &operator);
 
         assignment(OP_GET_ITEM_NO_POP, OP_SET_ITEM, NO_ARG, operator);
@@ -1302,7 +1292,7 @@ static void returnStatement() {
     if (consumeEOS()) {
         emitReturn();
     } else {
-        expression(false);
+        expression(false, false);
         if (!consumeEOS()) {
             reportError("Expect eos after value", &parser.current);
         }
@@ -1315,7 +1305,7 @@ static void statement(int breakPointer, int continuePointer) {
         case TOKEN_NEWLINE:
         case TOKEN_SEMICOLON:
         case TOKEN_PASS:
-            advance();
+            advance(false);
             break;
         case TOKEN_DEF:
             funcDeclaration();
@@ -1364,8 +1354,7 @@ ObjFunction* compile(const char *source) {
     parser.panicMode = false;
     parser.source = source;
 
-    advance();
-    advance();
+    advance(false);
 
     while (parser.current.type != TOKEN_EOF)
         statement(-1, -1);
