@@ -70,6 +70,13 @@
     .repr = Exception_ToRepr                     \
 }
 
+#define RUNTIME_ERROR_METHODS (ValueMethods) { \
+    .init = RuntimeError_Init,                 \
+    .class = RuntimeError_Class,               \
+    .str = Exception_ToStr,                    \
+    .repr = Exception_ToRepr                   \
+}
+
 typedef struct {
     Obj obj;
     Value value;
@@ -118,5 +125,9 @@ Value KeyError_Class(Value value);
 Value AttributeError_Init(Value callee, int argc, Value *argv);
 
 Value AttributeError_Class(Value value);
+
+Value RuntimeError_Init(Value callee, int argc, Value *argv);
+
+Value RuntimeError_Class(Value value);
 
 #endif

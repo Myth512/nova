@@ -282,6 +282,7 @@ static void defineNativeTypes() {
     vm.types.indexError = defineNativeClass("IndexError", VAL_INDEX_ERROR, VAL_EXCEPTION);
     vm.types.keyError = defineNativeClass("KeyError", VAL_KEY_ERROR, VAL_EXCEPTION);
     vm.types.attributeError = defineNativeClass("AttributeError", VAL_ATTRIBUTE_ERROR, VAL_EXCEPTION);
+    vm.types.runtimeError = createNativeclass("RuntimeError", VAL_RUNTIME_ERROR, VAL_EXCEPTION);
     vm.types.super = defineNativeClass("super", VAL_SUPER, VAL_OBJECT);
     vm.types.range = defineNativeClass("range", VAL_RANGE, VAL_OBJECT);
     vm.types.rangeIterator = createNativeclass("range_iterator", VAL_RANGE_ITERATOR, VAL_OBJECT);
@@ -795,7 +796,13 @@ static Value run() {
                 frame->exceptAddr = frame->ip + offset;
                 break;
             }
-            case OP_RAISE:
+            case OP_END_TRY:
+                frame->exceptAddr = NULL;
+                break;
+            case OP_RAISE: {
+                if (!isInstance(peek(0), TYPE_CLASS(exception)))
+                    push(createException(VAL_RUNTIME_ERROR, "No active exception to reraise"));
+                }
                 raise();
                 break;
             case OP_CALL: {

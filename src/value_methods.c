@@ -61,6 +61,7 @@ ValueMethods MethodTable[] = {
     [VAL_KEY_ERROR] = KEY_ERROR_METHODS, 
     [VAL_ATTRIBUTE_ERROR] = ATTRIBUTE_ERROR_METHODS, 
     [VAL_NAME_ERROR] = NAME_ERROR_METHODS,
+    [VAL_RUNTIME_ERROR] = RUNTIME_ERROR_METHODS,
 };
 
 static void *getMethod(Value value, int offset) {

@@ -48,6 +48,7 @@ typedef enum {
     VAL_INDEX_ERROR,
     VAL_KEY_ERROR,
     VAL_ATTRIBUTE_ERROR,
+    VAL_RUNTIME_ERROR,
 } ValueType;
 
 typedef struct {

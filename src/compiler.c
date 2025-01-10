@@ -220,7 +220,7 @@ static bool reportError(const char *message, Token *token) {
         return false;
     parser.panicMode = true;
     parser.errorCount++;
-    fprintf(stderr, "\033[31mParse Error\033[0m: %s\n", message);
+    fprintf(stderr, "\033[31mSyntax Error\033[0m: %s\n", message);
     if (token != NULL)
         printTokenInCode(parser.source, token);
     return true;
@@ -1034,6 +1034,8 @@ static void tryStatement(int breakPointer, int continuePointer) {
 
     patchJump(jumpToExcept);
 
+    emitByte(OP_END_TRY, (Token){0});
+
     if (!check(TOKEN_EXCEPT))
         reportError("expected 'except' or 'finally' block", &parser.current);
 
@@ -1043,13 +1045,31 @@ static void tryStatement(int breakPointer, int continuePointer) {
         if (jumpToNextBranch != -1)
             patchJump(jumpToNextBranch);
 
+        Token name = (Token){0};
+
         if (!check(TOKEN_COLON)) {
             expression(false, false);
             emitByte(OP_IS_INSTANCE, (Token){0});
             jumpToNextBranch = emitJump(OP_JUMP_FALSE_POP);
+
+            if (consume(TOKEN_AS, false)) {
+                name = parser.current;
+                if (!consume(TOKEN_IDENTIFIER, false))
+                    reportError("invalid syntax", &parser.current);
+                
+                uint8_t getOp, setOp, arg;
+                resolveVariableAssignment(&name, &getOp, &setOp, &arg);
+                emitBytes(setOp, arg, name);
+            }
         }
 
         parseBlock(breakPointer, continuePointer);
+
+        if (name.start != NULL) {
+            uint8_t getOp, delOp, arg;
+            resolveVariableReference(&name, &getOp, &delOp, &arg);
+            emitBytes(delOp, arg, name);
+        }
 
         emitLoop(OP_LOOP, jumpToFinally - 1);
     }
@@ -1065,7 +1085,8 @@ static void tryStatement(int breakPointer, int continuePointer) {
 static void raiseStatement() {
     advance(false);
 
-    expression(false, false);
+    if (!consumeEOS())
+        expression(false, false);
 
     emitByte(OP_RAISE, (Token){0});
 }

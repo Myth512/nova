@@ -64,6 +64,7 @@ typedef enum {
     OP_LOOP,
     OP_LOOP_TRUE_POP,
     OP_SETUP_TRY,
+    OP_END_TRY,
     OP_RAISE,
     OP_CALL,
     OP_CLOSURE,

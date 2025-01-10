@@ -118,3 +118,11 @@ Value AttributeError_Init(Value callee, int argc, Value *argv) {
 Value AttributeError_Class(Value value) {
     return TYPE_CLASS(attributeError);
 }
+
+Value RuntimeError_Init(Value callee, int argc, Value *argv) {
+    return init(argc, argv, VAL_RUNTIME_ERROR);
+}
+
+Value RuntimeError_Class(Value value) {
+    return TYPE_CLASS(runtimeError);
+}
