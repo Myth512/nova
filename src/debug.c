@@ -207,18 +207,24 @@ int printInstruction(CodeVec *vec, int offset) {
             return varInstruction("GET GLOBAL", vec, offset);
         case OP_SET_GLOBAL:
             return varInstruction("SET GLOBAL", vec, offset);
+        case OP_DEL_GLOBAL:
+            return varInstruction("DEL GLOBAL", vec, offset);
         case OP_GET_LOCAL:
             return byteInstruction("GET LOCAL", vec, offset);
         case OP_SET_LOCAL:
             return byteInstruction("SET LOCAL", vec, offset);
+        case OP_DEL_LOCAL:
+            return byteInstruction("DEL LOCAL", vec, offset);
         case OP_GET_UPVALUE:
             return byteInstruction("GET UPVALUE", vec, offset);
         case OP_SET_UPVALUE:
             return byteInstruction("SET UPVALUE", vec, offset);
-        case OP_SET_ITEM:
-            return simpleInstruction("SET AT", offset);
         case OP_GET_ITEM:
-            return simpleInstruction("GET AT", offset);
+            return simpleInstruction("GET ITEM", offset);
+        case OP_SET_ITEM:
+            return simpleInstruction("SET ITEM", offset);
+        case OP_DEL_ITEM:
+            return simpleInstruction("DEL ITEM", offset);
         case OP_GET_ITEM_NO_POP:
             return simpleInstruction("GET AT NO POP", offset);
         case OP_ADD:
@@ -326,6 +332,8 @@ int printInstruction(CodeVec *vec, int offset) {
             return constantInstruction("GET ATTRIBUTE", vec, offset);
         case OP_SET_ATTRIBUTE:
             return constantInstruction("SET ATTRIBUTE", vec, offset);
+        case OP_DEL_ATTRIBUTE:
+            return constantInstruction("DEL ATTRIBUTE", vec, offset);
         default:
             printf("Unknown opcode %d\n", opcode);
             return offset + 1;

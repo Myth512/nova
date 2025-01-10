@@ -479,6 +479,11 @@ static void setLocal() {
     frame->slots[slot] = peek(0);
 }
 
+static void delLocal() {
+    uint8_t slot = READ_BYTE();
+    frame->slots[slot] = UNDEFINED_VAL; 
+}
+
 static void getItem(bool popValues) {
     Value key;
     Value object;
@@ -505,6 +510,12 @@ static void setItem() {
     valueSetItem(object, key, value);
 }
 
+static void delItem() {
+    Value key = pop();
+    Value object = peek(0);
+    valueDelItem(object, key);
+}
+
 static void getAttrtibute() {
     Value obj = pop();
     ObjString *name = READ_STRING();
@@ -522,6 +533,12 @@ static void setAttribute() {
     ObjString *name = READ_STRING();
     Value value = pop();
     valueSetAttr(obj, name, value);
+}
+
+static void delAttribute() {
+    Value obj = pop();
+    ObjString *name = READ_STRING();
+    valueDelAttr(obj, name);
 }
 
 static Value run() {
@@ -562,11 +579,19 @@ static Value run() {
                 tableSet(&vm.globals, name, peek(0));
                 break;
             }
+            case OP_DEL_GLOBAL: {
+                ObjString *name = READ_STRING();
+                tableDelete(&vm.globals, name);
+                break;
+            }
             case OP_GET_LOCAL:
                 getLocal();
                 break;
             case OP_SET_LOCAL:
                 setLocal();
+                break;
+            case OP_DEL_LOCAL:
+                delLocal();
                 break;
             case OP_GET_UPVALUE: {
                 uint8_t slot = READ_BYTE();
@@ -587,6 +612,9 @@ static Value run() {
             case OP_SET_ITEM:
                 setItem();
                 break;
+            case OP_DEL_ITEM:
+                delItem();
+                break; 
             case OP_FALSE:
                 push(BOOL_VAL(false));
                 break;
@@ -787,6 +815,9 @@ static Value run() {
                 break;
             case OP_SET_ATTRIBUTE:
                 setAttribute();
+                break;
+            case OP_DEL_ATTRIBUTE:
+                delAttribute();
                 break;
             case OP_RETURN: {
                 if (return_())

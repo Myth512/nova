@@ -73,7 +73,7 @@ typedef enum {
     PREC_PRIMARY
 } Precedence;
 
-typedef void (*ParseFn)(bool, bool, bool);
+typedef void (*ParseFn)(bool, bool, bool, bool);
 
 typedef struct {
     ParseFn prefix;
@@ -81,45 +81,45 @@ typedef struct {
     Precedence precedence;
 } ParseRule;
 
-static void literal(bool assign, bool tuple, bool skip);
+static void literal(bool assign, bool tuple, bool skip, bool del);
 
-static void number(bool assign, bool tuple, bool skip);
+static void number(bool assign, bool tuple, bool skip, bool del);
 
-static void string(bool assign, bool tuple, bool skip);
+static void string(bool assign, bool tuple, bool skip, bool del);
 
-static void rstring(bool assign, bool tuple, bool skip);
+static void rstring(bool assign, bool tuple, bool skip, bool del);
 
-static void fstring(bool assign, bool tuple, bool skip);
+static void fstring(bool assign, bool tuple, bool skip, bool del);
 
-static void list(bool assign, bool tuple, bool skip);
+static void list(bool assign, bool tuple, bool skip, bool del);
 
-static void tuple(bool assign, bool tuple, bool skip);
+static void tuple(bool assign, bool tuple, bool skip, bool de);
 
-static void dict(bool assign, bool tuple, bool skip);
+static void dict(bool assign, bool tuple, bool skip, bool del);
 
-static void grouping(bool assign, bool tuple, bool skip);
+static void grouping(bool assign, bool tuple, bool skip, bool del);
 
-static void unary(bool assign, bool tuple, bool skip);
+static void unary(bool assign, bool tuple, bool skip, bool del);
 
-static void binary(bool assign, bool tuple, bool skip);
+static void binary(bool assign, bool tuple, bool skip, bool del);
 
-static void is(bool assign, bool tuple, bool skip);
+static void is(bool assign, bool tuple, bool skip, bool del);
 
-static void in(bool assign, bool tuple, bool skip);
+static void in(bool assign, bool tuple, bool skip, bool del);
 
-static void variable(bool assign, bool tuple, bool skip);
+static void variable(bool assign, bool tuple, bool skip, bool del);
 
-static void and(bool assign, bool tuple, bool skip);
+static void and(bool assign, bool tuple, bool skip, bool del);
 
-static void or(bool assign, bool tuple, bool skip);
+static void or(bool assign, bool tuple, bool skip, bool del);
 
-static void call(bool assign, bool tuple, bool skip);
+static void call(bool assign, bool tuple, bool skip, bool del);
 
-static void item(bool assign, bool tuple, bool skip);
+static void item(bool assign, bool tuple, bool skip, bool del);
 
-static void dot(bool assign, bool tuple, bool skip);
+static void dot(bool assign, bool tuple, bool skip, bool del);
 
-static void lambda(bool assign, bool tuple, bool skip);
+static void lambda(bool assign, bool tuple, bool skip, bool del);
 
 static void statement(int breakPointer, int continuePointer);
 
@@ -329,7 +329,7 @@ static ObjFunction* endCompiler() {
     return function;
 }
 
-static void parseExpression(Precedence precedence, bool assign, bool tuple, bool skip) {
+static void parseExpression(Precedence precedence, bool assign, bool tuple, bool skip, bool del) {
     ParseFn prefixFunc = getRule(parser.current.type, tuple)->prefix;
 
     if (prefixFunc == NULL) {
@@ -340,19 +340,22 @@ static void parseExpression(Precedence precedence, bool assign, bool tuple, bool
 
     assign &= precedence <= PREC_ASSIGNMENT;
 
-    prefixFunc(assign, tuple, skip);
+    prefixFunc(assign, tuple, skip, del);
 
     while (precedence < getRule(parser.current.type, tuple)->precedence) {
         ParseFn infixFunc = getRule(parser.current.type, tuple)->infix;
-        infixFunc(assign, tuple, skip);
+        infixFunc(assign, tuple, skip, del);
     }
 }
 
 static void expression(bool tuple, bool skip) {
-    parseExpression(PREC_ASSIGNMENT, false, tuple, skip);
+    parseExpression(PREC_ASSIGNMENT, false, tuple, skip, false);
 }
 
-static void literal(bool assign, bool tuple, bool skip) {
+static void literal(bool assign, bool tuple, bool skip, bool del) {
+    if (del)
+        reportError("cannot delete literal", &parser.current);
+
     switch (parser.current.type) {
         case TOKEN_TRUE:
             emitByte(OP_TRUE, parser.current); 
@@ -369,7 +372,10 @@ static void literal(bool assign, bool tuple, bool skip) {
     advance(skip);
 }
 
-static void number(bool assign, bool tuple, bool skip) {
+static void number(bool assign, bool tuple, bool skip, bool del) {
+    if (del)
+        reportError("cannot delete literal", &parser.current);
+
     double value = strtod(parser.current.start, NULL);
     if ((long long)value == value)
         emitConstant(INT_VAL(value));
@@ -378,17 +384,26 @@ static void number(bool assign, bool tuple, bool skip) {
     advance(skip);
 }
 
-static void string(bool assign, bool tuple, bool skip) {
+static void string(bool assign, bool tuple, bool skip, bool del) {
+    if (del)
+        reportError("cannot delete literal", &parser.current);
+
     emitConstant(STRING_VAL(copyEscapedString(parser.current.start, parser.current.length)));
     advance(skip);
 }
 
-static void rstring(bool assign, bool tuple, bool skip) {
+static void rstring(bool assign, bool tuple, bool skip, bool del) {
+    if (del)
+        reportError("cannot delete literal", &parser.current);
+
     emitConstant(STRING_VAL(copyString(parser.current.start, parser.current.length)));
     advance(skip);
 }
 
-static void list(bool assign, bool tuple, bool skip) {
+static void list(bool assign, bool tuple, bool skip, bool del) {
+    if (del)
+        reportError("cannot delete literal", &parser.current);
+
     size_t size = 0;
     advance(true);
     do {
@@ -404,7 +419,10 @@ static void list(bool assign, bool tuple, bool skip) {
     emitBytes(OP_BUILD_LIST, (uint8_t)size, (Token){0});
 }
 
-static void tuple(bool assign, bool tuple, bool skip) {
+static void tuple(bool assign, bool tuple, bool skip, bool del) {
+    if (del)
+        reportError("cannot delete literal", &parser.current);
+
     advance(true);
 
     size_t size = 1;
@@ -418,7 +436,10 @@ static void tuple(bool assign, bool tuple, bool skip) {
     emitBytes(OP_BUILD_TUPLE, (uint8_t)size, (Token){0});
 }
 
-static void dict(bool assign, bool tuple, bool skip) {
+static void dict(bool assign, bool tuple, bool skip, bool del) {
+    if (del)
+        reportError("cannot delete literal", &parser.current);
+
     size_t size = 0;
     do  {
         if (check(TOKEN_RIGHT_BRACE))
@@ -436,12 +457,15 @@ static void dict(bool assign, bool tuple, bool skip) {
     emitBytes(OP_BUILD_DICT, (uint8_t)size, (Token){0});
 }
 
-static void fstring(bool assign, bool tuple, bool skip) {
+static void fstring(bool assign, bool tuple, bool skip, bool del) {
+    if (del)
+        reportError("cannot delete literal", &parser.current);
+
     int count = 0;
 
     while (!check(TOKEN_STRING)) {
         if (parser.current.length > 0) {
-            string(true, true, skip);
+            string(true, true, skip, false);
             count++;
         } else {
             advance(skip);
@@ -451,7 +475,7 @@ static void fstring(bool assign, bool tuple, bool skip) {
     }
 
     if (parser.current.length > 0) {
-        string(true, true, skip);
+        string(true, true, skip, false);
         count++;
     } else {
         advance(skip);
@@ -459,7 +483,10 @@ static void fstring(bool assign, bool tuple, bool skip) {
     emitBytes(OP_BUILD_FSTRING, (uint8_t)count, (Token){0});
 }
 
-static void grouping(bool assign, bool tuple, bool skip) {
+static void grouping(bool assign, bool tuple, bool skip, bool del) {
+    if (del)
+        reportError("cannot delete expression", &parser.current);
+
     advance(true);
 
     if (consume(TOKEN_RIGHT_PAREN, false)) {
@@ -473,11 +500,14 @@ static void grouping(bool assign, bool tuple, bool skip) {
         reportError("Opening parenthesis does not closed", NULL);
 }
 
-static void unary(bool assign, bool tuple, bool skip) {
+static void unary(bool assign, bool tuple, bool skip, bool del) {
+    if (del)
+        reportError("cannot delete expression", &parser.current);
+        
     Token operator = parser.current;
     advance(skip);
 
-    parseExpression(getRule(operator.type, tuple)->precedence, false, false, skip);
+    parseExpression(getRule(operator.type, tuple)->precedence, false, false, skip, false);
 
     switch (operator.type) {
         case TOKEN_PLUS:
@@ -497,11 +527,14 @@ static void unary(bool assign, bool tuple, bool skip) {
     }
 }
 
-static void binary(bool assign, bool tuple, bool skip) {
+static void binary(bool assign, bool tuple, bool skip, bool del) {
+    if (del)
+        reportError("cannot delete expression", &parser.current);
+
     Token operator = parser.current;
     advance(skip);
 
-    parseExpression(getRule(operator.type, tuple)->precedence, false, false, skip);
+    parseExpression(getRule(operator.type, tuple)->precedence, false, false, skip, false);
 
     switch (operator.type) {
         case TOKEN_BANG_EQUAL:
@@ -566,20 +599,26 @@ static void binary(bool assign, bool tuple, bool skip) {
     }
 }
 
-static void is(bool assign, bool tuple, bool skip) {
+static void is(bool assign, bool tuple, bool skip, bool del) {
+    if (del)
+        reportError("cannot delete comparison", &parser.current);
+
     Token operator = parser.current;
     advance(skip);
 
     bool negate = consume(TOKEN_NOT, skip);
 
-    parseExpression(PREC_COMPARISON, false, false, skip);
+    parseExpression(PREC_COMPARISON, false, false, skip, false);
 
     emitByte(OP_IS, operator);
     if (negate)
         emitByte(OP_NOT, operator);
 }
 
-static void in(bool assign, bool tuple, bool skip) {
+static void in(bool assign, bool tuple, bool skip, bool del) {
+    if (del)
+        reportError("cannot delete comparison", &parser.current);
+
     Token operator = parser.current;
     bool negate = consume(TOKEN_NOT, skip);
 
@@ -588,7 +627,7 @@ static void in(bool assign, bool tuple, bool skip) {
         return;
     }
     
-    parseExpression(PREC_COMPARISON, false, false, skip);
+    parseExpression(PREC_COMPARISON, false, false, skip, false);
 
     emitByte(OP_CONTAINS, operator);
     if (negate)
@@ -607,7 +646,7 @@ static uint8_t identifierConstant(Token *name) {
 }
 
 static void expressionStatement() {
-    parseExpression(PREC_ASSIGNMENT, true, true, false);
+    parseExpression(PREC_ASSIGNMENT, true, true, false, false);
     
     if (!consumeEOS())
         reportError("Expect eos after statement", &parser.current);
@@ -710,16 +749,18 @@ static void resolveVariableAssignment(Token *name, uint8_t *getOp, uint8_t *setO
     *arg = identifierConstant(name);
 }
 
-static void resolveVariableReference(Token *name, uint8_t *getOp, uint8_t *arg) {
+static void resolveVariableReference(Token *name, uint8_t *getOp, uint8_t *delOp, uint8_t *arg) {
     if (current->type != TYPE_TOP_LEVEL) {
         int offset = resolveLocal(current, name, false);
         if (offset != -1) {
             *getOp = OP_GET_LOCAL;
+            *delOp = OP_DEL_LOCAL;
             *arg = offset;
             return;
         }
     }
     *getOp = OP_GET_GLOBAL;
+    *delOp = OP_DEL_GLOBAL;
     *arg = identifierConstant(name);
 }
 
@@ -791,8 +832,8 @@ static void assignment(uint8_t getOp, uint8_t setOp, int arg, Token operator) {
     emitAssignment(setOp, arg, operator);
 }
 
-static void variable(bool assign, bool tuple, bool skip) {
-    uint8_t getOp, setOp, arg;
+static void variable(bool assign, bool tuple, bool skip, bool del) {
+    uint8_t getOp, setOp, delOp, arg;
     Token name = parser.current;
     advance(skip);
     Token operator = parser.current;
@@ -800,15 +841,18 @@ static void variable(bool assign, bool tuple, bool skip) {
     if (isAssignment(operator)) {
         advance(skip);
         if (!assign)
-            reportError("Variable assignment is now allowed here", &operator);
+            reportError("invalid syntax. Maybe you meant '==' or ':=' instead of '='?", &parser.current);
         resolveVariableAssignment(&name, &getOp, &setOp, &arg);
         assignment(getOp, setOp, arg, operator);
     } else if (operator.type == TOKEN_COLON_EQUAL) {
         advance(skip);
         resolveVariableAssignment(&name, &getOp, &setOp, &arg);
         assignment(getOp, setOp, arg, operator);
+    } else if (del) {
+        resolveVariableReference(&name, &getOp, &delOp, &arg);
+        emitBytes(delOp, arg, name);
     } else {
-        resolveVariableReference(&name, &getOp, &arg);
+        resolveVariableReference(&name, &getOp, &delOp, &arg);
         emitBytes(getOp, arg, name);
     }
 }
@@ -817,23 +861,29 @@ static void variable(bool assign, bool tuple, bool skip) {
 //            Control flow
 // ======================================    
 
-static void and(bool assign, bool tuple, bool skip) {
+static void and(bool assign, bool tuple, bool skip, bool del) {
+    if (del)
+        reportError("cannot delete expression", &parser.current);
+
     advance(skip);
     int endJump = emitJump(OP_JUMP_FALSE);
 
     emitByte(OP_POP, (Token){0});
     // question
-    parseExpression(PREC_BOOL_AND, false, true, skip);
+    parseExpression(PREC_BOOL_AND, false, true, skip, false);
 
     patchJump(endJump);
 }
 
-static void or(bool assign, bool tuple, bool skip){
+static void or(bool assign, bool tuple, bool skip, bool del){
+    if (del)
+        reportError("cannot delete expression", &parser.current);
+
     advance(skip);
     int endJump = emitJump(OP_JUMP_TRUE);
 
     emitByte(OP_POP, (Token){0});
-    parseExpression(PREC_BOOL_OR, false, true, skip);
+    parseExpression(PREC_BOOL_OR, false, true, skip, false);
 
     patchJump(endJump);
 }
@@ -1113,7 +1163,10 @@ static void funcDeclaration() {
     defineVariable(name);
 }
 
-static void lambda(bool assign, bool tuple, bool skip) {
+static void lambda(bool assign, bool tuple, bool skip, bool del) {
+    if (del)
+        reportError("cannot delete lambda", &parser.current);
+
     Compiler compiler;
     Token name; 
     name.start = "<lambda>";
@@ -1148,7 +1201,7 @@ static uint16_t parseArguments() {
     if (!check(TOKEN_RIGHT_PAREN)) {
         do {
             if (check(TOKEN_IDENTIFIER) && checkNext(TOKEN_EQUAL, false)) {
-                rstring(false, false, true);
+                rstring(false, false, true, false);
                 advance(true);
                 expression(false, true);
                 kwargc++;
@@ -1167,7 +1220,10 @@ static uint16_t parseArguments() {
     return (argc << 8) | kwargc;
 }
 
-static void call(bool assign, bool tuple, bool skip) {
+static void call(bool assign, bool tuple, bool skip, bool del) {
+    if (del)
+        reportError("cannot delete function call", &parser.current);
+
     Token name = parser.current;
     advance(skip);
     uint16_t args = parseArguments();
@@ -1205,9 +1261,9 @@ static void classDeclaration() {
         }
     }
 
-    uint8_t getOp, arg;
+    uint8_t getOp, delOp, arg;
     if (super.type != TOKEN_EOF) {
-        resolveVariableReference(&super, &getOp, &arg);
+        resolveVariableReference(&super, &getOp, &delOp, &arg);
         emitBytes(getOp, arg, super);
     } else {
         emitByte(OP_NONE, name);
@@ -1223,7 +1279,7 @@ static void classDeclaration() {
     classCompiler.enclosing = currentClass;
     currentClass = &classCompiler;
 
-    resolveVariableReference(&name, &getOp, &arg); 
+    resolveVariableReference(&name, &getOp, &delOp, &arg); 
     emitBytes(getOp, arg, name);
 
     if (!consume(TOKEN_COLON, false))
@@ -1245,7 +1301,7 @@ static void classDeclaration() {
     currentClass = currentClass->enclosing;
 }
 
-static void dot(bool assign, bool tuple, bool skip) {
+static void dot(bool assign, bool tuple, bool skip, bool del) {
     advance(skip);
     Token name = parser.current;
     if (!consume(TOKEN_IDENTIFIER, skip)) {
@@ -1260,12 +1316,14 @@ static void dot(bool assign, bool tuple, bool skip) {
         
         advance(skip);
         assignment(OP_GET_ATTRIBUTE, OP_SET_ATTRIBUTE, arg, operator);
+    } else if (del) {
+        emitBytes(OP_DEL_ATTRIBUTE, arg, name);
     } else {
         emitBytes(OP_GET_ATTRIBUTE, arg, name);
     }
 }
 
-static void item(bool assign, bool tuple, bool skip) {
+static void item(bool assign, bool tuple, bool skip, bool del) {
     advance(true);
     Token index = parser.current;
     expression(true, true);
@@ -1277,8 +1335,9 @@ static void item(bool assign, bool tuple, bool skip) {
         advance(true);
         if (!assign)
             reportError("Assignment is not allowed here", &operator);
-
         assignment(OP_GET_ITEM_NO_POP, OP_SET_ITEM, NO_ARG, operator);
+    } else if (del) {
+        emitByte(OP_DEL_ITEM, index);
     } else {
         emitByte(OP_GET_ITEM, index);
     }
@@ -1298,6 +1357,11 @@ static void returnStatement() {
         }
         emitByte(OP_RETURN, parser.current);
     }
+}
+
+static void delStatement() {
+    advance(false);
+    parseExpression(PREC_ASSIGNMENT, false, false, false, true);
 }
 
 static void statement(int breakPointer, int continuePointer) {
@@ -1336,6 +1400,9 @@ static void statement(int breakPointer, int continuePointer) {
             break;
         case TOKEN_RAISE:
             raiseStatement();
+            break;
+        case TOKEN_DEL:
+            delStatement();
             break;
         default:
             expressionStatement();

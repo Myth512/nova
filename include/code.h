@@ -14,8 +14,10 @@ typedef enum {
     OP_FALSE,
     OP_GET_GLOBAL,
     OP_SET_GLOBAL,
+    OP_DEL_GLOBAL,
     OP_GET_LOCAL,
     OP_SET_LOCAL,
+    OP_DEL_LOCAL,
     OP_GET_UPVALUE,
     OP_SET_UPVALUE,
     OP_EQUAL,
@@ -53,6 +55,7 @@ typedef enum {
     OP_GET_ITEM,
     OP_GET_ITEM_NO_POP,
     OP_SET_ITEM,
+    OP_DEL_ITEM,
     OP_JUMP,
     OP_JUMP_TRUE,
     OP_JUMP_TRUE_POP,
@@ -69,6 +72,7 @@ typedef enum {
     OP_METHOD,
     OP_GET_ATTRIBUTE, 
     OP_SET_ATTRIBUTE,
+    OP_DEL_ATTRIBUTE,
     OP_RETURN,
 } OpCode;
 
