@@ -254,11 +254,11 @@ Value valueSetItem(Value obj, Value key, Value value) {
     method(obj, key, value);
 }
 
-void valueDelItem(Value obj, Value key) {
+Value valueDelItem(Value obj, Value key) {
     Value (*method)(Value, Value) = GET_METHOD(obj, delitem);
     if (method == NULL)
         reportRuntimeError("not item deletion");
-    method(obj, key);
+    return method(obj, key);
 }
 
 Value valueInit(Value callee, int argc, Value *argv) {

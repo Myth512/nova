@@ -1,5 +1,7 @@
 #include "object_dict.h"
 #include "object_dict_iterator.h"
+#include "object_string.h"
+#include "object_exception.h"
 #include "value_methods.h"
 #include "vm.h"
 #include "value_int.h"
@@ -29,13 +31,30 @@ Value Dict_GetAttr(Value obj, ObjString *name) {
 
 Value Dict_GetItem(Value obj, Value key) {
     Value res = QuadraticTableGet(&AS_DICT(obj)->table, key);
+    printf("get item\n");
+    TableDebug(&AS_DICT(obj)->table);
+    printf("\n");
     if (IS_UNDEFINED(res))
-        reportRuntimeError("No key");
+        return createException(VAL_KEY_ERROR, "'%s'", valueToStr(key)->chars);
     return res;
 }
 
 Value Dict_SetItem(Value obj, Value key, Value value) {
     QuadraticTableSet(&AS_DICT(obj)->table, key, value);
+    printf("set item\n");
+    TableDebug(&AS_DICT(obj)->table);
+    printf("\n");
+    return NONE_VAL;
+}
+
+Value Dict_DelItem(Value obj, Value key) {
+    bool res = QuadraticTableDelete(&AS_DICT(obj)->table, key);
+    printf("del item\n");
+    TableDebug(&AS_DICT(obj)->table);
+    printf("\n");
+    if (!res)
+        return createException(VAL_KEY_ERROR, "'%s'", valueToStr(key)->chars);
+    return NONE_VAL;
 }
 
 int Dict_ToStr(Value value, char *buffer, size_t size) {

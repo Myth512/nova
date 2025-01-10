@@ -179,8 +179,15 @@ static CodeVec* currentCode() {
     return &current->function->code;
 }
 
+static bool check(TokenType type) {
+    return parser.current.type == type;
+}
+
 static void advance(bool skip) {
-    parser.current = scanToken(skip);
+    parser.current = parser.next; 
+    if (skip && check(TOKEN_NEWLINE))
+        parser.current = scanToken(true);
+    parser.next = scanToken(false);
     #ifdef DEBUG_PRINT_TOKENS
         printToken(&parser.current);
     #endif
@@ -217,10 +224,6 @@ static bool reportError(const char *message, Token *token) {
     if (token != NULL)
         printTokenInCode(parser.source, token);
     return true;
-}
-
-static bool check(TokenType type) {
-    return parser.current.type == type;
 }
 
 static bool checkNext(TokenType type, bool skip) {
@@ -440,18 +443,20 @@ static void dict(bool assign, bool tuple, bool skip, bool del) {
     if (del)
         reportError("cannot delete literal", &parser.current);
 
+    advance(true);
+
     size_t size = 0;
     do  {
         if (check(TOKEN_RIGHT_BRACE))
             break;
-        expression(true, true);
+        expression(false, true);
         if (!consume(TOKEN_COLON, true))
             reportError("':' expected after dictionary key", &parser.current);
-        expression(true, true);
+        expression(false, true);
         size++;
     } while (consume(TOKEN_COMMA, true));
 
-    if (!consume(TOKEN_RIGHT_BRACE, true))
+    if (!consume(TOKEN_RIGHT_BRACE, false))
         reportError("Expect '}'", &parser.current);
 
     emitBytes(OP_BUILD_DICT, (uint8_t)size, (Token){0});
@@ -848,7 +853,7 @@ static void variable(bool assign, bool tuple, bool skip, bool del) {
         advance(skip);
         resolveVariableAssignment(&name, &getOp, &setOp, &arg);
         assignment(getOp, setOp, arg, operator);
-    } else if (del) {
+    } else if (del && !check(TOKEN_DOT) && !check(TOKEN_LEFT_BRACKET)) {
         resolveVariableReference(&name, &getOp, &delOp, &arg);
         emitBytes(delOp, arg, name);
     } else {
@@ -1421,6 +1426,7 @@ ObjFunction* compile(const char *source) {
     parser.panicMode = false;
     parser.source = source;
 
+    advance(false);
     advance(false);
 
     while (parser.current.type != TOKEN_EOF)

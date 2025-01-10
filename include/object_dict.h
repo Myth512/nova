@@ -16,6 +16,7 @@
     .getattr = Dict_GetAttr,          \
     .getitem = Dict_GetItem,          \
     .setitem = Dict_SetItem,          \
+    .delitem = Dict_DelItem,          \
     .str = Dict_ToStr,                \
     .repr = Dict_ToStr,               \
 }
@@ -38,6 +39,8 @@ Value Dict_GetAttr(Value obj, ObjString *name);
 Value Dict_GetItem(Value obj, Value key);
 
 Value Dict_SetItem(Value obj, Value key, Value value);
+
+Value Dict_DelItem(Value obj, Value key);
 
 int Dict_ToStr(Value value, char *buffer, size_t size);
 

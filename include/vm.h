@@ -125,6 +125,8 @@ void insert(int distance, Value value);
 
 void raise();
 
+void raiseIfException();
+
 void reportRuntimeError(const char *format, ...);
 
 void reportArityError(int min, int max, int got);

@@ -446,32 +446,36 @@ void raise() {
     frame->ip = frame->exceptAddr;
 }
 
+void raiseIfException() {
+    if (isInstance(peek(0), TYPE_CLASS(exception)))
+        raise();
+}
+
 static void binary(Value (*func)(Value, Value)) {
     Value b = pop();
     Value a = pop();
-    Value res = func(a, b);
-    push(res);
-    if (isInstance(res, OBJ_VAL(vm.types.exception)))
-        raise();
+    push(func(a, b));
+    raiseIfException();
 }
 
 static void unary(Value (*func)(Value)) {
     Value a = pop();
     Value res = func(a);
-    push(res);
-    if (isInstance(res, OBJ_VAL(vm.types.exception)))
-        raise();
+    push(func(a));
+    raiseIfException();
 }
 
 static void getLocal() {
     uint8_t slot = READ_BYTE();
     Value value = frame->slots[slot];
+
     if (IS_UNDEFINED(value)) {
         char *name = AS_STRING(frame->closure->function->localNames->values[slot])->chars;
         push(createException(VAL_NAME_ERROR, "name '%s' is not defined", name));
         raise();
+    } else {
+        push(frame->slots[slot]);
     }
-    push(frame->slots[slot]);
 }
 
 static void setLocal() {
@@ -496,10 +500,8 @@ static void getItem(bool popValues) {
         object = peek(1);
     }
 
-    Value res = valueGetItem(object, key);
-    push(res);
-    if (isInstance(res, OBJ_VAL(vm.types.exception)))
-        raise();
+    push(valueGetItem(object, key));
+    raiseIfException();
 }
 
 static void setItem() {
@@ -513,7 +515,12 @@ static void setItem() {
 static void delItem() {
     Value key = pop();
     Value object = peek(0);
-    valueDelItem(object, key);
+
+    Value res = valueDelItem(object, key);
+    if (!IS_NONE(res)) {
+        push(res);
+        raiseIfException();
+    }
 }
 
 static void getAttrtibute() {
@@ -699,12 +706,9 @@ static Value run() {
                 push(tmp2);
                 break;
             }
-            case OP_CHECK: {
-                Value tmp = peek(0);
-                if (isInstance(tmp, TYPE_CLASS(exception)))
-                    raise();
+            case OP_CHECK:
+                raiseIfException();
                 break;
-            }
             case OP_IS_INSTANCE: {
                 Value a = pop();
                 Value b = peek(0);

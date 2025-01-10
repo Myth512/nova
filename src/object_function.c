@@ -62,8 +62,7 @@ Value Native_Call(Value callee, int argc, int kwargc, Value *argv) {
     Value res = native->function(argc, kwargc);
     vm.top -= argc + 2 * kwargc + 1;
     push(res);
-    if (isInstance(res, OBJ_VAL(vm.types.exception)))
-        raise();
+    raiseIfException();
 }
 
 int Native_ToStr(Value value, char *buffer, size_t size) {

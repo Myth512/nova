@@ -71,7 +71,7 @@ Value valueGetItem(Value obj, Value key);
 
 Value valueSetItem(Value obj, Value key, Value value);
 
-void valueDelItem(Value obj, Value key);
+Value valueDelItem(Value obj, Value key);
 
 Value valueInit(Value callee, int argc, Value *argv);
 

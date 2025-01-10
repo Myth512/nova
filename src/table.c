@@ -1,3 +1,5 @@
+#include <stdio.h>
+
 #include "table.h"
 #include "memory.h"
 #include "value_methods.h"
@@ -5,8 +7,8 @@
 
 #define MAX_LOAD_FACTOR 0.66
 
-#define TOMBSTONE (Value){.type=UNDEFINED_VAL, .as.integer=1}
-#define IS_TOMBSTONE(value) (value.type == UNDEFINED_VAL && value.as.integer == 1)
+#define TOMBSTONE ((Value){.type=VAL_UNDEFINED, .as.integer=1})
+#define IS_TOMBSTONE(value) (value.type == VAL_UNDEFINED && value.as.integer == 1)
 
 void QuadraticTableInit(Table *table) {
     table->size = 0;
@@ -20,22 +22,23 @@ void QuadraticTableFree(Table *table) {
 }
 
 static Entry *findEntry(Entry *entries, int capacity, Value key) {
-    int j = 0;
+    uint64_t hash = valueHash(key);
+    int step = 7 - (hash % 7);
+    Entry *tombstone = NULL;
 
-    while (j < capacity) {
-        int index = (valueHash(key) + j*j) % capacity;
+    for (int i = 0; i < capacity; i++) {
+        int index = (hash + i * step) % capacity;
 
         Entry *entry = &entries[index];
 
-        if (IS_UNDEFINED(entry->key))
+        if (IS_TOMBSTONE(entry->key)) {
+            if (tombstone == NULL)
+                tombstone = entry;
+        } else if (IS_UNDEFINED(entry->key))
+            return tombstone == NULL ? entry : tombstone;
+        else if (AS_BOOL(valueEqual(key, entry->key)))
             return entry;
-
-        if (AS_BOOL(valueEqual(key, entry->key)))
-            return entry;
-
-        j++;
     }
-
     return NULL;
 }
 
@@ -65,7 +68,7 @@ static void resizeTable(Table *table, int capacity) {
 
 Value QuadraticTableGet(Table *table, Value key) {
     Entry *entry = findEntry(table->entries, table->capacity, key);
-    if (entry == NULL)
+    if (entry == NULL || IS_TOMBSTONE(entry->key))
         return UNDEFINED_VAL;
     return entry->value;
 }
@@ -89,5 +92,31 @@ bool QuadraticTableSet(Table *table, Value key, Value value) {
 }
 
 bool QuadraticTableDelete(Table *table, Value key) {
+    if (table->size == 0)
+        return false;
 
+    Entry *entry = findEntry(table->entries, table->capacity, key);
+
+    if (IS_UNDEFINED(entry->key))
+        return false;
+    
+    entry->key = TOMBSTONE;
+    table->size--;
+    return true;
+}
+
+void TableDebug(Table *table) {
+    printf("size: %d, capacity: %d\n", table->size, table->capacity);
+
+    for (int i = 0; i < table->capacity; i++) {
+        Entry *entry = &table->entries[i];
+        printf("%2d | ", i);
+        if (IS_TOMBSTONE(entry->key))
+            printf("tombstone");
+        else
+            valueRepr(entry->key);
+        printf(" : ");
+        valueRepr(entry->value);
+        printf("\n");
+    }
 }
