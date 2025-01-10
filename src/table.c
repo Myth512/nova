@@ -14,6 +14,7 @@ void QuadraticTableInit(Table *table) {
     table->size = 0;
     table->capacity = 0;
     table->entries = NULL;
+    table->order = NULL;
 }
 
 void QuadraticTableFree(Table *table) {
@@ -44,14 +45,15 @@ static Entry *findEntry(Entry *entries, int capacity, Value key) {
 
 static void resizeTable(Table *table, int capacity) {
     Entry *entries = reallocate(NULL, 0, sizeof(Entry) * capacity);
+    Entry **order = reallocate(NULL, 0, sizeof(Entry*) * capacity);
 
     for (int i = 0; i < capacity; i++) {
         entries[i].key = UNDEFINED_VAL;
         entries[i].value = UNDEFINED_VAL;
     }
 
-    for (int i = 0; i < table->capacity; i++) {
-        Entry *entry = &table->entries[i];
+    for (int i = 0; i < table->size; i++) {
+        Entry *entry = table->order[i]; 
 
         if (IS_UNDEFINED(entry->key))
             continue;
@@ -59,10 +61,13 @@ static void resizeTable(Table *table, int capacity) {
         Entry *dest = findEntry(entries, capacity, entry->key);
         dest->key = entry->key;
         dest->value = entry->value;
+        order[i] = dest;
     }
 
     FREE_VEC(Entry, table->entries, table->capacity);
+    FREE_VEC(Entry*, table->order, table->capacity);
     table->entries = entries;
+    table->order = order;
     table->capacity = capacity;
 }
 
@@ -83,12 +88,20 @@ bool QuadraticTableSet(Table *table, Value key, Value value) {
     bool isNew = IS_UNDEFINED(entry->key);
 
     if (isNew)
-        table->size++;
+        table->order[table->size++] = entry;
 
     entry->key = key;
     entry->value = value;
 
     return isNew;
+}
+
+static void removeFromOrder(Table *table, Entry *entry) {
+    int i = 0;
+    for (; table->order[i] != entry; i++);
+
+    for (; i < table->size - 1; i++)
+        table->order[i] = table->order[i + 1];
 }
 
 bool QuadraticTableDelete(Table *table, Value key) {
@@ -100,6 +113,8 @@ bool QuadraticTableDelete(Table *table, Value key) {
     if (IS_UNDEFINED(entry->key))
         return false;
     
+    removeFromOrder(table, entry);
+    
     entry->key = TOMBSTONE;
     table->size--;
     return true;
@@ -108,8 +123,8 @@ bool QuadraticTableDelete(Table *table, Value key) {
 void TableDebug(Table *table) {
     printf("size: %d, capacity: %d\n", table->size, table->capacity);
 
-    for (int i = 0; i < table->capacity; i++) {
-        Entry *entry = &table->entries[i];
+    for (int i = 0; i < table->size; i++) {
+        Entry *entry = table->order[i];
         printf("%2d | ", i);
         if (IS_TOMBSTONE(entry->key))
             printf("tombstone");

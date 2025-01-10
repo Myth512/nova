@@ -15,8 +15,8 @@
 
 typedef struct {
     Obj obj;
-    Entry *current;
-    Entry *end;
+    Entry **current;
+    Entry **end;
 } ObjDictIterator;
 
 ObjDictIterator *allocateDictIterator(Value value);

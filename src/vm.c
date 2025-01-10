@@ -403,11 +403,13 @@ static void buildDict() {
     Value res = OBJ_VAL(dict);
 
     for (int i = 0; i < size; i++){
-        Value value = pop();
-        Value key = pop();
-
+        Value value = peek(size - (i - 1) * 2 + 1);
+        Value key = peek(size - (i - 1) * 2 + 2);
         Dict_SetItem(res, key, value);
     }
+
+    for (int i = 0; i < 2 * size; i++)
+        pop();
 
     push(res);
 }

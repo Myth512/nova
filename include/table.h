@@ -14,6 +14,7 @@ typedef struct {
     size_t size;
     size_t capacity;
     Entry *entries;
+    Entry **order;
 } Table;
 
 void QuadraticTableInit(Table *table);
