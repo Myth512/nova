@@ -290,6 +290,10 @@ static void defineNativeTypes() {
 static void callValue(Value callee, int argc, int kwargc) {
     Value res = valueCall(callee, argc, kwargc, vm.top);
     frame = &vm.frames[vm.frameSize - 1];
+    if (isInstance(res, TYPE_CLASS(exception))) {
+        push(res);
+        raise();
+    }
 }
 
 static ObjUpvalue *captureUpvalue(Value *local) {
@@ -510,8 +514,12 @@ static void setItem() {
     Value value = pop();
     Value key = pop();
     Value object = peek(0);
+    Value res = valueSetItem(object, key, value);
 
-    valueSetItem(object, key, value);
+    if (isInstance(res, TYPE_CLASS(exception))) {
+        push(res);
+        raise();
+    }
 }
 
 static void delItem() {
@@ -519,16 +527,16 @@ static void delItem() {
     Value object = peek(0);
 
     Value res = valueDelItem(object, key);
-    if (!IS_NONE(res)) {
+    if (isInstance(res, TYPE_CLASS(exception))) {
         push(res);
-        raiseIfException();
+        raise();
     }
 }
 
 static void getAttrtibute() {
     Value obj = pop();
     ObjString *name = READ_STRING();
-    Value result = valueGetAttr(obj, name);
+    Value result = valueGetAttribute(obj, name);
     if (IS_UNDEFINED(result)) {
         push(createException(VAL_ATTRIBUTE_ERROR, "'%s' object has no attribute '%s'", getValueType(obj), name->chars));
         raise();
@@ -541,13 +549,23 @@ static void setAttribute() {
     Value obj = peek(1);
     ObjString *name = READ_STRING();
     Value value = pop();
-    valueSetAttr(obj, name, value);
+    Value res = valueSetAttribute(obj, name, value);
+
+    if (isInstance(res, TYPE_CLASS(exception))) {
+        push(res);
+        raise();
+    }
 }
 
 static void delAttribute() {
     Value obj = pop();
     ObjString *name = READ_STRING();
-    valueDelAttr(obj, name);
+    Value res = valueDelAttribute(obj, name);
+
+    if (isInstance(res, TYPE_CLASS(exception))) {
+        push(res);
+        raise();
+    }
 }
 
 static Value run() {

@@ -116,6 +116,7 @@ bool QuadraticTableDelete(Table *table, Value key) {
     removeFromOrder(table, entry);
     
     entry->key = TOMBSTONE;
+    entry->value = UNDEFINED_VAL;
     table->size--;
     return true;
 }

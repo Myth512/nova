@@ -219,25 +219,25 @@ Value valueContains(Value a, Value b) {
     return method(b, a);
 }
 
-Value valueGetAttr(Value obj, ObjString *name) {
+Value valueGetAttribute(Value obj, ObjString *name) {
     Value (*method)(Value, ObjString*) = GET_METHOD(obj, getattr);
     if (method == NULL)
         reportRuntimeError("no method %s", name->chars);
     return method(obj, name);
 }
 
-void valueSetAttr(Value obj, ObjString *name, Value value) {
+Value valueSetAttribute(Value obj, ObjString *name, Value value) {
     Value (*method)(Value, ObjString*, Value) = GET_METHOD(obj, setattr);
     if (method == NULL)
-        reportRuntimeError("read only");
-    method(obj, name, value);
+        return createException(VAL_ATTRIBUTE_ERROR, "'%s' object attributes are read-only", getValueType(obj));
+    return method(obj, name, value);
 }
 
-void valueDelAttr(Value obj, ObjString *name) {
+Value valueDelAttribute(Value obj, ObjString *name) {
     Value (*method)(Value, ObjString*) = GET_METHOD(obj, delattr);
     if (method == NULL)
-        reportRuntimeError("read only");
-    method(obj, name);
+        return createException(VAL_ATTRIBUTE_ERROR, "'%s' object attributes are read-only", getValueType(obj));
+    return method(obj, name);
 }
 
 Value valueGetItem(Value obj, Value key) {
@@ -251,13 +251,13 @@ Value valueSetItem(Value obj, Value key, Value value) {
     Value (*method)(Value, Value, Value) = GET_METHOD(obj, setitem);
     if (method == NULL)
         return createException(VAL_TYPE_ERROR, "'%s' object does not support item assignment", getValueType(obj));
-    method(obj, key, value);
+    return method(obj, key, value);
 }
 
 Value valueDelItem(Value obj, Value key) {
     Value (*method)(Value, Value) = GET_METHOD(obj, delitem);
     if (method == NULL)
-        reportRuntimeError("not item deletion");
+        return createException(VAL_TYPE_ERROR, "'%s' object does not support item deletion", getValueType(obj));
     return method(obj, key);
 }
 
@@ -270,8 +270,7 @@ Value valueCall(Value callee, int argc, int kwargc, Value *argv) {
     Value (*method)(Value, int, int, Value*) = GET_METHOD(callee, call);
     if (method == NULL)
         return createException(VAL_TYPE_ERROR, "'%s' object is not callable", getValueType(callee));
-    method(callee, argc, kwargc, argv);
-    return NONE_VAL;
+    return method(callee, argc, kwargc, argv);
 }
 
 Value valueClass(Value value) {

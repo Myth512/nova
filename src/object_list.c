@@ -4,6 +4,7 @@
 #include "object_list_iterator.h"
 #include "object_string.h"
 #include "object_class.h"
+#include "object_exception.h"
 #include "object_range.h"
 #include "methods_list.h"
 #include "value_int.h"
@@ -163,26 +164,44 @@ Value List_GetAttr(Value list, ObjString *name) {
 
 Value List_GetItem(Value obj, Value key) {
     if (!IS_INT(key))
-        reportRuntimeError("Index must be integer");
+        return createException(VAL_INDEX_ERROR, "list indices must be integers or slices, not %s", getValueType(key));
     
     int index = calculateIndex(AS_INT(key), AS_LIST(obj)->vec.size);
 
     if (index == -1)
-        reportRuntimeError("Index is out of range");
+        return createException(VAL_INDEX_ERROR, " list index out of range");
     
     return AS_LIST(obj)->vec.values[index];
 }
 
 Value List_SetItem(Value obj, Value key, Value value) {
     if (!IS_INT(key))
-        reportRuntimeError("Index must be integer");
+        return createException(VAL_INDEX_ERROR, "list indices must be integers or slices, not %s", getValueType(key));
     
     int index = calculateIndex(AS_INT(key), AS_LIST(obj)->vec.size);
 
     if (index == -1)
-        reportRuntimeError("Index is out of range");
+        return createException(VAL_INDEX_ERROR, " list index out of range");
     
     AS_LIST(obj)->vec.values[index] = value;
+    return NONE_VAL;
+}
+
+Value List_DelItem(Value obj, Value key) {
+    if (!IS_INT(key))
+        return createException(VAL_INDEX_ERROR, "list indices must be integers or slices, not %s", getValueType(key));
+    
+    int index = calculateIndex(AS_INT(key), AS_LIST(obj)->vec.size);
+
+    if (index == -1)
+        return createException(VAL_INDEX_ERROR, " list index out of range");
+
+    ObjList *list = AS_LIST(obj);
+    
+    for (int i = index; i < list->vec.size - 1; i++)
+        list->vec.values[i] = list->vec.values[i + 1];
+    list->vec.size--;
+
     return NONE_VAL;
 }
 

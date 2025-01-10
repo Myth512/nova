@@ -61,11 +61,11 @@ Value valueRightShift(Value a, Value b);
 
 Value valueContains(Value a, Value b);
 
-Value valueGetAttr(Value obj, ObjString *name);
+Value valueGetAttribute(Value obj, ObjString *name);
 
-void valueSetAttr(Value obj, ObjString *name, Value value);
+Value valueSetAttribute(Value obj, ObjString *name, Value value);
 
-void valueDelAttr(Value obj, ObjString *name);
+Value valueDelAttribute(Value obj, ObjString *name);
 
 Value valueGetItem(Value obj, Value key);
 

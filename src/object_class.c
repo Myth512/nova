@@ -3,6 +3,7 @@
 #include "value_int.h"
 #include "value_methods.h"
 #include "object_instance.h"
+#include "object_exception.h"
 #include "vm.h"
 
 ObjClass *createClass(ObjString *name, Value super) {
@@ -47,7 +48,7 @@ Value Class_Call(Value callee, int argc, int kwargc, Value *argv) {
     if (tableGet(&class->methods, vm.magicStrings.init, &initializer)) {
         call(AS_CLOSURE(initializer), argc + 1, kwargc, true);
     } else if (argc != 0) {
-        reportRuntimeError("Expect 0 arguments but got %d", argc);
+        return createException(VAL_TYPE_ERROR, "%s() takes no arguments", class->name->chars);
     }
 }
 
@@ -56,7 +57,7 @@ Value Class_GetAttr(Value obj, ObjString *name) {
     Value value;
     if (tableGet(&class->methods, name, &value))
         return value;
-    return valueGetAttr(class->super, name);
+    return valueGetAttribute(class->super, name);
 }
 
 Value Class_Class(Value value) {

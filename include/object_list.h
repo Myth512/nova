@@ -30,6 +30,7 @@ typedef struct {
     .getattr = List_GetAttr,          \
     .getitem = List_GetItem,          \
     .setitem = List_SetItem,          \
+    .delitem = List_DelItem,          \
     .len = List_Len,                  \
     .toBool = List_ToBool,            \
     .str = List_ToStr,                \
@@ -69,6 +70,8 @@ Value List_GetAttr(Value list, ObjString *name);
 Value List_GetItem(Value obj, Value key);
 
 Value List_SetItem(Value obj, Value key, Value value);
+
+Value List_DelItem(Value obj, Value key);
 
 long long List_Len(Value value);
 
