@@ -311,6 +311,8 @@ int printInstruction(CodeVec *vec, int offset) {
             return simpleInstruction("END TRY", offset);
         case OP_RAISE:
             return simpleInstruction("RAISE", offset);
+        case OP_ASSERT:
+            return simpleInstruction("ASSERT", offset);
         case OP_CALL:
             return callInstruction("CALL", vec, offset);
         case OP_CLOSURE: {

@@ -77,6 +77,13 @@
     .repr = Exception_ToRepr                   \
 }
 
+#define ASSERTION_ERROR_METHODS (ValueMethods) { \
+    .init = AssertionError_Init,                 \
+    .class = AssertionError_Class,               \
+    .str = Exception_ToStr,                      \
+    .repr = Exception_ToRepr                     \
+}
+
 typedef struct {
     Obj obj;
     Value value;
@@ -129,5 +136,9 @@ Value AttributeError_Class(Value value);
 Value RuntimeError_Init(Value callee, int argc, Value *argv);
 
 Value RuntimeError_Class(Value value);
+
+Value AssertionError_Init(Value callee, int argc, Value *argv);
+
+Value AssertionError_Class(Value value);
 
 #endif

@@ -111,6 +111,8 @@ Value Py_Print(int argc, int kwargc) {
     return NONE_VAL;
 }
 
+
+
 Value sqrtNative(int argc, Value *argv) {
     // if (argc != 1) {
     //     reportRuntimeError("Expect 1 argument but got %d\n", argc);
@@ -162,6 +164,14 @@ Value Py_Len(int argc, int kwargc) {
     PARSE_ARGS(&obj);
 
     return INT_VAL(valueLen(obj));
+}
+
+Value Py_Repr(int argc, int kwargc) {
+    static char *keywords[] = {"obj"};
+    Value obj;
+    PARSE_ARGS(&obj);
+
+    return OBJ_VAL(valueToRepr(obj));
 }
 
 Value Py_Input(int argc, int kwargc) {

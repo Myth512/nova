@@ -66,6 +66,7 @@ typedef enum {
     OP_SETUP_TRY,
     OP_END_TRY,
     OP_RAISE,
+    OP_ASSERT,
     OP_CALL,
     OP_CLOSURE,
     OP_CLOSE_UPVALUE,

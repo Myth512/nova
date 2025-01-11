@@ -35,7 +35,8 @@ void printErrorInCode() {
     int line = frame->closure->function->code.lines[index];
     int column = frame->closure->function->code.columns[index];
     int length = frame->closure->function->code.lengths[index];
-    printHighlightedPartInCode(vm.source, line, column, length); 
+    if (line != 0)
+        printHighlightedPartInCode(vm.source, line, column, length); 
 }
 
 void reportRuntimeError(const char *format, ...) {
@@ -239,6 +240,7 @@ static void defineNatives() {
     // defineNative("max", maxNative);
     defineNative("id", Py_Id);
     defineNative("len", Py_Len);
+    defineNative("repr", Py_Repr);
     defineNative("input", Py_Input);
     defineNative("hex", Py_Hex);
     defineNative("isinstance", Py_IsInstance);
@@ -282,7 +284,8 @@ static void defineNativeTypes() {
     vm.types.indexError = defineNativeClass("IndexError", VAL_INDEX_ERROR, VAL_EXCEPTION);
     vm.types.keyError = defineNativeClass("KeyError", VAL_KEY_ERROR, VAL_EXCEPTION);
     vm.types.attributeError = defineNativeClass("AttributeError", VAL_ATTRIBUTE_ERROR, VAL_EXCEPTION);
-    vm.types.runtimeError = createNativeclass("RuntimeError", VAL_RUNTIME_ERROR, VAL_EXCEPTION);
+    vm.types.runtimeError = defineNativeClass("RuntimeError", VAL_RUNTIME_ERROR, VAL_EXCEPTION);
+    vm.types.assertionError = defineNativeClass("AssertionError", VAL_ASSERTION_ERROR, VAL_EXCEPTION);
     vm.types.super = defineNativeClass("super", VAL_SUPER, VAL_OBJECT);
     vm.types.range = defineNativeClass("range", VAL_RANGE, VAL_OBJECT);
     vm.types.rangeIterator = createNativeclass("range_iterator", VAL_RANGE_ITERATOR, VAL_OBJECT);
@@ -802,9 +805,20 @@ static Value run() {
             case OP_RAISE: {
                 if (!isInstance(peek(0), TYPE_CLASS(exception)))
                     push(createException(VAL_RUNTIME_ERROR, "No active exception to reraise"));
-                }
                 raise();
                 break;
+            }
+            case OP_ASSERT: {
+                Value value = pop();
+                if (!valueToBool(pop())) {
+                    if (IS_NONE(value))
+                        push(createException(VAL_ASSERTION_ERROR, ""));
+                    else
+                        push(OBJ_VAL(allocateException(value, VAL_ASSERTION_ERROR)));
+                    raise();
+                }
+                break;
+            }
             case OP_CALL: {
                 int argc = READ_BYTE();
                 int kwargc = READ_BYTE();

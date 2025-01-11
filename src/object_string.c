@@ -181,6 +181,10 @@ Value String_Class(Value value) {
     return TYPE_CLASS(str);
 }
 
+Value String_Init(Value callee, int argc, Value *argv) {
+    return OBJ_VAL(valueToStr(argv[0]));
+}
+
 Value String_Iter(Value value) {
     return OBJ_VAL(allocateStringIterator(value));
 }

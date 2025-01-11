@@ -1420,6 +1420,26 @@ static void delStatement() {
     parseExpression(PREC_ASSIGNMENT, false, false, false, true);
 }
 
+static void assertStatement() {
+    advance(false);
+    int line = parser.current.line;
+    int column = parser.current.column;
+
+    expression(false, false);
+
+    if (consume(TOKEN_COMMA, false))
+        expression(false, false);
+    else
+        emitByte(OP_NONE, parser.current);
+
+    int len = parser.current.column - column;
+
+    emitByte(OP_ASSERT, (Token){.line=line, .column=column, .length=len});
+
+    if (!consumeEOS())
+        reportError("invalid syntax", &parser.current);
+}
+
 static void statement(int breakPointer, int continuePointer) {
     switch (parser.current.type) {
         case TOKEN_NEWLINE:
@@ -1459,6 +1479,9 @@ static void statement(int breakPointer, int continuePointer) {
             break;
         case TOKEN_DEL:
             delStatement();
+            break;
+        case TOKEN_ASSERT:
+            assertStatement();
             break;
         default:
             expressionStatement();

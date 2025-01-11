@@ -126,3 +126,11 @@ Value RuntimeError_Init(Value callee, int argc, Value *argv) {
 Value RuntimeError_Class(Value value) {
     return TYPE_CLASS(runtimeError);
 }
+
+Value AssertionError_Init(Value callee, int argc, Value *argv) {
+    return init(argc, argv, VAL_ASSERTION_ERROR);
+}
+
+Value AssertionError_Class(Value value) {
+    return TYPE_CLASS(assertionError);
+}
