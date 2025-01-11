@@ -764,7 +764,7 @@ static Value run() {
             }
             case OP_JUMP_TRUE_POP: {
                 uint16_t offset = READ_SHORT();
-                if (!valueToBool(pop())) 
+                if (valueToBool(pop())) 
                     frame->ip += offset;
                 break;
             }

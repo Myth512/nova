@@ -261,7 +261,6 @@ Token scanToken(bool skip) {
 
         if (scanner.indent < peekIndent()) {
             popIndent();
-            scanner.indent = peekIndent();
             return createToken(TOKEN_DEDENT);
         }
     }

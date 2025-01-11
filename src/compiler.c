@@ -1030,11 +1030,12 @@ static void tryStatement(int breakPointer, int continuePointer) {
 
     parseBlock(breakPointer, continuePointer);
 
+    int jumpToElse = emitJump(OP_JUMP);
     int jumpToFinally = emitJump(OP_JUMP);
 
     patchJump(jumpToExcept);
 
-    emitByte(OP_END_TRY, (Token){0});
+    jumpToExcept = emitJump(OP_SETUP_TRY);
 
     if (!check(TOKEN_EXCEPT))
         reportError("expected 'except' or 'finally' block", &parser.current);
@@ -1076,8 +1077,37 @@ static void tryStatement(int breakPointer, int continuePointer) {
 
     if (jumpToNextBranch != -1)
         patchJump(jumpToNextBranch);
+    patchJump(jumpToExcept);
+
+    emitByte(OP_FALSE, (Token){0});
+
+    int jumpSkip = emitJump(OP_JUMP);
+
+    patchJump(jumpToElse);
+
+    if (consume(TOKEN_ELSE, false)) {
+        parseBlock(breakPointer, continuePointer);
+    }
+
+    emitLoop(OP_LOOP, jumpToFinally - 1);
 
     patchJump(jumpToFinally);
+
+    emitByte(OP_TRUE, (Token){0});
+
+    patchJump(jumpSkip);
+
+    emitByte(OP_END_TRY, (Token){0});
+
+    if (consume(TOKEN_FINALLY, false)) {
+        parseBlock(breakPointer, continuePointer);
+    }
+
+    int jumpToEnd = emitJump(OP_JUMP_TRUE_POP);
+
+    emitByte(OP_RAISE, (Token){0});
+
+    patchJump(jumpToEnd);
 
     emitByte(OP_POP, (Token){0});
 }
