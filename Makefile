@@ -48,8 +48,4 @@ test:
 .PHONY: gperf
 gperf:
 	gperf gperf/keywords.txt > include/keywords.h
-	gperf gperf/methods_none.txt > include/methods_none.h
-	gperf gperf/methods_int.txt > include/methods_int.h
-	gperf gperf/methods_float.txt > include/methods_float.h
 	gperf gperf/methods_string.txt > include/methods_string.h
-	gperf gperf/methods_list.txt > include/methods_list.h

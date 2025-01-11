@@ -1,6 +1,6 @@
 /* ANSI-C code produced by gperf version 3.1 */
 /* Command-line: gperf gperf/methods_string.txt  */
-/* Computed positions: -k'3-4' */
+/* Computed positions: -k'1,3-4,6' */
 
 #if !((' ' == 32) && ('!' == 33) && ('"' == 34) && ('#' == 35) \
       && ('%' == 37) && ('&' == 38) && ('\'' == 39) && ('(' == 40) \
@@ -32,99 +32,17 @@
 #line 1 "gperf/methods_string.txt"
 
 #include <string.h>
-#include "object_string.h"
-#include "vm.h"
+#include "py_string.h"
 #include "value.h"
-#include "object_string.h"
+#line 7 "gperf/methods_string.txt"
+struct StaticAttribute;
 
-Value PyString_Equal(int argc, Value *argv) {
-    if (argc != 1)
-        reportArityError(1, 1, argc);
-    Value res = String_Equal(argv[0], argv[1]);
-    if (IS_NOT_IMPLEMENTED(res))
-        operatorNotImplemented("==", argv[0], argv[1]);
-    return res;
-}
-
-Value PyString_NotEqual(int argc, Value *argv) {
-    if (argc != 1)
-        reportArityError(1, 1, argc);
-    Value res = String_NotEqual(argv[0], argv[1]);
-    if (IS_NOT_IMPLEMENTED(res))
-        operatorNotImplemented("!=", argv[0], argv[1]);
-    return res;
-}
-
-Value PyString_Greater(int argc, Value *argv) {
-    if (argc != 1)
-        reportArityError(1, 1, argc);
-    Value res = String_Greater(argv[0], argv[1]);
-    if (IS_NOT_IMPLEMENTED(res))
-        operatorNotImplemented(">", argv[0], argv[1]);
-    return res;
-}
-
-Value PyString_GreaterEqual(int argc, Value *argv) {
-    if (argc != 1)
-        reportArityError(1, 1, argc);
-    Value res = String_GreaterEqual(argv[0], argv[1]);
-    if (IS_NOT_IMPLEMENTED(res))
-        operatorNotImplemented(">=", argv[0], argv[1]);
-    return res;
-}
-
-Value PyString_Less(int argc, Value *argv) {
-    if (argc != 1)
-        reportArityError(1, 1, argc);
-    Value res = String_Less(argv[0], argv[1]);
-    if (IS_NOT_IMPLEMENTED(res))
-        operatorNotImplemented("<", argv[0], argv[1]);
-    return res;
-}
-
-Value PyString_LessEqual(int argc, Value *argv) {
-    if (argc != 1)
-        reportArityError(1, 1, argc);
-    Value res = String_LessEqual(argv[0], argv[1]);
-    if (IS_NOT_IMPLEMENTED(res))
-        operatorNotImplemented("<=", argv[0], argv[1]);
-    return res;
-}
-
-Value PyString_Add(int argc, Value *argv) {
-    if (argc != 1)
-        reportArityError(1, 1, argc);
-    Value res = String_Add(argv[0], argv[1]);
-    if (IS_NOT_IMPLEMENTED(res))
-        operatorNotImplemented("+", argv[0], argv[1]);
-    return res;
-}
-
-Value PyString_Multiply(int argc, Value *argv) {
-    if (argc != 1)
-        reportArityError(1, 1, argc);
-    Value res = String_Multiply(argv[0], argv[1]);
-    if (IS_NOT_IMPLEMENTED(res))
-        operatorNotImplemented("*", argv[0], argv[1]);
-    return res;
-}
-
-Value PyString_GetAttr(int argc, Value *argv) {
-    if (argc != 1)
-        reportArityError(1, 1, argc);
-    Value res = String_GetAttr(argv[0], AS_STRING(argv[1]));
-    return res;
-}
-
-#line 89 "gperf/methods_string.txt"
-struct GperfMethod;
-
-#define TOTAL_KEYWORDS 9
-#define MIN_WORD_LENGTH 6
-#define MAX_WORD_LENGTH 11
-#define MIN_HASH_VALUE 6
-#define MAX_HASH_VALUE 31
-/* maximum key range = 26, duplicates = 0 */
+#define TOTAL_KEYWORDS 61
+#define MIN_WORD_LENGTH 4
+#define MAX_WORD_LENGTH 12
+#define MIN_HASH_VALUE 5
+#define MAX_HASH_VALUE 107
+/* maximum key range = 103, duplicates = 0 */
 
 #ifdef __GNUC__
 __inline
@@ -138,65 +56,208 @@ hash (register const char *str, register size_t len)
 {
   static const unsigned char asso_values[] =
     {
-      32, 32, 32, 32, 32, 32, 32, 32, 32, 32,
-      32, 32, 32, 32, 32, 32, 32, 32, 32, 32,
-      32, 32, 32, 32, 32, 32, 32, 32, 32, 32,
-      32, 32, 32, 32, 32, 32, 32, 32, 32, 32,
-      32, 32, 32, 32, 32, 32, 32, 32, 32, 32,
-      32, 32, 32, 32, 32, 32, 32, 32, 32, 32,
-      32, 32, 32, 32, 32, 32, 32, 32, 32, 32,
-      32, 32, 32, 32, 32, 32, 32, 32, 32, 32,
-      32, 32, 32, 32, 32, 32, 32, 32, 32, 32,
-      32, 32, 32, 32, 32, 32, 32,  5, 32, 32,
-       0, 10, 32,  5, 32, 32, 32, 32,  0,  0,
-       4, 32, 32, 15, 32, 32,  0,  0, 32, 32,
-      32, 32, 32, 32, 32, 32, 32, 32, 32, 32,
-      32, 32, 32, 32, 32, 32, 32, 32, 32, 32,
-      32, 32, 32, 32, 32, 32, 32, 32, 32, 32,
-      32, 32, 32, 32, 32, 32, 32, 32, 32, 32,
-      32, 32, 32, 32, 32, 32, 32, 32, 32, 32,
-      32, 32, 32, 32, 32, 32, 32, 32, 32, 32,
-      32, 32, 32, 32, 32, 32, 32, 32, 32, 32,
-      32, 32, 32, 32, 32, 32, 32, 32, 32, 32,
-      32, 32, 32, 32, 32, 32, 32, 32, 32, 32,
-      32, 32, 32, 32, 32, 32, 32, 32, 32, 32,
-      32, 32, 32, 32, 32, 32, 32, 32, 32, 32,
-      32, 32, 32, 32, 32, 32, 32, 32, 32, 32,
-      32, 32, 32, 32, 32, 32, 32, 32, 32, 32,
-      32, 32, 32, 32, 32, 32
+      108, 108, 108, 108, 108, 108, 108, 108, 108, 108,
+      108, 108, 108, 108, 108, 108, 108, 108, 108, 108,
+      108, 108, 108, 108, 108, 108, 108, 108, 108, 108,
+      108, 108, 108, 108, 108, 108, 108, 108, 108, 108,
+      108, 108, 108, 108, 108, 108, 108, 108, 108, 108,
+      108, 108, 108, 108, 108, 108, 108, 108, 108, 108,
+      108, 108, 108, 108, 108, 108, 108, 108, 108, 108,
+      108, 108, 108, 108, 108, 108, 108, 108, 108, 108,
+      108, 108, 108, 108, 108, 108, 108, 108, 108, 108,
+      108, 108, 108, 108, 108,   0,  35,   0,  35,  20,
+        5,   0,  20,   0,   5,   0,  15,   0,  10,   0,
+       45,  45,  20,  51,   0,   0,  30,  30,  40,  55,
+      108,   5,  50, 108, 108, 108, 108, 108, 108, 108,
+      108, 108, 108, 108, 108, 108, 108, 108, 108, 108,
+      108, 108, 108, 108, 108, 108, 108, 108, 108, 108,
+      108, 108, 108, 108, 108, 108, 108, 108, 108, 108,
+      108, 108, 108, 108, 108, 108, 108, 108, 108, 108,
+      108, 108, 108, 108, 108, 108, 108, 108, 108, 108,
+      108, 108, 108, 108, 108, 108, 108, 108, 108, 108,
+      108, 108, 108, 108, 108, 108, 108, 108, 108, 108,
+      108, 108, 108, 108, 108, 108, 108, 108, 108, 108,
+      108, 108, 108, 108, 108, 108, 108, 108, 108, 108,
+      108, 108, 108, 108, 108, 108, 108, 108, 108, 108,
+      108, 108, 108, 108, 108, 108, 108, 108, 108, 108,
+      108, 108, 108, 108, 108, 108, 108, 108, 108, 108,
+      108, 108, 108, 108, 108, 108, 108
     };
-  return len + asso_values[(unsigned char)str[3]] + asso_values[(unsigned char)str[2]];
+  register unsigned int hval = len;
+
+  switch (hval)
+    {
+      default:
+        hval += asso_values[(unsigned char)str[5]+1];
+      /*FALLTHROUGH*/
+      case 5:
+      case 4:
+        hval += asso_values[(unsigned char)str[3]];
+      /*FALLTHROUGH*/
+      case 3:
+        hval += asso_values[(unsigned char)str[2]];
+      /*FALLTHROUGH*/
+      case 2:
+      case 1:
+        hval += asso_values[(unsigned char)str[0]];
+        break;
+    }
+  return hval;
 }
 
-const struct GperfMethod *
+const struct StaticAttribute *
 in_string_set (register const char *str, register size_t len)
 {
-  static const struct GperfMethod wordlist[] =
+  static const struct StaticAttribute wordlist[] =
     {
-      {""}, {""}, {""}, {""}, {""}, {""},
-#line 100 "gperf/methods_string.txt"
-      {"__lt__", PyString_Less},
-#line 103 "gperf/methods_string.txt"
-      {"__mul__", PyString_Multiply},
+      {""}, {""}, {""}, {""}, {""},
+#line 68 "gperf/methods_string.txt"
+      {"strip", PyString_Strip, true},
+      {""}, {""},
+#line 22 "gperf/methods_string.txt"
+      {"__rmul__", PyString_RightMultiply, true},
+#line 56 "gperf/methods_string.txt"
+      {"maketrans", PyString_Maketrans, true},
+#line 39 "gperf/methods_string.txt"
+      {"index", PyString_Index, true},
+      {""}, {""},
+#line 27 "gperf/methods_string.txt"
+      {"__hash__", PyString_Hash, true},
+      {""},
+#line 65 "gperf/methods_string.txt"
+      {"split", PyString_Split, true},
+      {""},
+#line 41 "gperf/methods_string.txt"
+      {"isalpha", PyString_IsAlpha, true},
+      {""}, {""},
+#line 66 "gperf/methods_string.txt"
+      {"splitlines", PyString_Splitlines, true},
+      {""},
+#line 42 "gperf/methods_string.txt"
+      {"isascii", PyString_IsAscii, true},
+      {""}, {""},
+#line 62 "gperf/methods_string.txt"
+      {"rpartition", PyString_Rpartition, true},
+#line 26 "gperf/methods_string.txt"
+      {"__getitem__", PyString_GetItem, true},
+#line 44 "gperf/methods_string.txt"
+      {"isdigit", PyString_IsDigit, true},
+#line 34 "gperf/methods_string.txt"
+      {"endswith", PyString_Endswith, true},
+#line 43 "gperf/methods_string.txt"
+      {"isdecimal", PyString_IsDecimal, true},
+#line 35 "gperf/methods_string.txt"
+      {"expandtabs", PyString_Expandtabs, true},
+      {""},
+#line 49 "gperf/methods_string.txt"
+      {"isspace", PyString_IsSpace, true},
+      {""}, {""},
+#line 61 "gperf/methods_string.txt"
+      {"rjust", PyString_Rjust, true},
+      {""},
+#line 50 "gperf/methods_string.txt"
+      {"istitle", PyString_IsTitle, true},
+#line 24 "gperf/methods_string.txt"
+      {"__iter__", PyString_Iter, true},
+      {""},
+#line 67 "gperf/methods_string.txt"
+      {"startswith", PyString_Startswith, true},
+#line 17 "gperf/methods_string.txt"
+      {"__ge__", PyString_GreaterEqual, true},
+#line 58 "gperf/methods_string.txt"
+      {"replace", PyString_Replace, true},
+      {""}, {""},
+#line 53 "gperf/methods_string.txt"
+      {"ljust", PyString_Ljust, true},
+#line 25 "gperf/methods_string.txt"
+      {"__getattr__", PyString_GetAttr, true },
+#line 20 "gperf/methods_string.txt"
+      {"__add__", PyString_Add, true},
+#line 30 "gperf/methods_string.txt"
+      {"casefold", PyString_CaseFold, true},
+      {""},
+#line 59 "gperf/methods_string.txt"
+      {"rfind", PyString_Rfind, true},
+#line 19 "gperf/methods_string.txt"
+      {"__le__", PyString_LessEqual, true},
+#line 28 "gperf/methods_string.txt"
+      {"__len__", PyString_Len, true},
+      {""}, {""},
+#line 72 "gperf/methods_string.txt"
+      {"upper", PyString_Upper, true},
+#line 37 "gperf/methods_string.txt"
+      {"format", PyString_Format, true},
+#line 40 "gperf/methods_string.txt"
+      {"isalnum", PyString_IsAlnum, true},
+      {""}, {""},
+#line 38 "gperf/methods_string.txt"
+      {"format_map", PyString_FormatMap, true},
+#line 60 "gperf/methods_string.txt"
+      {"rindex", PyString_Rindex, true},
+#line 45 "gperf/methods_string.txt"
+      {"isidentifier", PyString_IsIdentifier, true},
+#line 69 "gperf/methods_string.txt"
+      {"swapcase", PyString_Swapcase, true},
+#line 52 "gperf/methods_string.txt"
+      {"join", PyString_Join, true},
+#line 73 "gperf/methods_string.txt"
+      {"zfill", PyString_Zfill, true},
+#line 63 "gperf/methods_string.txt"
+      {"rsplit", PyString_Rsplit, true},
+      {""}, {""},
+#line 74 "gperf/methods_string.txt"
+      {"__class__", PyString_Class, false},
+#line 54 "gperf/methods_string.txt"
+      {"lower", PyString_Lower, true},
+#line 16 "gperf/methods_string.txt"
+      {"__gt__", PyString_Greater, true},
+#line 21 "gperf/methods_string.txt"
+      {"__mul__", PyString_Multiply, true},
+      {""},
+#line 36 "gperf/methods_string.txt"
+      {"find", PyString_Find, true},
+#line 70 "gperf/methods_string.txt"
+      {"title", PyString_Title, true},
+#line 48 "gperf/methods_string.txt"
+      {"isprintable", PyString_IsPrintable, true},
+#line 51 "gperf/methods_string.txt"
+      {"isupper", PyString_IsUpper, true},
       {""}, {""}, {""},
-#line 98 "gperf/methods_string.txt"
-      {"__gt__", PyString_Greater},
-#line 102 "gperf/methods_string.txt"
-      {"__add__", PyString_Add},
-      {""}, {""}, {""},
-#line 101 "gperf/methods_string.txt"
-      {"__le__", PyString_LessEqual},
-      {""}, {""}, {""},
-#line 97 "gperf/methods_string.txt"
-      {"__ne__", PyString_NotEqual},
-#line 99 "gperf/methods_string.txt"
-      {"__ge__", PyString_GreaterEqual},
+#line 18 "gperf/methods_string.txt"
+      {"__lt__", PyString_Less, true},
+#line 46 "gperf/methods_string.txt"
+      {"islower", PyString_IsLower, true},
+      {""},
+#line 71 "gperf/methods_string.txt"
+      {"translate", PyString_Translate, true},
+#line 29 "gperf/methods_string.txt"
+      {"capitalize", PyString_Capitalize, true},
+#line 15 "gperf/methods_string.txt"
+      {"__ne__", PyString_NotEqual, true},
+#line 64 "gperf/methods_string.txt"
+      {"rstrip", PyString_Rstrip, true},
+      {""},
+#line 57 "gperf/methods_string.txt"
+      {"partition", PyString_Partition, true},
+      {""},
+#line 33 "gperf/methods_string.txt"
+      {"encode", PyString_Encode, true},
+#line 14 "gperf/methods_string.txt"
+      {"__eq__", PyString_Equal, true},
       {""}, {""}, {""}, {""},
-#line 104 "gperf/methods_string.txt"
-      {"__getattr__", PyString_GetAttr},
-      {""}, {""}, {""}, {""},
-#line 96 "gperf/methods_string.txt"
-      {"__eq__", PyString_Equal}
+#line 55 "gperf/methods_string.txt"
+      {"lstrip", PyString_Lstrip, true},
+      {""}, {""},
+#line 32 "gperf/methods_string.txt"
+      {"count", PyString_Count, true},
+#line 31 "gperf/methods_string.txt"
+      {"center", PyString_Center, true},
+      {""}, {""},
+#line 47 "gperf/methods_string.txt"
+      {"isnumeric", PyString_IsNumeric, true},
+      {""}, {""},
+#line 23 "gperf/methods_string.txt"
+      {"__contains__", PyString_Contains, false}
     };
 
   if (len <= MAX_WORD_LENGTH && len >= MIN_WORD_LENGTH)
@@ -213,5 +274,5 @@ in_string_set (register const char *str, register size_t len)
     }
   return 0;
 }
-#line 105 "gperf/methods_string.txt"
+#line 75 "gperf/methods_string.txt"
 

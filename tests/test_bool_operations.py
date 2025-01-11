@@ -23,3 +23,7 @@ assert bool(0) == False
 assert bool("some string") == True
 
 assert bool("") == False
+
+assert bool(None) == False
+
+assert type(True) is bool

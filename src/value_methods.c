@@ -23,11 +23,20 @@
 #define GET_METHOD(value, name) MethodTable[(value).type].name
 
 static int Undefined_ToStr(Value value, char *buffer, size_t size) {
-    writeToBuffer(buffer, size, "undefined");
+    return writeToBuffer(buffer, size, "undefined");
+}
+
+static int NotImplemened_ToStr(Value value, char *buffer, size_t size) {
+    return writeToBuffer(buffer, size, "NotImplemented");
+}
+
+static Value NotImplemened_Class(Value value) {
+    return TYPE_CLASS(notImplementedType);
 }
 
 ValueMethods MethodTable[] = {
     [VAL_UNDEFINED] = (ValueMethods){.str=Undefined_ToStr, .repr=Undefined_ToStr},
+    [VAL_NOT_IMPLEMENTED] = (ValueMethods){.str=NotImplemened_ToStr, .repr=NotImplemened_ToStr, .class=NotImplemened_Class},
     [VAL_NONE]   = NONE_METHODS, 
     [VAL_BOOL]   = BOOL_METHODS,
     [VAL_INT]    = INT_METHODS, 

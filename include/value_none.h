@@ -8,8 +8,6 @@
     .ne = None_NotEqual,              \
     .hash = None_Hash,                \
     .toBool = None_ToBool,            \
-    .toInt = None_ToInt,              \
-    .toFloat = None_ToFloat,          \
     .str = None_ToStr,                \
     .repr = None_ToStr                \
 }
@@ -23,10 +21,6 @@ Value None_GetAttr(Value value, ObjString *name);
 uint64_t None_Hash(Value value);
 
 bool None_ToBool(Value value);
-
-long long None_ToInt(Value value);
-
-double None_ToFloat(Value value);
 
 int None_ToStr(Value value, char *buffer, size_t size);
 

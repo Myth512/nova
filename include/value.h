@@ -68,10 +68,15 @@ typedef struct {
 
 typedef Value (*NativeFn)(int argc, int kwargc);
 
-typedef struct GperfMethod {
+typedef struct StaticAttribute {
 	const char *name;
-    Value (*method)(int, Value*);
-} GperfMethod;
+    union {
+        void *raw;
+        Value (*method)(int, int);
+        Value (*attribue)(Value);
+    } as;
+    bool isMethod;
+} StaticAttribute;
 
 typedef Value (*BinaryMethod)(Value, Value);
 typedef Value (*UnaryMethod)(Value);
@@ -139,29 +144,9 @@ typedef struct {
 #define IS_UNDEFINED(value) ((value).type == VAL_UNDEFINED)
 #define IS_NOT_IMPLEMENTED(value)  ((value).type == VAL_NOT_IMPLEMENTED)
 
-#define UNARY_WRAPPER(name)             \
-Value Py##name(int argc, Value *argv) { \
-    if (argc != 0)                      \
-        reportArityError(0, 0, argc);   \
-    Value (*method)(Value) = name;      \
-    if (method == NULL)                 \
-        reportRuntimeError("ns");       \
-    return method(argv[0]);             \
-}
-
-#define BINARY_WRAPPER(name)              \
-Value Py##name(int argc, Value *argv) {   \
-    if (argc != 1)                        \
-        reportArityError(1, 1, argc);     \
-    Value (*method)(Value, Value) = name; \
-    if (method == NULL)                   \
-        reportRuntimeError("ns");         \
-    return method(argv[0], argv[1]);      \
-}
-
 int writeToBuffer(char *buffer, const size_t size, const char *format, ...);
 
-Value getGperfMethod(Value value, ObjString *name, const struct GperfMethod *(*in_word_set)(register const char*, register size_t));
+Value getStaticAttribute(Value value, ObjString *name, const struct StaticAttribute*(*in_word_set)(register const char*, register size_t));
 
 int calculateIndex(int index, int length);
 

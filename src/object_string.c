@@ -190,7 +190,7 @@ Value String_Iter(Value value) {
 }
 
 Value String_GetAttr(Value value, ObjString *name) {
-    return getGperfMethod(value, name, in_string_set);
+    return getStaticAttribute(value, name, in_string_set);
 }
 
 Value String_GetItem(Value value, Value key) {

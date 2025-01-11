@@ -4,7 +4,7 @@
 #include "value_int.h"
 #include "value_float.h"
 #include "value_methods.h"
-#include "methods_int.h"
+// #include "methods_int.h"
 #include "object_exception.h"
 #include "vm.h"
 #include "table.h"
@@ -191,7 +191,7 @@ Value Int_RightRightShift(Value a, Value b) {
 }
 
 Value Int_GetAttr(Value obj, ObjString *name) {
-    return getGperfMethod(obj, name, in_int_set);
+    // return getGperfMethod(obj, name, in_int_set);
 }
 
 Value Int_Init(Value callee, int argc, Value *argv) {

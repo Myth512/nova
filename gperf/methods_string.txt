@@ -1,105 +1,75 @@
 %{
 #include <string.h>
-#include "object_string.h"
-#include "vm.h"
+#include "py_string.h"
 #include "value.h"
-#include "object_string.h"
-
-Value PyString_Equal(int argc, Value *argv) {
-    if (argc != 1)
-        reportArityError(1, 1, argc);
-    Value res = String_Equal(argv[0], argv[1]);
-    if (IS_NOT_IMPLEMENTED(res))
-        operatorNotImplemented("==", argv[0], argv[1]);
-    return res;
-}
-
-Value PyString_NotEqual(int argc, Value *argv) {
-    if (argc != 1)
-        reportArityError(1, 1, argc);
-    Value res = String_NotEqual(argv[0], argv[1]);
-    if (IS_NOT_IMPLEMENTED(res))
-        operatorNotImplemented("!=", argv[0], argv[1]);
-    return res;
-}
-
-Value PyString_Greater(int argc, Value *argv) {
-    if (argc != 1)
-        reportArityError(1, 1, argc);
-    Value res = String_Greater(argv[0], argv[1]);
-    if (IS_NOT_IMPLEMENTED(res))
-        operatorNotImplemented(">", argv[0], argv[1]);
-    return res;
-}
-
-Value PyString_GreaterEqual(int argc, Value *argv) {
-    if (argc != 1)
-        reportArityError(1, 1, argc);
-    Value res = String_GreaterEqual(argv[0], argv[1]);
-    if (IS_NOT_IMPLEMENTED(res))
-        operatorNotImplemented(">=", argv[0], argv[1]);
-    return res;
-}
-
-Value PyString_Less(int argc, Value *argv) {
-    if (argc != 1)
-        reportArityError(1, 1, argc);
-    Value res = String_Less(argv[0], argv[1]);
-    if (IS_NOT_IMPLEMENTED(res))
-        operatorNotImplemented("<", argv[0], argv[1]);
-    return res;
-}
-
-Value PyString_LessEqual(int argc, Value *argv) {
-    if (argc != 1)
-        reportArityError(1, 1, argc);
-    Value res = String_LessEqual(argv[0], argv[1]);
-    if (IS_NOT_IMPLEMENTED(res))
-        operatorNotImplemented("<=", argv[0], argv[1]);
-    return res;
-}
-
-Value PyString_Add(int argc, Value *argv) {
-    if (argc != 1)
-        reportArityError(1, 1, argc);
-    Value res = String_Add(argv[0], argv[1]);
-    if (IS_NOT_IMPLEMENTED(res))
-        operatorNotImplemented("+", argv[0], argv[1]);
-    return res;
-}
-
-Value PyString_Multiply(int argc, Value *argv) {
-    if (argc != 1)
-        reportArityError(1, 1, argc);
-    Value res = String_Multiply(argv[0], argv[1]);
-    if (IS_NOT_IMPLEMENTED(res))
-        operatorNotImplemented("*", argv[0], argv[1]);
-    return res;
-}
-
-Value PyString_GetAttr(int argc, Value *argv) {
-    if (argc != 1)
-        reportArityError(1, 1, argc);
-    Value res = String_GetAttr(argv[0], AS_STRING(argv[1]));
-    return res;
-}
-
 %}
 
-struct GperfMethod
+struct StaticAttribute
 
 %readonly-tables
 %struct-type
 %define lookup-function-name in_string_set
 
 %%
-__eq__, PyString_Equal
-__ne__, PyString_NotEqual
-__gt__, PyString_Greater
-__ge__, PyString_GreaterEqual
-__lt__, PyString_Less
-__le__, PyString_LessEqual
-__add__, PyString_Add
-__mul__, PyString_Multiply
-__getattr__, PyString_GetAttr
+__eq__, PyString_Equal, true
+__ne__, PyString_NotEqual, true
+__gt__, PyString_Greater, true
+__ge__, PyString_GreaterEqual, true
+__lt__, PyString_Less, true
+__le__, PyString_LessEqual, true
+__add__, PyString_Add, true
+__mul__, PyString_Multiply, true
+__rmul__, PyString_RightMultiply, true
+__contains__, PyString_Contains, false
+__iter__, PyString_Iter, true
+__getattr__, PyString_GetAttr, true 
+__getitem__, PyString_GetItem, true
+__hash__, PyString_Hash, true
+__len__, PyString_Len, true
+capitalize, PyString_Capitalize, true
+casefold, PyString_CaseFold, true
+center, PyString_Center, true
+count, PyString_Count, true
+encode, PyString_Encode, true
+endswith, PyString_Endswith, true
+expandtabs, PyString_Expandtabs, true
+find, PyString_Find, true
+format, PyString_Format, true
+format_map, PyString_FormatMap, true
+index, PyString_Index, true
+isalnum, PyString_IsAlnum, true
+isalpha, PyString_IsAlpha, true
+isascii, PyString_IsAscii, true
+isdecimal, PyString_IsDecimal, true
+isdigit, PyString_IsDigit, true
+isidentifier, PyString_IsIdentifier, true
+islower, PyString_IsLower, true
+isnumeric, PyString_IsNumeric, true
+isprintable, PyString_IsPrintable, true
+isspace, PyString_IsSpace, true
+istitle, PyString_IsTitle, true
+isupper, PyString_IsUpper, true
+join, PyString_Join, true
+ljust, PyString_Ljust, true
+lower, PyString_Lower, true
+lstrip, PyString_Lstrip, true
+maketrans, PyString_Maketrans, true
+partition, PyString_Partition, true
+replace, PyString_Replace, true
+rfind, PyString_Rfind, true
+rindex, PyString_Rindex, true
+rjust, PyString_Rjust, true
+rpartition, PyString_Rpartition, true
+rsplit, PyString_Rsplit, true
+rstrip, PyString_Rstrip, true
+split, PyString_Split, true
+splitlines, PyString_Splitlines, true
+startswith, PyString_Startswith, true
+strip, PyString_Strip, true
+swapcase, PyString_Swapcase, true
+title, PyString_Title, true
+translate, PyString_Translate, true
+upper, PyString_Upper, true
+zfill, PyString_Zfill, true
+__class__, PyString_Class, false
 %%

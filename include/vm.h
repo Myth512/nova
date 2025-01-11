@@ -13,6 +13,9 @@
 
 #define TYPE_CLASS(name)    (OBJ_VAL(vm.types.name))
 
+#define PARSE_ARGS(...) \
+    parseArgs(argc, kwargc, sizeof(keywords) / sizeof(char*), keywords, ##__VA_ARGS__)
+
 typedef struct {
     ObjClosure *closure;
     uint8_t *ip;
@@ -89,6 +92,7 @@ typedef struct {
     ObjNativeClass *super;
     ObjNativeClass *range;
     ObjNativeClass *rangeIterator;
+    ObjNativeClass *notImplementedType;
 } BaseTypes;
 
 typedef struct {
@@ -124,6 +128,8 @@ void push(Value value);
 Value pop();
 
 void insert(int distance, Value value);
+
+void parseArgs(int argc, int kwargc, int arity, char *keywords[], ...);
 
 void raise();
 

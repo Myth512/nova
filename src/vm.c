@@ -126,6 +126,61 @@ void insert(int distance, Value value) {
     #endif
 }
 
+int stringIndex(char *keywords[], char *keyword, size_t size) {
+    for (int i = 0; i < size; i++) {
+        if (strcmp(keywords[i], keyword) == 0)
+            return i;
+    }
+    return -1;
+}
+
+void parseArgs(int argc, int kwargc, int arity, char *keywords[], ...) {
+    Value args[arity];
+    for (int i = 0; i < arity; i++)
+        args[i] = UNDEFINED_VAL;
+
+    vm.top -= argc + 2 * kwargc;
+
+    for (int i = 0; i < argc; i++) {
+        if (*keywords[i] == '*') {
+            size_t size = argc - i;
+            ObjTuple *tuple = allocateTuple(size);
+            for (int j = 0; j < size; j++) {
+                tuple->values[j] = *vm.top;
+                vm.top++;
+            }
+            args[i] = OBJ_VAL(tuple);
+            i = argc;
+        } else {
+            args[i] = *vm.top;
+            vm.top++;
+        }
+    }
+
+    for (int i = 0; i < kwargc; i++) {
+        Value name = vm.top[0];
+        Value value = vm.top[1];
+        vm.top += 2;
+        int index = stringIndex(keywords, AS_STRING(name)->chars, arity);
+        if (index == -1)
+            reportRuntimeError("got an unexpected keyword argument '%s'", AS_STRING(name)->chars);
+        if (!IS_UNDEFINED(args[index]))
+            reportRuntimeError("got multiple values for argument '%s'", AS_STRING(name)->chars);
+        
+        args[index] = value;
+    }
+
+    va_list args1;
+    va_start(args1, arity);
+
+    for (int i = 0; i < arity; i++) {
+        Value *value = va_arg(args1, Value*);
+        *value = args[i];
+    }
+
+    va_end(args1);
+}
+
 void call(ObjClosure *closure, int argc, int kwargc, bool isMethod) {
     if (vm.frameSize == FRAMES_SIZE)
         reportRuntimeError("Stack overflow");
@@ -289,6 +344,7 @@ static void defineNativeTypes() {
     vm.types.super = defineNativeClass("super", VAL_SUPER, VAL_OBJECT);
     vm.types.range = defineNativeClass("range", VAL_RANGE, VAL_OBJECT);
     vm.types.rangeIterator = createNativeclass("range_iterator", VAL_RANGE_ITERATOR, VAL_OBJECT);
+    vm.types.notImplementedType = createNativeclass("NotImplementedType", VAL_NOT_IMPLEMENTED, VAL_OBJECT);
 }
 
 static void callValue(Value callee, int argc, int kwargc) {

@@ -4,7 +4,7 @@
 #include "value_int.h"
 #include "value_float.h"
 #include "value_methods.h"
-#include "methods_float.h"
+// #include "methods_float.h"
 #include "object_exception.h"
 #include "vm.h"
 
@@ -197,7 +197,7 @@ Value Float_Negative(Value a) {
 }
 
 Value Float_GetAttr(Value a, ObjString *name) {
-    return getGperfMethod(a, name, in_float_set);
+    // return getGperfMethod(a, name, in_float_set);
 }
 
 Value Float_Init(Value callee, int argc, Value *argv) {

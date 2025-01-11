@@ -9,6 +9,7 @@
 #include "object_string.h"
 #include "object_class.h"
 #include "memory.h"
+#include "object_exception.h"
 #include "error.h"
 #include "vm.h"
 
@@ -27,11 +28,13 @@ int writeToBuffer(char *buffer, const size_t size, const char *format, ...) {
     return bytesWritten;
 }
 
-Value getGperfMethod(Value value, ObjString *name, const struct GperfMethod *(*in_word_set)(register const char*, register size_t)) {
-    // const GperfMethod *result = in_word_set(name->chars, name->length);
-    // if (!result)
-        // return UNDEFINED_VAL;
-    // return OBJ_VAL(createNativeMethod(value, result->method, result->name));
+Value getStaticAttribute(Value value, ObjString *name, const struct StaticAttribute*(*in_word_set)(register const char*, register size_t)) {
+    const StaticAttribute *result = in_word_set(name->chars, name->length);
+    if (!result)
+        return createException(VAL_ATTRIBUTE_ERROR, "'%s' object has no attribute '%s'", getValueType(value), name->chars);
+    if (result->isMethod)
+        return OBJ_VAL(createNativeMethod(value, result->as.method, result->name));
+    return result->as.attribue(value);
 }
 
 int calculateIndex(int index, int length) {
