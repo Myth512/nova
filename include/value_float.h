@@ -35,7 +35,7 @@
     .neg = Float_Negative,               \
     .init = Float_Init,                  \
     .class = Float_Class,                \
-    .getattr = Float_GetAttr,            \
+    .getattr = Float_GetAttribute,       \
     .hash = Float_Hash,                  \
     .toBool = Float_ToBool,              \
     .toInt = Float_ToInt,                \
@@ -88,7 +88,7 @@ Value Float_Class(Value value);
 
 Value Float_Init(Value callee, int argc, Value *argv);
 
-Value Float_GetAttr(Value a, ObjString *name);
+Value Float_GetAttribute(Value a, ObjString *name);
 
 uint64_t Float_Hash(Value value);
 

@@ -25,7 +25,7 @@
     .class = String_Class,             \
     .init = String_Init,               \
     .iter = String_Iter,               \
-    .getattr = String_GetAttr,         \
+    .getattr = String_GetAttribute,    \
     .getitem = String_GetItem,         \
     .hash = String_Hash,               \
     .len = String_Len,                 \
@@ -77,7 +77,7 @@ Value String_Init(Value callee, int argc, Value *argv);
 
 Value String_Iter(Value value);
 
-Value String_GetAttr(Value value, ObjString *name);
+Value String_GetAttribute(Value value, ObjString *name);
 
 Value String_GetItem(Value value, Value key);
 

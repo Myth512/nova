@@ -95,12 +95,12 @@ Value PyString_Iter(int argc, int kwargc) {
     return String_Iter(self);
 }
 
-Value PyString_GetAttr(int argc, int kwargc) {
+Value PyString_GetAttribute(int argc, int kwargc) {
     static char *keywords[] = {"self", "name"};
     Value self, name;
     PARSE_ARGS(&self, &name);
 
-    return String_GetAttr(self, AS_STRING(name));
+    return String_GetAttribute(self, AS_STRING(name));
 }
 
 Value PyString_GetItem(int argc, int kwargc) {
@@ -133,16 +133,15 @@ Value PyString_Capitalize(int argc, int kwargc) {
     PARSE_ARGS(&self);
 
     ObjString *string = AS_STRING(self);
-
-    ObjString *res = copyString(string->chars, string->length);
+    ObjString *res = allocateString(string->length);
 
     if (string->length == 0)
         return OBJ_VAL(res);
     
-    res->chars[0] = toupper(res->chars[0]);
+    res->chars[0] = toupper(string->chars[0]);
 
     for (int i = 1; i < res->length; i++)
-        res->chars[i] = tolower(res->chars[i]);
+        res->chars[i] = tolower(string->chars[i]);
     
     return OBJ_VAL(res);
 }
@@ -244,7 +243,17 @@ Value PyString_Ljust(int argc, int kwargc) {
 }
 
 Value PyString_Lower(int argc, int kwargc) {
-    return NOT_IMPLEMENTED_VAL;
+    static char *keywords[] = {"self"};
+    Value self;
+    PARSE_ARGS(&self);
+
+    ObjString *string = AS_STRING(self);
+    ObjString *res = allocateString(string->length);
+
+    for (int i = 0; i < res->length; i++)
+        res->chars[i] = tolower(string->chars[i]);
+    
+    return OBJ_VAL(res);
 }
 
 Value PyString_Lstrip(int argc, int kwargc) {
@@ -316,7 +325,17 @@ Value PyString_Translate(int argc, int kwargc) {
 }
 
 Value PyString_Upper(int argc, int kwargc) {
-    return NOT_IMPLEMENTED_VAL;
+    static char *keywords[] = {"self"};
+    Value self;
+    PARSE_ARGS(&self);
+
+    ObjString *string = AS_STRING(self);
+    ObjString *res = allocateString(string->length);
+
+    for (int i = 0; i < res->length; i++)
+        res->chars[i] = toupper(string->chars[i]);
+    
+    return OBJ_VAL(res);
 }
 
 Value PyString_Zfill(int argc, int kwargc) {

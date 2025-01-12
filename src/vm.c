@@ -318,6 +318,7 @@ static ObjNativeClass* createNativeclass(const char *name, ValueType type, Value
 
 static void defineNativeTypes() {
     vm.types.object = defineNativeClass("object", VAL_OBJECT, VAL_UNDEFINED);
+    vm.types.none = createNativeclass("NoneType", VAL_NONE, VAL_OBJECT);
     vm.types.int_ = defineNativeClass("int", VAL_INT, VAL_OBJECT);
     vm.types.bool_ = defineNativeClass("bool", VAL_BOOL, VAL_INT);
     vm.types.float_ = defineNativeClass("float", VAL_FLOAT, VAL_OBJECT);
@@ -597,12 +598,8 @@ static void getAttrtibute() {
     Value obj = pop();
     ObjString *name = READ_STRING();
     Value result = valueGetAttribute(obj, name);
-    if (IS_UNDEFINED(result)) {
-        push(createException(VAL_ATTRIBUTE_ERROR, "'%s' object has no attribute '%s'", getValueType(obj), name->chars));
-        raise();
-        return;
-    }
     push(result);
+    raiseIfException();
 }
 
 static void setAttribute() {

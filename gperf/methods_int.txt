@@ -1,0 +1,44 @@
+%{
+#include <string.h>
+#include "py_int.h"
+#include "value.h"
+%}
+
+struct StaticAttribute
+
+%readonly-tables
+%struct-type
+%define lookup-function-name in_int_set
+
+%%
+__eq__, PyInt_Equal, true
+__ne__, PyInt_NotEqual, true
+__gt__, PyInt_Greater, true
+__ge__, PyInt_GreaterEqual, true
+__lt__, PyInt_Less, true
+__le__, PyInt_LessEqual, true
+__add__, PyInt_Add, true
+__sub__, PyInt_Subtract, true
+__rsub__, PyInt_RightSubtract, true
+__mul__, PyInt_Multiply, true
+__truediv__, PyInt_TrueDivide, true
+__rtruediv__, PyInt_RightTrueDivide, true
+__floordiv__, PyInt_FloorDivide, true
+__rfloordiv__, PyInt_RightFloorDivide, true
+__mod__, PyInt_Modulo, true
+__rmod__, PyInt_RightModulo, true
+__pow__, PyInt_Power, true
+__rpow__, PyInt_RightPower, true
+__pos__, PyInt_Positive, true
+__neg__, PyInt_Negative, true
+__and__, PyInt_And, true
+__xor__, PyInt_Xor, true
+__or__, PyInt_Or, true
+__invert__, PyInt_Invert, true
+__lshift__, PyInt_LeftShift, true
+__rlshift__, PyInt_RightLeftShift, true
+__rshift__, PyInt_RightShift, true
+__rrshift__, PyInt_RightRightShift, true
+__getattr__, PyInt_GetAttribute, true
+__class__, PyInt_Class, false
+%%

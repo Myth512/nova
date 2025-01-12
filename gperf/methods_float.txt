@@ -1,0 +1,41 @@
+%{
+#include <string.h>
+#include "py_float.h"
+#include "value.h"
+%}
+
+struct StaticAttribute
+
+%readonly-tables
+%struct-type
+%define lookup-function-name in_float_set
+
+%%
+__eq__, PyFloat_Equal, true
+__ne__, PyFloat_NotEqual, true
+__gt__, PyFloat_Greater, true
+__ge__, PyFloat_GreaterEqual, true
+__lt__, PyFloat_Less, true
+__le__, PyFloat_LessEqual, true
+__add__, PyFloat_Add, true
+__sub__, PyFloat_Subtract, true
+__rsub__, PyFloat_RightSubtract, true
+__mul__, PyFloat_Multiply, true
+__truediv__, PyFloat_TrueDivide, true
+__rtruediv__, PyFloat_RightTrueDivide, true
+__floordiv__, PyFloat_FloorDivide, true
+__rfloordiv__, PyFloat_RightFloorDivide, true
+__mod__, PyFloat_Modulo, true
+__rmod__, PyFloat_RightModulo, true
+__pow__, PyFloat_Power, true
+__rpow__, PyFloat_RightPower, true
+__pos__, PyFloat_Positive, true
+__neg__, PyFloat_Negative, true
+__class__, PyFloat_Class, false
+__init__, PyFloat_Init, true
+__getattr__, PyFloat_GetAttribute, true
+__hash__, PyFloat_Hash, true
+__bool__, PyFloat_ToBool, true
+__int__, PyFloat_ToInt, true
+__float__, PyFloat_ToFloat, true
+%%

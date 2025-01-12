@@ -189,7 +189,7 @@ Value String_Iter(Value value) {
     return OBJ_VAL(allocateStringIterator(value));
 }
 
-Value String_GetAttr(Value value, ObjString *name) {
+Value String_GetAttribute(Value value, ObjString *name) {
     return getStaticAttribute(value, name, in_string_set);
 }
 

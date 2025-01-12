@@ -1,0 +1,20 @@
+%{
+#include <string.h>
+#include "py_none.h"
+#include "value.h"
+%}
+
+struct StaticAttribute
+
+%readonly-tables
+%struct-type
+%define lookup-function-name in_none_set
+
+%%
+__eq__, PyNone_Equal, true
+__ne__, PyNone_NotEqual, true
+__getattribute__, PyNone_GetAttribute, true
+__hash__, PyNone_Hash, true
+__bool__, PyNone_ToBool, true
+__class__, PyNone_Class, false
+%%

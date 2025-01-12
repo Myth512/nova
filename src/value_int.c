@@ -4,7 +4,8 @@
 #include "value_int.h"
 #include "value_float.h"
 #include "value_methods.h"
-// #include "methods_int.h"
+#include "methods_int.h"
+#include "methods_bool.h"
 #include "object_exception.h"
 #include "vm.h"
 #include "table.h"
@@ -190,24 +191,16 @@ Value Int_RightRightShift(Value a, Value b) {
     return NOT_IMPLEMENTED_VAL;
 }
 
-Value Int_GetAttr(Value obj, ObjString *name) {
-    // return getGperfMethod(obj, name, in_int_set);
+Value Int_GetAttribute(Value obj, ObjString *name) {
+    return getStaticAttribute(obj, name, in_int_set);
 }
 
 Value Int_Init(Value callee, int argc, Value *argv) {
     return INT_VAL(valueToInt(argv[0]));
 }
 
-Value Bool_Init(Value callee, int argc, Value *argv) {
-    return BOOL_VAL(valueToBool(argv[0]));
-}
-
 Value Int_Class(Value value) {
     return TYPE_CLASS(int_);
-}
-
-Value Bool_Class(Value value) {
-    return TYPE_CLASS(bool_);
 }
 
 uint64_t Int_Hash(Value value) {
@@ -236,6 +229,18 @@ double Int_ToFloat(Value value) {
 
 int Int_ToStr(Value value, char *buffer, const size_t size) {
     writeToBuffer(buffer, size, "%lld", AS_INT(value));
+}
+
+Value Bool_Init(Value callee, int argc, Value *argv) {
+    return BOOL_VAL(valueToBool(argv[0]));
+}
+
+Value Bool_Class(Value value) {
+    return TYPE_CLASS(bool_);
+}
+
+Value Bool_GetAttribute(Value obj, ObjString *name) {
+    return getStaticAttribute(obj, name, in_bool_set);
 }
 
 int Bool_ToStr(Value value, char *buffer, const size_t size) {

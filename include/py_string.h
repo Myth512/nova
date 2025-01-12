@@ -25,7 +25,7 @@ Value PyString_Contains(int argc, int kwargc);
 
 Value PyString_Iter(int argc, int kwargc);
 
-Value PyString_GetAttr(int argc, int kwargc);
+Value PyString_GetAttribute(int argc, int kwargc);
 
 Value PyString_GetItem(int argc, int kwargc);
 

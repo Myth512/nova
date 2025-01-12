@@ -22,7 +22,7 @@ __mul__, PyString_Multiply, true
 __rmul__, PyString_RightMultiply, true
 __contains__, PyString_Contains, false
 __iter__, PyString_Iter, true
-__getattr__, PyString_GetAttr, true 
+__getattribute__, PyString_GetAttribute, true 
 __getitem__, PyString_GetItem, true
 __hash__, PyString_Hash, true
 __len__, PyString_Len, true
