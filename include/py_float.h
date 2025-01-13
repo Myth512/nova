@@ -49,6 +49,8 @@ Value PyFloat_Init(Value callee, int argc, Value *argv);
 
 Value PyFloat_GetAttribute(int argc, int kwargc);
 
+Value PyFloat_IsInteger(int argc, int kwargc);
+
 Value PyFloat_Hash(Value value);
 
 Value PyFloat_ToBool(Value value);

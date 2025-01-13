@@ -75,3 +75,9 @@ assert str(123.456) == "123.456"
 assert repr(-10.5) == "-10.5"
 
 assert type(3.333) is float
+
+assert 3.14159.is_integer() == False
+
+assert (0.5 + 0.5).is_integer() == True
+
+assert (0.5 - 0.5).is_integer() == True

@@ -1,3 +1,5 @@
+#include <math.h>
+
 #include "py_float.h"
 #include "value_float.h"
 #include "value_int.h"
@@ -178,6 +180,14 @@ Value PyFloat_GetAttribute(int argc, int kwargc) {
     PARSE_ARGS(&self, &name);
 
     return Float_GetAttribute(self, name);
+}
+
+Value PyFloat_IsInteger(int argc, int kwargc) {
+    static char *keywords[] = {"self"};
+    Value self;
+    PARSE_ARGS(&self);
+
+    return BOOL_VAL(fmod(AS_FLOAT(self), 1) == 0.0);
 }
 
 Value PyFloat_Hash(Value value) {

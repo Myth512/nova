@@ -37,12 +37,12 @@
 #line 7 "gperf/methods_float.txt"
 struct StaticAttribute;
 
-#define TOTAL_KEYWORDS 27
+#define TOTAL_KEYWORDS 28
 #define MIN_WORD_LENGTH 6
 #define MAX_WORD_LENGTH 13
-#define MIN_HASH_VALUE 7
-#define MAX_HASH_VALUE 72
-/* maximum key range = 66, duplicates = 0 */
+#define MIN_HASH_VALUE 6
+#define MAX_HASH_VALUE 52
+/* maximum key range = 47, duplicates = 0 */
 
 #ifdef __GNUC__
 __inline
@@ -56,32 +56,32 @@ hash (register const char *str, register size_t len)
 {
   static const unsigned char asso_values[] =
     {
-      73, 73, 73, 73, 73, 73, 73, 73, 73, 73,
-      73, 73, 73, 73, 73, 73, 73, 73, 73, 73,
-      73, 73, 73, 73, 73, 73, 73, 73, 73, 73,
-      73, 73, 73, 73, 73, 73, 73, 73, 73, 73,
-      73, 73, 73, 73, 73, 73, 73, 73, 73, 73,
-      73, 73, 73, 73, 73, 73, 73, 73, 73, 73,
-      73, 73, 73, 73, 73, 73, 73, 73, 73, 73,
-      73, 73, 73, 73, 73, 73, 73, 73, 73, 73,
-      73, 73, 73, 73, 73, 73, 73, 73, 73, 73,
-      73, 73, 73, 73, 73,  0, 73,  5, 15,  0,
-      15,  5,  0, 10, 10,  0, 73, 73, 25, 10,
-       0,  0,  5,  3,  0,  5,  0, 30, 73, 15,
-      73, 73, 73, 73, 73, 73, 73, 73, 73, 73,
-      73, 73, 73, 73, 73, 73, 73, 73, 73, 73,
-      73, 73, 73, 73, 73, 73, 73, 73, 73, 73,
-      73, 73, 73, 73, 73, 73, 73, 73, 73, 73,
-      73, 73, 73, 73, 73, 73, 73, 73, 73, 73,
-      73, 73, 73, 73, 73, 73, 73, 73, 73, 73,
-      73, 73, 73, 73, 73, 73, 73, 73, 73, 73,
-      73, 73, 73, 73, 73, 73, 73, 73, 73, 73,
-      73, 73, 73, 73, 73, 73, 73, 73, 73, 73,
-      73, 73, 73, 73, 73, 73, 73, 73, 73, 73,
-      73, 73, 73, 73, 73, 73, 73, 73, 73, 73,
-      73, 73, 73, 73, 73, 73, 73, 73, 73, 73,
-      73, 73, 73, 73, 73, 73, 73, 73, 73, 73,
-      73, 73, 73, 73, 73, 73
+      53, 53, 53, 53, 53, 53, 53, 53, 53, 53,
+      53, 53, 53, 53, 53, 53, 53, 53, 53, 53,
+      53, 53, 53, 53, 53, 53, 53, 53, 53, 53,
+      53, 53, 53, 53, 53, 53, 53, 53, 53, 53,
+      53, 53, 53, 53, 53, 53, 53, 53, 53, 53,
+      53, 53, 53, 53, 53, 53, 53, 53, 53, 53,
+      53, 53, 53, 53, 53, 53, 53, 53, 53, 53,
+      53, 53, 53, 53, 53, 53, 53, 53, 53, 53,
+      53, 53, 53, 53, 53, 53, 53, 53, 53, 53,
+      53, 53, 53, 53, 53,  0, 53,  3,  5, 15,
+       0,  5,  0,  0, 30,  0, 53, 53, 20,  0,
+      10,  0, 15, 30,  0,  5,  0, 25, 53, 15,
+      53, 53, 53, 53, 53, 53, 53, 53, 53, 53,
+      53, 53, 53, 53, 53, 53, 53, 53, 53, 53,
+      53, 53, 53, 53, 53, 53, 53, 53, 53, 53,
+      53, 53, 53, 53, 53, 53, 53, 53, 53, 53,
+      53, 53, 53, 53, 53, 53, 53, 53, 53, 53,
+      53, 53, 53, 53, 53, 53, 53, 53, 53, 53,
+      53, 53, 53, 53, 53, 53, 53, 53, 53, 53,
+      53, 53, 53, 53, 53, 53, 53, 53, 53, 53,
+      53, 53, 53, 53, 53, 53, 53, 53, 53, 53,
+      53, 53, 53, 53, 53, 53, 53, 53, 53, 53,
+      53, 53, 53, 53, 53, 53, 53, 53, 53, 53,
+      53, 53, 53, 53, 53, 53, 53, 53, 53, 53,
+      53, 53, 53, 53, 53, 53, 53, 53, 53, 53,
+      53, 53, 53, 53, 53, 53
     };
   return len + asso_values[(unsigned char)str[4]] + asso_values[(unsigned char)str[3]] + asso_values[(unsigned char)str[2]];
 }
@@ -91,46 +91,43 @@ in_float_set (register const char *str, register size_t len)
 {
   static const struct StaticAttribute wordlist[] =
     {
-      {""}, {""}, {""}, {""}, {""}, {""}, {""},
-#line 39 "gperf/methods_float.txt"
-      {"__int__", PyFloat_ToInt, true},
-#line 35 "gperf/methods_float.txt"
-      {"__init__", PyFloat_Init, true},
-      {""}, {""},
-#line 15 "gperf/methods_float.txt"
-      {"__ne__", PyFloat_NotEqual, true},
-#line 25 "gperf/methods_float.txt"
-      {"__rtruediv__", PyFloat_RightTrueDivide, true},
-#line 31 "gperf/methods_float.txt"
-      {"__rpow__", PyFloat_RightPower, true},
-#line 14 "gperf/methods_float.txt"
-      {"__eq__", PyFloat_Equal, true},
-      {""},
+      {""}, {""}, {""}, {""}, {""}, {""},
 #line 16 "gperf/methods_float.txt"
       {"__gt__", PyFloat_Greater, true},
-#line 32 "gperf/methods_float.txt"
-      {"__pos__", PyFloat_Positive, true},
+#line 28 "gperf/methods_float.txt"
+      {"__mod__", PyFloat_Modulo, true},
 #line 29 "gperf/methods_float.txt"
       {"__rmod__", PyFloat_RightModulo, true},
-      {""}, {""},
+      {""},
+#line 20 "gperf/methods_float.txt"
+      {"__add__", PyFloat_Add, true},
 #line 17 "gperf/methods_float.txt"
       {"__ge__", PyFloat_GreaterEqual, true},
-#line 33 "gperf/methods_float.txt"
-      {"__neg__", PyFloat_Negative, true},
+#line 25 "gperf/methods_float.txt"
+      {"__rtruediv__", PyFloat_RightTrueDivide, true},
 #line 38 "gperf/methods_float.txt"
       {"__bool__", PyFloat_ToBool, true},
       {""}, {""},
 #line 36 "gperf/methods_float.txt"
       {"__getattr__", PyFloat_GetAttribute, true},
-#line 30 "gperf/methods_float.txt"
-      {"__pow__", PyFloat_Power, true},
-#line 37 "gperf/methods_float.txt"
-      {"__hash__", PyFloat_Hash, true},
+#line 39 "gperf/methods_float.txt"
+      {"__int__", PyFloat_ToInt, true},
+#line 35 "gperf/methods_float.txt"
+      {"__init__", PyFloat_Init, true},
+      {""},
+#line 41 "gperf/methods_float.txt"
+      {"is_integer", PyFloat_IsInteger, true},
+#line 15 "gperf/methods_float.txt"
+      {"__ne__", PyFloat_NotEqual, true},
+#line 33 "gperf/methods_float.txt"
+      {"__neg__", PyFloat_Negative, true},
+#line 31 "gperf/methods_float.txt"
+      {"__rpow__", PyFloat_RightPower, true},
       {""}, {""},
 #line 18 "gperf/methods_float.txt"
       {"__lt__", PyFloat_Less, true},
-#line 28 "gperf/methods_float.txt"
-      {"__mod__", PyFloat_Modulo, true},
+#line 32 "gperf/methods_float.txt"
+      {"__pos__", PyFloat_Positive, true},
       {""},
 #line 40 "gperf/methods_float.txt"
       {"__float__", PyFloat_ToFloat, true},
@@ -141,21 +138,24 @@ in_float_set (register const char *str, register size_t len)
       {"__floordiv__", PyFloat_FloorDivide, true},
 #line 27 "gperf/methods_float.txt"
       {"__rfloordiv__", PyFloat_RightFloorDivide, true},
-#line 34 "gperf/methods_float.txt"
-      {"__class__", PyFloat_Class, false},
-      {""},
+      {""}, {""},
 #line 24 "gperf/methods_float.txt"
       {"__truediv__", PyFloat_TrueDivide, true},
-#line 20 "gperf/methods_float.txt"
-      {"__add__", PyFloat_Add, true},
+#line 30 "gperf/methods_float.txt"
+      {"__pow__", PyFloat_Power, true},
 #line 22 "gperf/methods_float.txt"
       {"__rsub__", PyFloat_RightSubtract, true},
-      {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""},
-      {""}, {""}, {""}, {""},
+      {""}, {""},
+#line 14 "gperf/methods_float.txt"
+      {"__eq__", PyFloat_Equal, true},
 #line 21 "gperf/methods_float.txt"
       {"__sub__", PyFloat_Subtract, true},
-      {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""},
-      {""}, {""}, {""}, {""}, {""},
+      {""}, {""}, {""},
+#line 37 "gperf/methods_float.txt"
+      {"__hash__", PyFloat_Hash, true},
+#line 34 "gperf/methods_float.txt"
+      {"__class__", PyFloat_Class, false},
+      {""}, {""}, {""}, {""},
 #line 23 "gperf/methods_float.txt"
       {"__mul__", PyFloat_Multiply, true}
     };

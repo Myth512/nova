@@ -38,4 +38,5 @@ __hash__, PyFloat_Hash, true
 __bool__, PyFloat_ToBool, true
 __int__, PyFloat_ToInt, true
 __float__, PyFloat_ToFloat, true
+is_integer, PyFloat_IsInteger, true
 %%

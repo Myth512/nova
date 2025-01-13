@@ -250,7 +250,7 @@ Token scanToken(bool skip) {
             int indent = 0;
             while (match(' '))
                 indent++;
-            if (peek(0) != '\n')
+            if (peek(0) != '\n' && peek(0) != '#')
                 scanner.indent = indent;
         }
 
@@ -320,14 +320,20 @@ Token scanToken(bool skip) {
         case '*':
             if (match('='))
                 return createToken(TOKEN_STAR_EQUAL);
-            if (match('*'))
+            if (match('*')) {
+                if (match('='))
+                    return createToken(TOKEN_DOUBLE_STAR_EQUAL);
                 return createToken(TOKEN_DOUBLE_STAR);
+            }
             return createToken(TOKEN_STAR);
         case '/':
             if (match('='))
                 return createToken(TOKEN_SLASH_EQUAL);
-            if (match('/'))
+            if (match('/')) {
+                if (match('='))
+                    return createToken(TOKEN_DOUBLE_SLASH_EQUAL);
                 return createToken(TOKEN_DOUBLE_SLASH);
+            }
             return createToken(TOKEN_SLASH);
         case '%':
             if (match('='))

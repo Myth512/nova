@@ -99,6 +99,8 @@ static void dict(bool assign, bool tuple, bool skip, bool del);
 
 static void grouping(bool assign, bool tuple, bool skip, bool del);
 
+static void not(bool assign, bool tuple, bool skip, bool del);
+
 static void unary(bool assign, bool tuple, bool skip, bool del);
 
 static void binary(bool assign, bool tuple, bool skip, bool del);
@@ -149,7 +151,7 @@ ParseRule rules[TOKEN_COUNT] = {
     [TOKEN_RIGHT_SHIFT]   = {NULL,     binary, PREC_SHIFT},
     [TOKEN_TILDE]         = {unary,    NULL,   PREC_UNARY},
     [TOKEN_LAMBDA]        = {lambda,   NULL,   PREC_NONE},
-    [TOKEN_NOT]           = {unary,    in,     PREC_COMPARISON},
+    [TOKEN_NOT]           = {not,      in,     PREC_COMPARISON},
     [TOKEN_IN]            = {NULL,     in,     PREC_COMPARISON},
     [TOKEN_IS]            = {NULL,     is,     PREC_COMPARISON},
     [TOKEN_IDENTIFIER]    = {variable, NULL,   PREC_NONE},
@@ -503,6 +505,18 @@ static void grouping(bool assign, bool tuple, bool skip, bool del) {
 
     if (!consume(TOKEN_RIGHT_PAREN, false))
         reportError("Opening parenthesis does not closed", NULL);
+}
+
+static void not(bool assign, bool tuple, bool skip, bool del) {
+    if (del)
+        reportError("cannot delete expression", &parser.current);
+        
+    Token operator = parser.current;
+    advance(skip);
+
+    expression(false, skip);
+
+    emitByte(OP_NOT, operator);
 }
 
 static void unary(bool assign, bool tuple, bool skip, bool del) {

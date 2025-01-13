@@ -48,6 +48,14 @@ Value Dict_DelItem(Value obj, Value key) {
     return NONE_VAL;
 }
 
+long long Dict_Len(Value value) {
+    return AS_DICT(value)->table.size;
+}
+
+bool Dict_ToBool(Value value) {
+    return Dict_Len(value);
+}
+
 int Dict_ToStr(Value value, char *buffer, size_t size) {
     size_t bytesLeft = size;
 

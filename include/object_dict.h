@@ -17,6 +17,8 @@
     .getitem = Dict_GetItem,          \
     .setitem = Dict_SetItem,          \
     .delitem = Dict_DelItem,          \
+    .len = Dict_Len,                  \
+    .toBool = Dict_ToBool,            \
     .str = Dict_ToStr,                \
     .repr = Dict_ToStr,               \
 }
@@ -41,6 +43,10 @@ Value Dict_GetItem(Value obj, Value key);
 Value Dict_SetItem(Value obj, Value key, Value value);
 
 Value Dict_DelItem(Value obj, Value key);
+
+long long Dict_Len(Value value);
+
+bool Dict_ToBool(Value value);
 
 int Dict_ToStr(Value value, char *buffer, size_t size);
 

@@ -468,8 +468,8 @@ static void buildDict() {
     Value res = OBJ_VAL(dict);
 
     for (int i = 0; i < size; i++){
-        Value value = peek(size - (i - 1) * 2 + 1);
-        Value key = peek(size - (i - 1) * 2 + 2);
+        Value value = peek((size - i) * 2 - 2);
+        Value key = peek((size - i) * 2 - 1);
         Dict_SetItem(res, key, value);
     }
 
@@ -1009,6 +1009,7 @@ void initVM() {
     initMagicStrings();
     defineNatives();
     defineNativeTypes();
+    tableSet(&vm.globals, copyString("NotImplemented", 0), NOT_IMPLEMENTED_VAL);
     vm.allowStackPrinting = true;
 }
 

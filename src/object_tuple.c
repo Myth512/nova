@@ -41,6 +41,14 @@ int Tuple_Index(Value obj, Value value, int start, int end) {
     return -1;
 }
 
+long long Tuple_Len(Value value) {
+    return AS_TUPLE(value)->size;
+}
+
+bool Tuple_ToBool(Value value) {
+    return Tuple_Len(value);
+}
+
 int Tuple_ToStr(Value value, char *buffer, size_t size) {
     size_t bytesLeft = size;
     int bytesWritten = writeToBuffer(buffer, bytesLeft, "(");

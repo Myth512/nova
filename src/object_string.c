@@ -13,6 +13,7 @@
 ObjString *allocateString(size_t length) {
     size_t size = sizeof(ObjString) + length + 1;
     ObjString *string = (ObjString*)allocateObject(size, VAL_STRING);
+    string->chars[length] = '\0';
     string->isInterned = false;
     string->isHashed = false;
     string->length = length;
@@ -136,7 +137,6 @@ Value String_Add(Value a, Value b) {
 
     memcpy(result->chars, s1->chars, s1->length);
     memcpy(result->chars + s1->length, s2->chars, s2->length);
-    result->chars[length] = '\0';
 
     return STRING_VAL(result);
 }

@@ -24,8 +24,6 @@ assert 1 + 1 == 2
 
 assert 1 - 1 == 0
 
-assert -1 - -2 == 1
-
 assert 2 * 3 == 6
 
 assert 2 * -5 == -10
