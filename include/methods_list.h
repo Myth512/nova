@@ -37,12 +37,12 @@
 #line 7 "gperf/methods_list.txt"
 struct StaticAttribute;
 
-#define TOTAL_KEYWORDS 10
+#define TOTAL_KEYWORDS 11
 #define MIN_WORD_LENGTH 3
 #define MAX_WORD_LENGTH 7
 #define MIN_HASH_VALUE 3
-#define MAX_HASH_VALUE 16
-/* maximum key range = 14, duplicates = 0 */
+#define MAX_HASH_VALUE 21
+/* maximum key range = 19, duplicates = 0 */
 
 #ifdef __GNUC__
 __inline
@@ -56,32 +56,32 @@ hash (register const char *str, register size_t len)
 {
   static const unsigned char asso_values[] =
     {
-      17, 17, 17, 17, 17, 17, 17, 17, 17, 17,
-      17, 17, 17, 17, 17, 17, 17, 17, 17, 17,
-      17, 17, 17, 17, 17, 17, 17, 17, 17, 17,
-      17, 17, 17, 17, 17, 17, 17, 17, 17, 17,
-      17, 17, 17, 17, 17, 17, 17, 17, 17, 17,
-      17, 17, 17, 17, 17, 17, 17, 17, 17, 17,
-      17, 17, 17, 17, 17, 17, 17, 17, 17, 17,
-      17, 17, 17, 17, 17, 17, 17, 17, 17, 17,
-      17, 17, 17, 17, 17, 17, 17, 17, 17, 17,
-      17, 17, 17, 17, 17, 17, 17, 17, 17, 17,
-      10,  5, 17, 17, 17, 17, 17, 17, 17, 10,
-      17, 17,  0, 17,  5, 17,  5,  0,  0, 17,
-      17, 17, 17, 17, 17, 17, 17, 17, 17, 17,
-      17, 17, 17, 17, 17, 17, 17, 17, 17, 17,
-      17, 17, 17, 17, 17, 17, 17, 17, 17, 17,
-      17, 17, 17, 17, 17, 17, 17, 17, 17, 17,
-      17, 17, 17, 17, 17, 17, 17, 17, 17, 17,
-      17, 17, 17, 17, 17, 17, 17, 17, 17, 17,
-      17, 17, 17, 17, 17, 17, 17, 17, 17, 17,
-      17, 17, 17, 17, 17, 17, 17, 17, 17, 17,
-      17, 17, 17, 17, 17, 17, 17, 17, 17, 17,
-      17, 17, 17, 17, 17, 17, 17, 17, 17, 17,
-      17, 17, 17, 17, 17, 17, 17, 17, 17, 17,
-      17, 17, 17, 17, 17, 17, 17, 17, 17, 17,
-      17, 17, 17, 17, 17, 17, 17, 17, 17, 17,
-      17, 17, 17, 17, 17, 17
+      22, 22, 22, 22, 22, 22, 22, 22, 22, 22,
+      22, 22, 22, 22, 22, 22, 22, 22, 22, 22,
+      22, 22, 22, 22, 22, 22, 22, 22, 22, 22,
+      22, 22, 22, 22, 22, 22, 22, 22, 22, 22,
+      22, 22, 22, 22, 22, 22, 22, 22, 22, 22,
+      22, 22, 22, 22, 22, 22, 22, 22, 22, 22,
+      22, 22, 22, 22, 22, 22, 22, 22, 22, 22,
+      22, 22, 22, 22, 22, 22, 22, 22, 22, 22,
+      22, 22, 22, 22, 22, 22, 22, 22, 22, 22,
+      22, 22, 22, 22, 22, 22, 22, 22, 22, 22,
+      10,  5, 22, 22, 22, 22, 22, 22, 22, 15,
+      22, 22,  0, 22,  5, 10,  5,  0,  0, 22,
+      22, 22, 22, 22, 22, 22, 22, 22, 22, 22,
+      22, 22, 22, 22, 22, 22, 22, 22, 22, 22,
+      22, 22, 22, 22, 22, 22, 22, 22, 22, 22,
+      22, 22, 22, 22, 22, 22, 22, 22, 22, 22,
+      22, 22, 22, 22, 22, 22, 22, 22, 22, 22,
+      22, 22, 22, 22, 22, 22, 22, 22, 22, 22,
+      22, 22, 22, 22, 22, 22, 22, 22, 22, 22,
+      22, 22, 22, 22, 22, 22, 22, 22, 22, 22,
+      22, 22, 22, 22, 22, 22, 22, 22, 22, 22,
+      22, 22, 22, 22, 22, 22, 22, 22, 22, 22,
+      22, 22, 22, 22, 22, 22, 22, 22, 22, 22,
+      22, 22, 22, 22, 22, 22, 22, 22, 22, 22,
+      22, 22, 22, 22, 22, 22, 22, 22, 22, 22,
+      22, 22, 22, 22, 22, 22
     };
   return len + asso_values[(unsigned char)str[2]];
 }
@@ -92,7 +92,7 @@ in_list_set (register const char *str, register size_t len)
   static const struct StaticAttribute wordlist[] =
     {
       {""}, {""}, {""},
-#line 20 "gperf/methods_list.txt"
+#line 21 "gperf/methods_list.txt"
       {"pop", PyList_Pop, true},
 #line 16 "gperf/methods_list.txt"
       {"copy", PyList_Copy, true},
@@ -100,10 +100,10 @@ in_list_set (register const char *str, register size_t len)
       {"count", PyList_Count, true},
 #line 14 "gperf/methods_list.txt"
       {"append", PyList_Append, true},
-#line 22 "gperf/methods_list.txt"
+#line 23 "gperf/methods_list.txt"
       {"reverse", PyList_Reverse, true},
       {""},
-#line 23 "gperf/methods_list.txt"
+#line 24 "gperf/methods_list.txt"
       {"sort", PyList_Sort, true},
 #line 15 "gperf/methods_list.txt"
       {"clear", PyList_Clear, true},
@@ -112,7 +112,10 @@ in_list_set (register const char *str, register size_t len)
       {""}, {""}, {""},
 #line 19 "gperf/methods_list.txt"
       {"index", PyList_Index, true},
-#line 21 "gperf/methods_list.txt"
+#line 20 "gperf/methods_list.txt"
+      {"insert", PyList_Insert, true},
+      {""}, {""}, {""}, {""},
+#line 22 "gperf/methods_list.txt"
       {"remove", PyList_Remove, true}
     };
 

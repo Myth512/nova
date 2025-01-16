@@ -29,7 +29,7 @@ def run_test(name: str) -> int:
     return result.returncode, duration, missing 
 
 def main():
-    print("Status File Name                      Time    Details")
+    print("\nStatus File Name                      Time    Details")
     tests = [f for f in os.listdir(TEST_DIR) if f.startswith('test_')]
     test_count = 0
     pass_count = 0
@@ -50,7 +50,8 @@ def main():
                 print(f'{YELLOW}  [!] {RESET} {test:<30} {duration:.3f}s  missing {missing} {'cases' if missing > 1 else 'case'}')
         else:
             print(f'{RED}[✗]{RESET} {test} failed, in {duration:.3f} ')
-        
+
+    print()
     if pass_count == test_count:
         if total_missing == 0:
             print(f'{GREEN}All tests passed{RESET} in {total_duration:.3f} seconds')
