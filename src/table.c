@@ -121,6 +121,19 @@ bool QuadraticTableDelete(Table *table, Value key) {
     return true;
 }
 
+bool compareTables(Table *a, Table *b) {
+    if (a->size != b->size)
+        return false;
+    
+    for (int i = 0; i < a->size; i++) {
+        Entry *entry = a->order[i];
+        Value value = QuadraticTableGet(b, entry->key);
+        if (!valueToBool(valueEqual(entry->value, value)))
+            return false;
+    }
+    return true;
+}
+
 void TableDebug(Table *table) {
     printf("size: %d, capacity: %d\n", table->size, table->capacity);
 

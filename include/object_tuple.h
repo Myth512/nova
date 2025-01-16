@@ -9,7 +9,17 @@
 #define AS_TUPLE(value)         ((ObjTuple*)value.as.object)
 
 #define TUPLE_METHODS (ValueMethods) { \
+    .eq = Tuple_Equal,                 \
+    .ne = Tuple_NotEqual,              \
+    .gt = Tuple_Greater,               \
+    .ge = Tuple_GreaterEqual,          \
+    .lt = Tuple_Less,                  \
+    .le = Tuple_LessEqual,             \
+    .add = Tuple_Add,                  \
+    .mul = Tuple_Multiply,             \
+    .rmul = Tuple_RightMultiply,       \
     .contains = Tuple_Contains,        \
+    .getitem = Tuple_GetItem,          \
     .class = Tuple_Class,              \
     .iter = Tuple_Iter,                \
     .len = Tuple_Len,                  \
@@ -26,7 +36,27 @@ typedef struct {
 
 ObjTuple* allocateTuple(size_t size);
 
+Value Tuple_Equal(Value a, Value b);
+
+Value Tuple_NotEqual(Value a, Value b);
+
+Value Tuple_Greater(Value a, Value b);
+
+Value Tuple_GreaterEqual(Value a, Value b);
+
+Value Tuple_Less(Value a, Value b);
+
+Value Tuple_LessEqual(Value a, Value b);
+
+Value Tuple_Add(Value a, Value b);
+
+Value Tuple_Multiply(Value a, Value b);
+
+Value Tuple_RightMultiply(Value a, Value b);
+
 Value Tuple_Contains(Value a, Value b);
+
+Value Tuple_GetItem(Value obj, Value key);
 
 Value Tuple_Class(Value value);
 

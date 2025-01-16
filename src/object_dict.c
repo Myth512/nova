@@ -12,6 +12,14 @@ ObjDict *allocateDict() {
     return dict;
 }
 
+Value Dict_Equal(Value a, Value b) {
+    return BOOL_VAL(compareTables(&AS_DICT(a)->table, &AS_DICT(b)->table));
+}
+
+Value Dict_NotEqual(Value a, Value b) {
+    return BOOL_VAL(!compareTables(&AS_DICT(a)->table, &AS_DICT(b)->table));
+}
+
 Value Dict_Contains(Value a, Value b) {
     Value res = QuadraticTableGet(&AS_DICT(a)->table, b);
     return BOOL_VAL(!IS_UNDEFINED(res));

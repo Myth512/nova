@@ -48,6 +48,10 @@ typedef struct Compiler {
     Local locals[UINT8_MAX + 1];
     int localCount;
     Upvalue upvalues[UINT8_MAX + 1];
+    Token nonlocalNames[UINT8_MAX + 1];
+    int nonlocalCount;
+    Token globalNames[UINT8_MAX + 1];
+    int globalCount;
 } Compiler;
 
 typedef struct ClassCompiler {
@@ -285,12 +289,28 @@ static void emitReturn() {
     emitByte(OP_RETURN, (Token){0});
 }
 
+static bool fastValueEqual(Value a, Value b) {
+    if (a.type != b.type)
+        return false;
+
+    switch(a.type) {
+        case VAL_NONE:
+            return true;
+        case VAL_BOOL:
+        case VAL_INT:
+            return a.as.integer == b.as.integer;
+        case VAL_FLOAT:
+            return a.as.floating == b.as.floating;
+    }
+    return false;
+}
+
 static uint8_t createConstant(Value value) {
     ValueVec *constants = &currentCode()->constants;
     int size = constants->size;
 
     for (int i = 0; i < size; i++) {
-        if (valueToBool(valueEqual(constants->values[i], value)))
+        if (fastValueEqual(constants->values[i], value))
             return i;
     }
 
@@ -311,6 +331,8 @@ static void initCompiler(Compiler *compiler, FunctionType type, Token name) {
     compiler->function = createFunction();
     compiler->type = type;
     compiler->localCount = 0;
+    compiler->nonlocalCount = 0;
+    compiler->globalCount = 0;
     current = compiler;
     if (type != TYPE_TOP_LEVEL) {
         current->function->name = copyString(name.start, name.length);
@@ -439,7 +461,7 @@ static void tuple(bool assign, bool tuple, bool skip, bool del) {
     do {
         if (check(TOKEN_NEWLINE) || check(TOKEN_RIGHT_PAREN))
             break;
-        expression(false, true);
+        expression(false, skip);
         size++;
     } while (consume(TOKEN_COMMA, true));
 
@@ -725,6 +747,22 @@ static int resolveLocal(Compiler *compiler, Token *name, bool new) {
     return -1;
 }
 
+static bool isGlobal(Compiler *compiler, Token *name) {
+    for (int i = 0; i < compiler->globalCount; i++) {
+        if (identifierEqual(name, &compiler->globalNames[i]))
+            return true;
+    }
+    return false;
+}
+
+static bool isNonlocal(Compiler *compiler, Token *name) {
+    for (int i = 0; i < compiler->nonlocalCount; i++) {
+        if (identifierEqual(name, &compiler->nonlocalNames[i]))
+            return true;
+    }
+    return false;
+}
+
 static int addUpvalue(Compiler *compiler, uint8_t index, bool isLocal) {
     int upvalueCount  = compiler->function->upvalueCount;
 
@@ -745,36 +783,44 @@ static int addUpvalue(Compiler *compiler, uint8_t index, bool isLocal) {
 }
 
 static int resolveUpvalue(Compiler *compiler, Token *name) {
-    // if (compiler->enclosing == NULL)
-    //     return -1;
+    if (compiler->enclosing == NULL)
+        return -1;
     
-    // int offset = resolveLocal(compiler->enclosing, name);
-    // if (offset != -1) {
-    //     compiler->enclosing->locals[offset].isCaptured = true;
-    //     return addUpvalue(compiler, (uint8_t)offset, true);
-    // }
+    int offset = resolveLocal(compiler->enclosing, name, false);
+    if (offset != -1) {
+        compiler->enclosing->locals[offset].isCaptured = true;
+        return addUpvalue(compiler, (uint8_t)offset, true);
+    }
     
-    // offset = resolveUpvalue(compiler->enclosing, name);
-    // if (offset != -1)
-    //     return addUpvalue(compiler, (uint8_t)offset, false);
+    offset = resolveUpvalue(compiler->enclosing, name);
+    if (offset != -1)
+        return addUpvalue(compiler, (uint8_t)offset, false);
 
-    // return -1;
+    return -1;
 }
 
 static void resolveVariableAssignment(Token *name, uint8_t *getOp, uint8_t *setOp, uint8_t *arg) {
-    if (current->type == TYPE_FUNCTION) {
-        *getOp = OP_GET_LOCAL;
-        *setOp = OP_SET_LOCAL;
-        *arg = resolveLocal(current, name, true);
+    if (current->type == TYPE_TOP_LEVEL || isGlobal(current, name)) {
+        *getOp = OP_GET_GLOBAL;
+        *setOp = OP_SET_GLOBAL;
+        *arg = identifierConstant(name);
         return;
     }
-    *getOp = OP_GET_GLOBAL;
-    *setOp = OP_SET_GLOBAL;
-    *arg = identifierConstant(name);
+
+    if (isNonlocal(current, name)) {
+        *getOp = OP_GET_UPVALUE;
+        *setOp = OP_SET_UPVALUE;
+        *arg = resolveUpvalue(current, name);
+        return;
+    }
+
+    *getOp = OP_GET_LOCAL;
+    *setOp = OP_SET_LOCAL;
+    *arg = resolveLocal(current, name, true);
 }
 
 static void resolveVariableReference(Token *name, uint8_t *getOp, uint8_t *delOp, uint8_t *arg) {
-    if (current->type != TYPE_TOP_LEVEL) {
+    if (current->type != TYPE_TOP_LEVEL && !isGlobal(current, name)) {
         int offset = resolveLocal(current, name, false);
         if (offset != -1) {
             *getOp = OP_GET_LOCAL;
@@ -782,7 +828,16 @@ static void resolveVariableReference(Token *name, uint8_t *getOp, uint8_t *delOp
             *arg = offset;
             return;
         }
+
+        offset = resolveUpvalue(current, name);
+        if (offset != -1) {
+            *getOp = OP_GET_UPVALUE;
+            *delOp = OP_DEL_UPVALUE;
+            *arg = offset;
+            return;
+        }
     }
+
     *getOp = OP_GET_GLOBAL;
     *delOp = OP_DEL_GLOBAL;
     *arg = identifierConstant(name);
@@ -1402,7 +1457,7 @@ static void item(bool assign, bool tuple, bool skip, bool del) {
     advance(true);
     Token index = parser.current;
     expression(true, true);
-    advance(true);
+    advance(false);
 
     Token operator = parser.current;
 
@@ -1426,7 +1481,7 @@ static void returnStatement() {
     if (consumeEOS()) {
         emitReturn();
     } else {
-        expression(false, false);
+        expression(true, false);
         if (!consumeEOS()) {
             reportError("Expect eos after value", &parser.current);
         }
@@ -1457,6 +1512,47 @@ static void assertStatement() {
 
     if (!consumeEOS())
         reportError("invalid syntax", &parser.current);
+}
+
+static void globalStatement() {
+    if (current->type == TYPE_TOP_LEVEL)
+        reportError("global declaration not allowed at module level", &parser.current);
+    advance(false);
+
+    Token name = parser.current;
+    if (!consume(TOKEN_IDENTIFIER, false))
+        reportError("invalid syntax", &parser.current);
+
+    if (isNonlocal(current, &name))
+        reportError("name is nonlocal and global", &parser.current);
+    
+    if (resolveLocal(current, &name, false) != -1)
+        reportError("name 'x' is assigned to before global declaration", &parser.current);
+
+    current->globalNames[current->globalCount++] = name;
+    consumeEOS();
+}
+
+static void nonlocalStatement() {
+    if (current->type == TYPE_TOP_LEVEL)
+        reportError("nonlocal declaration not allowed at module level", &parser.current);
+    advance(false);
+
+    Token name = parser.current;
+    if (!consume(TOKEN_IDENTIFIER, false))
+        reportError("invalid syntax", &parser.current);
+
+    if (isGlobal(current, &name))
+        reportError("name is nonlocal and global", &parser.current);
+
+    if (resolveUpvalue(current, &name) == -1)
+        reportError("no binding for nonlocal 'x' found", &parser.current);
+
+    if (resolveLocal(current, &name, false) != -1)
+        reportError("name 'x' is assigned to before global declaration", &parser.current);
+
+    current->nonlocalNames[current->nonlocalCount++] = name;
+    consumeEOS();
 }
 
 static void statement(int breakPointer, int continuePointer) {
@@ -1501,6 +1597,12 @@ static void statement(int breakPointer, int continuePointer) {
             break;
         case TOKEN_ASSERT:
             assertStatement();
+            break;
+        case TOKEN_GLOBAL:
+            globalStatement();
+            break;
+        case TOKEN_NONLOCAL:
+            nonlocalStatement();
             break;
         default:
             expressionStatement();

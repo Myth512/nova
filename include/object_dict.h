@@ -10,6 +10,8 @@
 #define AS_DICT(value)        ((ObjDict*)((value).as.object))
 
 #define DICT_METHODS (ValueMethods) { \
+    .eq = Dict_Equal,                 \
+    .ne = Dict_NotEqual,              \
     .contains = Dict_Contains,        \
     .class = Dict_Class,              \
     .iter = Dict_Iter,                \
@@ -29,6 +31,10 @@ typedef struct {
 } ObjDict;
 
 ObjDict *allocateDict();
+
+Value Dict_Equal(Value a, Value b);
+
+Value Dict_NotEqual(Value a, Value b);
 
 Value Dict_Contains(Value a, Value b);
 

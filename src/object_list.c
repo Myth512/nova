@@ -169,7 +169,7 @@ Value List_GetItem(Value obj, Value key) {
     int index = calculateIndex(AS_INT(key), AS_LIST(obj)->vec.size);
 
     if (index == -1)
-        return createException(VAL_INDEX_ERROR, " list index out of range");
+        return createException(VAL_INDEX_ERROR, "list index out of range");
     
     return AS_LIST(obj)->vec.values[index];
 }

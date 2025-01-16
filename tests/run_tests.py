@@ -49,7 +49,7 @@ def main():
             else:
                 print(f'{YELLOW}  [!] {RESET} {test:<30} {duration:.3f}s  missing {missing} {'cases' if missing > 1 else 'case'}')
         else:
-            print(f'{RED}[✗]{RESET} {test} failed, in {duration:.3f} ')
+            print(f'{RED}  [✗] {RESET} {test:<30} {duration:.3f}s')
 
     print()
     if pass_count == test_count:
