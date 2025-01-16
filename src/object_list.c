@@ -6,7 +6,7 @@
 #include "object_class.h"
 #include "object_exception.h"
 #include "object_range.h"
-// #include "methods_list.h"
+#include "methods_list.h"
 #include "value_int.h"
 #include "value_methods.h"
 #include "memory.h"
@@ -159,7 +159,7 @@ Value List_Class(Value value) {
 }
 
 Value List_GetAttr(Value list, ObjString *name) {
-    // return getGperfMethod(list, name, in_list_set);
+    return getStaticAttribute(list, name, in_list_set);
 }
 
 Value List_GetItem(Value obj, Value key) {

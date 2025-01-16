@@ -53,3 +53,4 @@ gperf:
 	gperf gperf/methods_bool.txt > include/methods_bool.h
 	gperf gperf/methods_none.txt > include/methods_none.h
 	gperf gperf/methods_float.txt > include/methods_float.h
+	gperf gperf/methods_list.txt > include/methods_list.h

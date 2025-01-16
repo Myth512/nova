@@ -13,14 +13,14 @@ while a < 10:
 assert a == 5  # Loop exited early with break when a == 5
 
 # While loop with continue
-# a = 0
-# result = []
-# while a < 5:
-    # a += 1
-    # if a == 3:
-        # continue
-    # result.append(a)
-# assert result == [1, 2, 4, 5]  # Loop skipped adding 3 due to continue
+a = 0
+result = []
+while a < 5:
+    a += 1
+    if a == 3:
+        continue
+    result.append(a)
+assert result == [1, 2, 4, 5]  # Loop skipped adding 3 due to continue
 
 # While loop with multiple conditions
 a = 0
@@ -48,13 +48,13 @@ while True:
 assert a == 10  # Infinite loop stopped manually when a == 10
 
 # While loop with condition based on a collection
-# a = [1, 2, 3, 4, 5]
-# i = 0
-# result = []
-# while i < len(a):
-#     result.append(a[i])
-#     i += 1
-# assert result == [1, 2, 3, 4, 5]  # Loop iterates over the list
+a = [1, 2, 3, 4, 5]
+i = 0
+result = []
+while i < len(a):
+    result.append(a[i])
+    i += 1
+assert result == [1, 2, 3, 4, 5]  # Loop iterates over the list
 
 # While loop with a decrementing counter
 a = 10
@@ -71,13 +71,13 @@ while a < 5 and b > 0:
 assert a == 5 and b == 0  # a increments and b decrements by 2 each time
 
 # While loop with non-numeric type (using list and index)
-# a = ['apple', 'banana', 'cherry']
-# i = 0
-# result = []
-# while i < len(a):
-#     result.append(a[i])
-#     i += 1
-# assert result == ['apple', 'banana', 'cherry']  # Loop iterates over the list of strings
+a = ['apple', 'banana', 'cherry']
+i = 0
+result = []
+while i < len(a):
+    result.append(a[i])
+    i += 1
+assert result == ['apple', 'banana', 'cherry']  # Loop iterates over the list of strings
 
 # While loop with complex logic and break/continue
 a = 0
