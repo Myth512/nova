@@ -58,7 +58,7 @@ Value Tuple_RightMultiply(Value a, Value b) {
 Value Tuple_Contains(Value a, Value b) {
     ObjTuple *tuple = AS_TUPLE(a);
     for (int i = 0; i < tuple->size; i++) {
-        if (valueToBool(valueEqual(tuple->values[i], b)));
+        if (valueToBool(valueEqual(tuple->values[i], b)))
             return BOOL_VAL(true);
     }
     return BOOL_VAL(false);
