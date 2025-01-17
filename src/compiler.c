@@ -20,6 +20,8 @@ typedef struct {
     const char *source;
     Token current;
     Token next;
+    TokenVec putback;
+    int putPointer;
     int errorCount;
     bool panicMode;
 } Parser;
@@ -190,6 +192,12 @@ static bool check(TokenType type) {
 }
 
 static void advance(bool skip) {
+    if (parser.putPointer >= 0) {
+        parser.current = parser.putback.tokens[parser.putPointer++];
+        if (parser.putPointer == parser.putback.size)
+            parser.putPointer = -1;
+        return;
+    }
     parser.current = parser.next; 
     if (skip && check(TOKEN_NEWLINE))
         parser.current = scanToken(true);
@@ -197,6 +205,19 @@ static void advance(bool skip) {
     #ifdef DEBUG_PRINT_TOKENS
         printToken(&parser.current);
     #endif
+}
+
+static void advancePut() {
+    advance(false);
+    TokenVecPush(&parser.putback, parser.current);
+}
+
+static void putback() {
+    parser.putPointer = 0;
+}
+
+static void discardPutback() {
+    parser.putback.size = 0;
 }
 
 static void synchronize() {
@@ -911,6 +932,38 @@ static void assignment(uint8_t getOp, uint8_t setOp, int arg, Token operator) {
     emitAssignment(setOp, arg, operator);
 }
 
+static void unpack(Token name) {
+    TokenVecPush(&parser.putback, name);
+    TokenVecPush(&parser.putback, parser.current);
+    int c = 1;
+    while (check(TOKEN_COMMA)) {
+        advancePut();
+        if (check(TOKEN_IDENTIFIER))
+            advancePut();
+        else
+            break;
+        c++;
+    }
+
+    if (consume(TOKEN_EQUAL, false)) {
+        expression(true, false);
+
+        int j = 0;
+        for (int i = 0; i < c; i++) {
+            emitConstant(INT_VAL(i));
+            emitByte(OP_GET_ITEM_NO_POP, (Token){0});
+            Token name = parser.putback.tokens[j];
+            j+=2;
+            uint8_t getOp, setOp, arg;
+            defineVariable(name);
+            emitByte(OP_POP, (Token){0});
+        }
+        discardPutback();
+    } else {
+        putback();
+    }
+}
+
 static void variable(bool assign, bool tuple, bool skip, bool del) {
     uint8_t getOp, setOp, delOp, arg;
     Token name = parser.current;
@@ -930,6 +983,8 @@ static void variable(bool assign, bool tuple, bool skip, bool del) {
     } else if (del && !check(TOKEN_DOT) && !check(TOKEN_LEFT_BRACKET)) {
         resolveVariableReference(&name, &getOp, &delOp, &arg);
         emitBytes(delOp, arg, name);
+    } else if (assign && check(TOKEN_COMMA) && parser.putPointer < 0) {
+        unpack(name);
     } else {
         resolveVariableReference(&name, &getOp, &delOp, &arg);
         emitBytes(getOp, arg, name);
@@ -1620,6 +1675,8 @@ ObjFunction* compile(const char *source) {
     parser.errorCount = 0;
     parser.panicMode = false;
     parser.source = source;
+    TokenVecInit(&parser.putback);
+    parser.putPointer = -1;
 
     advance(false);
     advance(false);

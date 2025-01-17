@@ -164,20 +164,18 @@ assert bool([]) == False
 assert bool([1]) == True
 
 # Test list unpacking
-missing += 1
-# lst = [1, 2, 3]
-# a, b, c = lst
-# assert a == 1
-# assert b == 2
-# assert c == 3
+lst = [1, 2, 3]
+a, b, c = lst
+assert a == 1
+assert b == 2
+assert c == 3
 
 # Test tuple assignment with lists
-missing += 1
-# lst = [1, 2, 3]
-# t = (4, 5, 6)
-# lst, t = t, lst
-# assert lst == (4, 5, 6)
-# assert t == [1, 2, 3]
+lst = [1, 2, 3]
+t = (4, 5, 6)
+lst, t = t, lst
+assert lst == (4, 5, 6)
+assert t == [1, 2, 3]
 
 # Test slicing assignment
 missing += 1
