@@ -198,7 +198,7 @@ Value String_GetItem(Value value, Value key) {
         return createException(VAL_NAME_ERROR, "string indices must be integers, not '%s'", getValueType(key));
 
     int index = calculateIndex(AS_INT(key), AS_STRING(value)->length);
-    if (index == -1)
+    if (index < 0)
         return createException(VAL_INDEX_ERROR, "string index out of range");
     
     ObjString *res = copyString(AS_STRING(value)->chars + index, 1);

@@ -38,8 +38,11 @@ Value getStaticAttribute(Value value, ObjString *name, const struct StaticAttrib
 }
 
 int calculateIndex(int index, int length) {
-    if (index < -length || index >= length)
+    if (index < -length)
         return -1;
+    
+    if (index >= length)
+        return -2;
     
     if (index >= 0)
         return index;

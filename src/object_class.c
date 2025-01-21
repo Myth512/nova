@@ -96,4 +96,5 @@ Value NativeMethod_Call(Value callee, int argc, int kwargc, Value *argv) {
     Value result = native(argc + 1, kwargc); 
     vm.top -= argc + 1;
     push(result);
+    raiseIfException();
 }

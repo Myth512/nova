@@ -176,9 +176,7 @@ void printCodeVec(CodeVec *vec, const char *title) {
 
 void printValueVec(ValueVec *vec) {
     for (int i = 0; i < vec->size; i++) {
-        putchar('"');
-        valuePrint(vec->values[i]);
-        putchar('"');
+        valueRepr(vec->values[i]);
         printf(" ");
     }
     printf("\n");

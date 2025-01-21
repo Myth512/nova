@@ -44,15 +44,73 @@ lst = [1, 2, 3]
 lst.append(4)
 assert lst == [1, 2, 3, 4]
 
-# Test insert method
-missing += 1 
-# lst.insert(1, 5)  # Insert 5 at index 1
-# assert lst == [1, 5, 2, 3, 4]
+# Initialize the list
+lst = [1, 2, 3, 4, 5]
 
-# Test extend method
-missing += 1
-# lst.extend([6, 7])
-# assert lst == [1, 5, 2, 3, 4, 6, 7]
+# Test inserting at a valid index
+lst.insert(2, 99)
+assert lst == [1, 2, 99, 3, 4, 5], f"Expected [1, 2, 99, 3, 4, 5], but got {lst}"
+
+# Reset list
+lst = [1, 2, 3, 4, 5]
+
+# Test inserting at index 0
+lst.insert(0, 99)
+assert lst == [99, 1, 2, 3, 4, 5], f"Expected [99, 1, 2, 3, 4, 5], but got {lst}"
+
+# Reset list
+lst = [1, 2, 3, 4, 5]
+
+# Test inserting at the end
+lst.insert(len(lst), 99)
+assert lst == [1, 2, 3, 4, 5, 99], f"Expected [1, 2, 3, 4, 5, 99], but got {lst}"
+
+# Reset list
+lst = [1, 2, 3, 4, 5]
+
+# Test inserting at a negative index
+lst.insert(-1, 99)
+assert lst == [1, 2, 3, 4, 99, 5], f"Expected [1, 2, 3, 4, 99, 5], but got {lst}"
+
+# Reset list
+lst = [1, 2, 3, 4, 5]
+
+# Test inserting at a very large index
+lst.insert(100, 99)
+assert lst == [1, 2, 3, 4, 5, 99], f"Expected [1, 2, 3, 4, 5, 99], but got {lst}"
+
+# Reset list
+lst = [1, 2, 3, 4, 5]
+
+# Test inserting at a very small index
+lst.insert(-100, 99)
+assert lst == [99, 1, 2, 3, 4, 5], f"Expected [99, 1, 2, 3, 4, 5], but got {lst}"
+
+lst = [1, 5, 2, 3, 4]
+
+# Test with a list
+lst.extend([6, 7])
+assert lst == [1, 5, 2, 3, 4, 6, 7]
+
+lst = [1, 5, 2, 3, 4]
+
+lst.extend((6, 7))
+assert lst == [1, 5, 2, 3, 4, 6, 7]
+
+lst = [1, 5, 2, 3, 4]
+
+lst.extend({6: "six", 7: "seven"})
+assert lst == [1, 5, 2, 3, 4, 6, 7]
+
+lst = [1, 5, 2, 3, 4]
+
+lst.extend("67")
+assert lst == [1, 5, 2, 3, 4, "6", "7"]
+
+lst = [1, 5, 2, 3, 4]
+
+lst.extend(range(3, 7))
+assert lst == [1, 5, 2, 3, 4, 3, 4, 5, 6]
 
 # Test pop method
 lst = [1, 5, 2, 3, 4, 6, 7]
@@ -61,44 +119,66 @@ assert popped_item == 7
 assert lst == [1, 5, 2, 3, 4, 6]
 
 # Test pop with index
-missing += 1
-# popped_item = lst.pop(2)
-# assert popped_item == 2
-# assert lst == [1, 5, 3, 4, 6]
+popped_item = lst.pop(2)
+assert popped_item == 2
+assert lst == [1, 5, 3, 4, 6]
 
 # Test remove method
-missing += 1
-# lst.remove(5)
-# assert lst == [1, 3, 4, 6]
+lst = [1, 3, 4, 5, 6]
+lst.remove(5)
+assert lst == [1, 3, 4, 6]
 
 # Test clear method
-missing += 1
-# lst.clear()
-# assert lst == []
+lst.clear()
+assert lst == []
 
-# Test index method
-missing += 1
-# lst = [1, 2, 3, 4, 5]
-# assert lst.index(3) == 2
+# Initialize the list
+lst = [1, 2, 3, 4, 5, 3, 6, 3]
+
+# Test finding an element without start and stop
+assert lst.index(3) == 2, f"Expected 2, but got {lst.index(3)}"
+
+# Test finding an element with a start argument
+assert lst.index(3, 3) == 5, f"Expected 5, but got {lst.index(3, 3)}"
+
+# Test finding an element with start and stop arguments
+assert lst.index(3, 3, 7) == 5, f"Expected 5, but got {lst.index(3, 3, 7)}"
+
+# Test finding an element at the very start of the range
+assert lst.index(1, 0, 4) == 0, f"Expected 0, but got {lst.index(1, 0, 4)}"
+
+# Test finding an element at the very end of the range
+assert lst.index(5, 0, 7) == 4, f"Expected 4, but got {lst.index(5, 0, 7)}"
+
+# Test when the element is not in the range
+try:
+    lst.index(5, 6, 8)
+    assert False, "Expected ValueError, but no exception was raised"
+except ValueError:
+    pass
+
+# Test when the element is not in the list at all
+try:
+    lst.index(10)
+    assert False, "Expected ValueError, but no exception was raised"
+except ValueError:
+    pass
 
 # Test count method
-missing += 1
-# lst = [1, 2, 2, 3, 4, 5, 2]
-# assert lst.count(2) == 3
-# assert lst.count(6) == 0
+lst = [1, 2, 2, 3, 4, 5, 2]
+assert lst.count(2) == 3
+assert lst.count(6) == 0
 
 # Test copy method
-missing += 1
-# lst = [1, 2, 3]
-# lst_copy = lst.copy()
-# assert lst_copy == [1, 2, 3]
-# assert lst is not lst_copy  # Ensure it's a new list
+lst = [1, 2, 3]
+lst_copy = lst.copy()
+assert lst_copy == [1, 2, 3]
+assert lst is not lst_copy  # Ensure it's a new list
 
 # Test reverse method
-missing += 1
-# lst = [1, 2, 3]
-# lst.reverse()
-# assert lst == [3, 2, 1]
+lst = [1, 2, 3]
+lst.reverse()
+assert lst == [3, 2, 1]
 
 # Test sort method
 missing += 1 
@@ -190,11 +270,10 @@ for i in range(5):
 assert lst == [0, 1, 2, 3, 4]
 
 # Test inserting in a loop
-missing += 1
-# lst = []
-# for i in range(5):
-#     lst.insert(0, i)
-# assert lst == [4, 3, 2, 1, 0]
+lst = []
+for i in range(5):
+    lst.insert(0, i)
+assert lst == [4, 3, 2, 1, 0]
 
 # Test list slicing with step
 missing += 1
@@ -241,5 +320,14 @@ missing += 1
 # assert copied_list == nested_list
 # assert copied_list is not nested_list
 # assert copied_list[0] is not nested_list[0]
+
+assert type(lst) is list
+
+lst = [1, 3.14, 'hello world']
+
+assert str(lst) == "[1, 3.14, 'hello world']"
+
+lst = []
+assert repr(lst) == '[]' 
 
 print(f'missing: {missing}')

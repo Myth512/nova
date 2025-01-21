@@ -70,7 +70,7 @@ Value Tuple_GetItem(Value obj, Value key) {
     
     int index = calculateIndex(AS_INT(key), AS_TUPLE(obj)->size);
 
-    if (index == -1)
+    if (index < 0)
         return createException(VAL_INDEX_ERROR, "tuple index out of range");
     
     return AS_TUPLE(obj)->values[index];

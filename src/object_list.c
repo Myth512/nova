@@ -27,18 +27,25 @@ ObjList* allocateList(int size) {
 
 int List_ToStr(Value value, char *buffer, size_t size) {
     ObjList *list = AS_LIST(value);
+    int total_written = 0;
     int bytesWritten = writeToBuffer(buffer, size, "[");
+    total_written += bytesWritten;
     size -= movePointer(&buffer, bytesWritten);
+
     size_t length = list->vec.size;
     for (int i = 0; i < length; i++) {
         bytesWritten = valueReprWrite(list->vec.values[i], buffer, size);
+        total_written += bytesWritten;
         size -= movePointer(&buffer, bytesWritten);
         if (i + 1 != length) {
             bytesWritten = writeToBuffer(buffer, size, ", ");
+            total_written += bytesWritten;
             size -= movePointer(&buffer, bytesWritten);
         }
     }
-    writeToBuffer(buffer, size, "]");
+    bytesWritten = writeToBuffer(buffer, size, "]");
+    total_written += bytesWritten;
+    return total_written;
 }
 
 Value List_Equal(Value a, Value b) {
@@ -168,7 +175,7 @@ Value List_GetItem(Value obj, Value key) {
     
     int index = calculateIndex(AS_INT(key), AS_LIST(obj)->vec.size);
 
-    if (index == -1)
+    if (index < 0)
         return createException(VAL_INDEX_ERROR, "list index out of range");
     
     return AS_LIST(obj)->vec.values[index];
@@ -180,8 +187,8 @@ Value List_SetItem(Value obj, Value key, Value value) {
     
     int index = calculateIndex(AS_INT(key), AS_LIST(obj)->vec.size);
 
-    if (index == -1)
-        return createException(VAL_INDEX_ERROR, " list index out of range");
+    if (index < 0)
+        return createException(VAL_INDEX_ERROR, "list index out of range");
     
     AS_LIST(obj)->vec.values[index] = value;
     return NONE_VAL;
@@ -193,8 +200,8 @@ Value List_DelItem(Value obj, Value key) {
     
     int index = calculateIndex(AS_INT(key), AS_LIST(obj)->vec.size);
 
-    if (index == -1)
-        return createException(VAL_INDEX_ERROR, " list index out of range");
+    if (index < 0)
+        return createException(VAL_INDEX_ERROR, "list index out of range");
 
     ObjList *list = AS_LIST(obj);
     

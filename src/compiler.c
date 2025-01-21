@@ -322,6 +322,8 @@ static bool fastValueEqual(Value a, Value b) {
             return a.as.integer == b.as.integer;
         case VAL_FLOAT:
             return a.as.floating == b.as.floating;
+        case VAL_STRING:
+            return valueToBool(String_Equal(a, b));
     }
     return false;
 }
@@ -1332,7 +1334,7 @@ static void function(FunctionType type) {
 
     ObjFunction *function = endCompiler();
 
-    emitBytes(OP_CLOSURE, createConstant(STRING_VAL(function)), (Token){0});
+    emitBytes(OP_CLOSURE, createConstant(OBJ_VAL(function)), (Token){0});
 
     for (int i = 0; i < function->upvalueCount; i++) {
         emitByte(compiler.upvalues[i].isLocal ? 1 : 0, (Token){0});
