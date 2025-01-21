@@ -2,6 +2,7 @@
 #include "object_dict_iterator.h"
 #include "object_string.h"
 #include "object_exception.h"
+#include "methods_dict.h"
 #include "value_methods.h"
 #include "vm.h"
 #include "value_int.h"
@@ -34,7 +35,7 @@ Value Dict_Iter(Value value) {
 }
 
 Value Dict_GetAttr(Value obj, ObjString *name) {
-
+    return getStaticAttribute(obj, name, in_dict_set);
 }
 
 Value Dict_GetItem(Value obj, Value key) {
@@ -50,8 +51,8 @@ Value Dict_SetItem(Value obj, Value key, Value value) {
 }
 
 Value Dict_DelItem(Value obj, Value key) {
-    bool res = QuadraticTableDelete(&AS_DICT(obj)->table, key);
-    if (!res)
+    Value res = QuadraticTableDelete(&AS_DICT(obj)->table, key);
+    if (IS_UNDEFINED(res))
         return createException(VAL_KEY_ERROR, "'%s'", valueToStr(key)->chars);
     return NONE_VAL;
 }

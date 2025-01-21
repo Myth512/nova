@@ -104,21 +104,23 @@ static void removeFromOrder(Table *table, Entry *entry) {
         table->order[i] = table->order[i + 1];
 }
 
-bool QuadraticTableDelete(Table *table, Value key) {
+Value QuadraticTableDelete(Table *table, Value key) {
     if (table->size == 0)
-        return false;
+        return UNDEFINED_VAL;
 
     Entry *entry = findEntry(table->entries, table->capacity, key);
 
     if (IS_UNDEFINED(entry->key))
-        return false;
+        return UNDEFINED_VAL;
     
     removeFromOrder(table, entry);
+
+    Value result = entry->value;
     
     entry->key = TOMBSTONE;
     entry->value = UNDEFINED_VAL;
     table->size--;
-    return true;
+    return result;
 }
 
 bool compareTables(Table *a, Table *b) {

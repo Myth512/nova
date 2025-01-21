@@ -1,0 +1,25 @@
+%{
+#include <string.h>
+#include "py_dict.h"
+#include "value.h"
+%}
+
+struct StaticAttribute
+
+%readonly-tables
+%struct-type
+%define lookup-function-name in_dict_set
+
+%%
+clear, PyDict_Clear, true
+copy, PyDict_Copy, true
+fromkeys, PyDict_FromKeys, true
+get, PyDict_Get, true
+items, PyDict_Items, true
+keys, PyDict_Keys, true
+pop, PyDict_Pop, true
+popitem, PyDict_PopItem, true
+setdefault, PyDict_SetDefault, true
+update, PyDict_Update, true
+values, PyDict_Values, true
+%%

@@ -25,7 +25,7 @@ Value QuadraticTableGet(Table *table, Value key);
 
 bool QuadraticTableSet(Table *table, Value key, Value value);
 
-bool QuadraticTableDelete(Table *table, Value key);
+Value QuadraticTableDelete(Table *table, Value key);
 
 bool compareTables(Table *a, Table *b);
 
