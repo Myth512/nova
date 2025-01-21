@@ -8,9 +8,8 @@ t2 = (4,)
 assert t2 == (4,)
 assert len(t2) == 1
 
-missing += 1
-# t3 = tuple()
-# assert t3 == ()
+t3 = tuple()
+assert t3 == ()
 
 t4 = (1, 2, 3, 4, 5)
 assert len(t4) == 5
@@ -33,15 +32,13 @@ missing += 1
 # assert t1[::2] == (1, 3, 5)
 
 # Test concatenation of tuples
-missing += 1
 t5 = (6, 7, 8)
-# assert t1 + t5 == (1, 2, 3, 6, 7, 8)
+assert t1 + t5 == (1, 2, 3, 6, 7, 8)
 
 # Test repetition of tuples
-missing += 1
-# t6 = (9, 10)
-# assert t6 * 2 == (9, 10, 9, 10)
-# assert t6 * 3 == (9, 10, 9, 10, 9, 10)
+t6 = (9, 10)
+assert t6 * 2 == (9, 10, 9, 10)
+assert t6 * 3 == (9, 10, 9, 10, 9, 10)
 
 # Test checking if element is in tuple
 assert 1 in t1
@@ -59,11 +56,10 @@ for element in t7:
 assert elements == [1, 2, 3]
 
 # Test tuple comparison
-missing += 4
-# assert t1 < t5
-# assert t1 <= t5
-# assert t5 > t1
-# assert t5 >= t1
+assert t1 < t5
+assert t1 <= t5
+assert t5 > t1
+assert t5 >= t1
 assert t1 == (1, 2, 3)
 assert t1 != (2, 3, 4)
 
@@ -124,18 +120,16 @@ missing += 1
 # assert d[t12] == "value2"
 
 # Test tuple with list (immutable vs mutable)
-missing += 1
-# t13 = (1, 2, 3)
-# t14 = [4, 5, 6]
-# t15 = t13 + tuple(t14)
-# assert t15 == (1, 2, 3, 4, 5, 6)
+t13 = (1, 2, 3)
+t14 = [4, 5, 6]
+t15 = t13 + tuple(t14)
+assert t15 == (1, 2, 3, 4, 5, 6)
 
 # Test tuple with empty list
-missing += 1
-# t16 = (1, 2, 3)
-# t17 = []
-# t18 = t16 + tuple(t17)
-# assert t18 == (1, 2, 3)
+t16 = (1, 2, 3)
+t17 = []
+t18 = t16 + tuple(t17)
+assert t18 == (1, 2, 3)
 
 # Test slicing with steps (positive step)
 missing += 1
@@ -147,10 +141,9 @@ missing += 1
 # assert t19[::-1] == (5, 4, 3, 2, 1)
 
 # Test repeated elements in tuple
-missing += 1
-# t20 = (1, 1, 1)
-# assert t20 == (1, 1, 1)
-# assert t20 * 3 == (1, 1, 1, 1, 1, 1, 1, 1, 1)
+t20 = (1, 1, 1)
+assert t20 == (1, 1, 1)
+assert t20 * 3 == (1, 1, 1, 1, 1, 1, 1, 1, 1)
 
 # Test immutable nature of tuple (raising errors on mutation)
 try:
@@ -166,21 +159,19 @@ assert t21[1] == (3, 4)
 assert t21[2] == (5, 6)
 
 # Test creating tuple with from an iterable
-missing += 1
-# t22 = tuple([7, 8, 9])
-# assert t22 == (7, 8, 9)
+t22 = tuple([7, 8, 9])
+assert t22 == (7, 8, 9)
 
 # Test large tuple (just for performance testing, size not directly relevant)
-missing += 1
-# t23 = tuple(range(1000))
-# assert len(t23) == 1000
+t23 = tuple(range(1000))
+assert len(t23) == 1000
 
 # Test tuple slicing with large index
 missing += 1
 # assert t19[100:] == ()
 
 # Test creating tuple from range (not allowed in your interpreter)
-# assert tuple(range(5)) == (0, 1, 2, 3, 4)  # Uncomment when range is supported
+assert tuple(range(5)) == (0, 1, 2, 3, 4)
 
 # Test tuple with None
 t24 = (None, None)
@@ -200,5 +191,70 @@ assert t26[0] == [100]  # Uncomment when mutable objects inside tuple are suppor
 t27 = (1, [2, 3], "hello")
 t27[1].append(4)  # Lists are mutable, so this is allowed
 assert t27 == (1, [2, 3, 4], "hello")
+
+# Initialize the tuple
+tpl = (1, 2, 3, 2, 4, 2, 5)
+
+# Test counting an element that exists multiple times
+assert tpl.count(2) == 3, f"Expected 3, but got {tpl.count(2)}"
+
+# Test counting an element that exists once
+assert tpl.count(4) == 1, f"Expected 1, but got {tpl.count(4)}"
+
+# Test counting an element that does not exist
+assert tpl.count(99) == 0, f"Expected 0, but got {tpl.count(99)}"
+
+# Test counting with different data types
+tpl = (1, "apple", 2, "banana", "apple", 3)
+assert tpl.count("apple") == 2, f"Expected 2, but got {tpl.count('apple')}"
+assert tpl.count(1) == 1, f"Expected 1, but got {tpl.count(1)}"
+assert tpl.count(3) == 1, f"Expected 1, but got {tpl.count(3)}"
+
+# Test counting in an empty tuple
+tpl = ()
+assert tpl.count(1) == 0, f"Expected 0, but got {tpl.count(1)}"
+
+# Initialize the tuple
+tpl = (1, 2, 3, 2, 4, 2, 5)
+
+# Test finding the first occurrence of an element
+assert tpl.index(2) == 1, f"Expected 1, but got {tpl.index(2)}"
+
+# Test finding an element with start and stop
+assert tpl.index(2, 2) == 3, f"Expected 3, but got {tpl.index(2, 2)}"
+assert tpl.index(2, 2, 4) == 3, f"Expected 3, but got {tpl.index(2, 2, 4)}"
+
+# Test finding the first occurrence of an element starting at 0
+assert tpl.index(1) == 0, f"Expected 0, but got {tpl.index(1)}"
+
+# Test finding an element at the end of the tuple
+assert tpl.index(5) == 6, f"Expected 6, but got {tpl.index(5)}"
+
+# Test finding an element not in the tuple
+try:
+    tpl.index(99)
+    assert False, "Expected a ValueError, but no exception was raised"
+except ValueError:
+    pass  # Expected behavior
+
+# Test with mixed data types
+tpl = (1, "apple", 2, "banana", "apple", 3)
+assert tpl.index("apple") == 1, f"Expected 1, but got {tpl.index('apple')}"
+assert tpl.index(3) == 5, f"Expected 5, but got {tpl.index(3)}"
+
+# Test start and stop with mixed data types
+assert tpl.index("apple", 2) == 4, f"Expected 4, but got {tpl.index('apple', 2)}"
+
+# Test with a single-element tuple
+tpl = (42,)
+assert tpl.index(42) == 0, f"Expected 0, but got {tpl.index(42)}"
+
+# Test with an empty tuple
+tpl = ()
+try:
+    tpl.index(1)
+    assert False, "Expected a ValueError, but no exception was raised"
+except ValueError:
+    pass  # Expected behavior
 
 print(f'missing: {missing}')

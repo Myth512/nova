@@ -20,7 +20,9 @@
     .rmul = Tuple_RightMultiply,       \
     .contains = Tuple_Contains,        \
     .getitem = Tuple_GetItem,          \
+    .getattr = Tuple_GetAttribute,     \
     .class = Tuple_Class,              \
+    .init = Tuple_Init,                \
     .iter = Tuple_Iter,                \
     .len = Tuple_Len,                  \
     .toBool = Tuple_ToBool,            \
@@ -59,6 +61,10 @@ Value Tuple_Contains(Value a, Value b);
 Value Tuple_GetItem(Value obj, Value key);
 
 Value Tuple_Class(Value value);
+
+Value Tuple_GetAttribute(Value value, ObjString *name);
+
+Value Tuple_Init(Value callee, int argc, Value *argv);
 
 Value Tuple_Iter(Value value);
 

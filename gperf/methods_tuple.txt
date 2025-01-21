@@ -1,0 +1,16 @@
+%{
+#include <string.h>
+#include "py_tuple.h"
+#include "value.h"
+%}
+
+struct StaticAttribute
+
+%readonly-tables
+%struct-type
+%define lookup-function-name in_tuple_set
+
+%%
+count, PyTuple_Count, true
+index, PyTuple_Index, true
+%%

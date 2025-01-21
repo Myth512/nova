@@ -2,6 +2,7 @@
 
 #include "value_methods.h"
 #include "object_tuple.h"
+#include "methods_tuple.h"
 #include "object_tuple_iterator.h"
 #include "object_exception.h"
 #include "value_int.h"
@@ -27,32 +28,81 @@ Value Tuple_NotEqual(Value a, Value b) {
     return BOOL_VAL(!AS_BOOL(Tuple_Equal(a, b)));
 }
 
-Value Tuple_Greater(Value a, Value b) {
+static int min(int a, int b) {
+    return a < b ? a : b;
+}
 
+static int inequality(ObjTuple *a, ObjTuple *b) {
+    int minLength = min(a->size, b->size);
+    for (int i = 0; i < minLength; i++) {
+        if (valueToBool(valueEqual(a->values[i], b->values[i])))
+            continue;
+        if (valueToBool(valueGreater(a->values[i], b->values[i])))
+            return 1;
+        return -1;
+    }
+    return a->size - b->size;
+}
+
+Value Tuple_Greater(Value a, Value b) {
+    if (!IS_TUPLE(b))
+        return NOT_IMPLEMENTED_VAL;
+    return BOOL_VAL(inequality(AS_TUPLE(a), AS_TUPLE(b)) > 0);
 }
 
 Value Tuple_GreaterEqual(Value a, Value b) {
-
+    if (!IS_TUPLE(b))
+        return NOT_IMPLEMENTED_VAL;
+    return BOOL_VAL(inequality(AS_TUPLE(a), AS_TUPLE(b)) >= 0);
 }
 
 Value Tuple_Less(Value a, Value b) {
-
+    if (!IS_TUPLE(b))
+        return NOT_IMPLEMENTED_VAL;
+    return BOOL_VAL(inequality(AS_TUPLE(a), AS_TUPLE(b)) < 0);
 }
 
 Value Tuple_LessEqual(Value a, Value b) {
-
+    if (!IS_TUPLE(b))
+        return NOT_IMPLEMENTED_VAL;
+    return BOOL_VAL(inequality(AS_TUPLE(a), AS_TUPLE(b)) <= 0);
 }
 
 Value Tuple_Add(Value a, Value b) {
+    if (!IS_TUPLE(b))
+        return NOT_IMPLEMENTED_VAL;
 
+    ObjTuple *t1 = AS_TUPLE(a);
+    ObjTuple *t2 = AS_TUPLE(b);
+
+    ObjTuple *result = allocateTuple(t1->size + t2->size);
+
+    for (int i = 0; i < t1->size; i++)
+        result->values[i] = t1->values[i];
+    
+    for (int i = 0; i < t2->size; i++)
+        result->values[t1->size + i] = t2->values[i];
+
+    return OBJ_VAL(result);
 }
 
 Value Tuple_Multiply(Value a, Value b) {
+    if (!IS_INT(b))
+        return NOT_IMPLEMENTED_VAL;
+    
+    ObjTuple *tuple = AS_TUPLE(a);
+    long long scalar = AS_INT(b);
 
+    ObjTuple *result = allocateTuple(tuple->size * scalar);
+
+    for (int i = 0; i < tuple->size * scalar; i++)
+        result->values[i] = tuple->values[i % tuple->size];
+    
+    return OBJ_VAL(result);
 }
 
 Value Tuple_RightMultiply(Value a, Value b) {
-
+    return Tuple_Multiply(a, b);
 }
 
 Value Tuple_Contains(Value a, Value b) {
@@ -78,6 +128,29 @@ Value Tuple_GetItem(Value obj, Value key) {
 
 Value Tuple_Class(Value value) {
     return TYPE_CLASS(tuple);
+}
+
+Value Tuple_GetAttribute(Value value, ObjString *name) {
+    return getStaticAttribute(value, name, in_tuple_set);
+}
+
+Value Tuple_Init(Value callee, int argc, Value *argv) {
+    if (argc == 0)
+        return OBJ_VAL(allocateTuple(0));
+    
+    long long length = valueLen(argv[0]);
+
+    ObjTuple *tuple = allocateTuple(length);
+
+    Value iterator = valueIter(argv[0]);
+    Value item = valueNext(iterator);
+
+    for (int i = 0; i < length; i++) {
+        tuple->values[i] = item;
+        item = valueNext(iterator);
+    }
+
+    return OBJ_VAL(tuple);
 }
 
 Value Tuple_Iter(Value value) {
