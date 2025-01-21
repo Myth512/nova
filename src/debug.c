@@ -3,7 +3,120 @@
 #include "debug.h"
 #include "object.h"
 #include "value.h"
+#include "value_methods.h"
 #include "object_function.h"
+
+static const char *TokenTypeToString[] = {
+    [TOKEN_AMPERSAND] = "AMPERSAND",
+    [TOKEN_AMPERSAND_EQUAL] = "AMPERNAND_EQUAL",
+    [TOKEN_AND] = "AND",
+    [TOKEN_AS] = "AS",
+    [TOKEN_ASSERT] = "ASSERT",
+    [TOKEN_ASYNC] = "ASYNC",
+    [TOKEN_AT] = "AT",
+    [TOKEN_AT_EQUAL] = "AT EQUAL",
+    [TOKEN_AWAIT] = "AWAIT",
+    [TOKEN_BANG_EQUAL] = "BANG EQUAL",
+    [TOKEN_BREAK] = "BREAK",
+    [TOKEN_CARET] = "CARET",
+    [TOKEN_CARET_EQUAL] = "CARET EQAUL",
+    [TOKEN_CLASS] = "CLASS",
+    [TOKEN_COLON] = "COLON",
+    [TOKEN_COLON_EQUAL] = "COLON EQAUL",
+    [TOKEN_COMMA] = "COMMA",
+    [TOKEN_CONTINUE] = "CONTINUE",
+    [TOKEN_DEDENT] = "DEDENT",
+    [TOKEN_DEF] = "DEF",
+    [TOKEN_DEL] = "DEL",
+    [TOKEN_DOT] = "DOT",
+    [TOKEN_DOUBLE_EQUAL] = "DOUBLE EQUAL",
+    [TOKEN_DOUBLE_SLASH] = "DOUBLE SLASH",
+    [TOKEN_DOUBLE_SLASH_EQUAL] = "DOUBLE SLASH EQUAL",
+    [TOKEN_DOUBLE_STAR] = "DOUBLE STAR",
+    [TOKEN_DOUBLE_STAR_EQUAL] = "DOUBLE STAR EQUAL",
+    [TOKEN_ELIF] = "ELIF",
+    [TOKEN_ELSE] = "ELSE",
+    [TOKEN_EOF] = "EOF",
+    [TOKEN_EQUAL] = "EQUAL",
+    [TOKEN_ERROR] = "ERROR",
+    [TOKEN_EXCEPT] = "EXCEPT",
+    [TOKEN_FALSE] = "FALSE",
+    [TOKEN_FINALLY] = "FINALLY",
+    [TOKEN_FOR] = "FOR",
+    [TOKEN_FROM] = "FROM",
+    [TOKEN_FSTRING] = "FSTRING",
+    [TOKEN_GLOBAL] = "GLOBAL",
+    [TOKEN_GREATER] = "GREATER",
+    [TOKEN_GREATER_EQUAL] = "GREATER EQUAL",
+    [TOKEN_IDENTIFIER] = "IDENTIFIER",
+    [TOKEN_IF] = "IF",
+    [TOKEN_IMPORT] = "IMPORT",
+    [TOKEN_IN] = "IN",
+    [TOKEN_INDENT] = "INDENT",
+    [TOKEN_IS] = "IS",
+    [TOKEN_LAMBDA] = "LAMBDA",
+    [TOKEN_LEFT_BRACE] = "LEFT BRACE",
+    [TOKEN_LEFT_BRACKET] = "LEFT BRACKET",
+    [TOKEN_LEFT_PAREN] = "LEFT PAREN",
+    [TOKEN_LEFT_SHIFT] = "LEFT SHIFT",
+    [TOKEN_LEFT_SHIFT_EQUAL] = "LEFT SHIFT EQUAL",
+    [TOKEN_LESS] = "LESS",
+    [TOKEN_LESS_EQUAL] = "LESS EQUAL",
+    [TOKEN_MINUS] = "MINUS",
+    [TOKEN_MINUS_EQUAL] = "MINUS EQUAL",
+    [TOKEN_NEWLINE] = "NEWLINE",
+    [TOKEN_NONE] = "NONE",
+    [TOKEN_NONLOCAL] = "NONLOCAL",
+    [TOKEN_NOT] = "NOT",
+    [TOKEN_NUMBER] = "NUMBER",
+    [TOKEN_OR] = "OR",
+    [TOKEN_PASS] = "PASS",
+    [TOKEN_PERCENT] = "PERCENT",
+    [TOKEN_PIPE] = "PIPE",
+    [TOKEN_PIPE_EQUAL] = "PIPE EQUAL",
+    [TOKEN_PLUS] = "PLUS",
+    [TOKEN_PLUS_EQUAL] = "PLUS EQUAL",
+    [TOKEN_RAISE] = "RAISE",
+    [TOKEN_RETURN] = "RETURN",
+    [TOKEN_RIGHT_BRACE] = "RIGHT BRACE",
+    [TOKEN_RIGHT_BRACKET] = "RIGHT BRACKET",
+    [TOKEN_RIGHT_PAREN] = "RIGHT PAREN",
+    [TOKEN_RIGHT_SHIFT] = "RIGHT SHIFT",
+    [TOKEN_RIGHT_SHIFT_EQUAL] = "RIGHT SHIFT EQUAL",
+    [TOKEN_SEMICOLON] = "SEMICOLON",
+    [TOKEN_SLASH] = "SLASH",
+    [TOKEN_SLASH_EQUAL] = "SLASH EQUAL",
+    [TOKEN_STAR] = "STAR",
+    [TOKEN_STAR_EQUAL] = "STAR EQUAL",
+    [TOKEN_STRING] = "STRING",
+    [TOKEN_TILDE] = "TILDE",
+    [TOKEN_TRUE] = "TRUE",
+    [TOKEN_TRY] = "TRY",
+    [TOKEN_WHILE] = "WHILE",
+    [TOKEN_WITH] = "WITH",
+    [TOKEN_YIELD] = "YIELD"
+};
+
+static const char *ValueTypeToString[] = {
+    [VAL_NONE] = "<type none>",
+    [VAL_BOOL] = "<type bool>",
+    [VAL_INT] = "<type int>",
+    [VAL_FLOAT] = "<type float>",
+    [VAL_UNDEFINED] = "<type undefined>",
+    [VAL_NOT_IMPLEMENTED] = "<type not implemented>",
+    [VAL_STRING] = "<type string>",
+    [VAL_LIST] = "<type list>",
+    [VAL_TUPLE] = "<type tuple>",
+    [VAL_FUNCTION] = "<type function>",
+    [VAL_CLOSURE] = "<type closure>",
+    [VAL_UPVALUE] = "<type upvalue>",
+    [VAL_NATIVE] = "<type native>",
+    [VAL_CLASS] = "<type class>",
+    [VAL_NATIVE_CLASS] = "<type native class>",
+    [VAL_METHOD] = "<type method>",
+    [VAL_NATIVE_METHOD] = "<type native method>",
+    [VAL_INSTANCE] = "<type instance>"
+};
 
 static int simpleInstruction(const char *name, int offset) {
     printf("%s\n", name);
@@ -19,6 +132,13 @@ static int byteInstruction(const char *name, CodeVec *vec, int offset) {
     uint8_t slot = vec->code[offset + 1];
     printf("%-16s %4d\n", name, slot);
     return offset + 2;
+}
+
+static int callInstruction(const char *name, CodeVec *vec, int offset) {
+    uint8_t slot = vec->code[offset + 1];
+    uint8_t slot2 = vec->code[offset + 2];
+    printf("%-16s %4d %4d\n", name, slot, slot2);
+    return offset + 3;
 }
 
 static int constantInstruction(const char *name, CodeVec *vec, int offset) {
@@ -56,9 +176,7 @@ void printCodeVec(CodeVec *vec, const char *title) {
 
 void printValueVec(ValueVec *vec) {
     for (int i = 0; i < vec->size; i++) {
-        putchar('"');
-        valuePrint(vec->values[i]);
-        putchar('"');
+        valueRepr(vec->values[i]);
         printf(" ");
     }
     printf("\n");
@@ -75,8 +193,8 @@ int printInstruction(CodeVec *vec, int offset) {
     switch (opcode) {
         case OP_CONSTANT:
             return constantInstruction("CONSTANT", vec, offset);
-        case OP_NIL:
-            return simpleInstruction("NIL", offset);
+        case OP_NONE:
+            return simpleInstruction("NONE", offset);
         case OP_POP:
             return simpleInstruction("POP", offset);
         case OP_FALSE:
@@ -85,44 +203,60 @@ int printInstruction(CodeVec *vec, int offset) {
             return simpleInstruction("TRUE", offset);
         case OP_GET_GLOBAL:
             return varInstruction("GET GLOBAL", vec, offset);
-        case OP_DEFINE_GLOBAL:
-            return varInstruction("DEFINE GLOBAL", vec, offset);
         case OP_SET_GLOBAL:
             return varInstruction("SET GLOBAL", vec, offset);
+        case OP_DEL_GLOBAL:
+            return varInstruction("DEL GLOBAL", vec, offset);
         case OP_GET_LOCAL:
             return byteInstruction("GET LOCAL", vec, offset);
         case OP_SET_LOCAL:
             return byteInstruction("SET LOCAL", vec, offset);
+        case OP_DEL_LOCAL:
+            return byteInstruction("DEL LOCAL", vec, offset);
         case OP_GET_UPVALUE:
             return byteInstruction("GET UPVALUE", vec, offset);
         case OP_SET_UPVALUE:
             return byteInstruction("SET UPVALUE", vec, offset);
-        case OP_SET_AT:
-            return simpleInstruction("SET AT", offset);
-        case OP_GET_AT:
-            return simpleInstruction("GET AT", offset);
-        case OP_GET_AT_NO_POP:
+        case OP_GET_ITEM:
+            return simpleInstruction("GET ITEM", offset);
+        case OP_SET_ITEM:
+            return simpleInstruction("SET ITEM", offset);
+        case OP_DEL_ITEM:
+            return simpleInstruction("DEL ITEM", offset);
+        case OP_GET_ITEM_NO_POP:
             return simpleInstruction("GET AT NO POP", offset);
-        case OP_INCREMENT:
-            return simpleInstruction("INCREMENT", offset);
-        case OP_DECREMENT:
-            return simpleInstruction("DECREMENT", offset);
         case OP_ADD:
             return simpleInstruction("ADD", offset);
         case OP_SUBTRUCT:
             return simpleInstruction("SUBTRUCT", offset);
         case OP_MULTIPLY:
             return simpleInstruction("MULTIPLY", offset);
-        case OP_DIVIDE:
-            return simpleInstruction("DIVIDE", offset);
-        case OP_MOD:
-            return simpleInstruction("MOD", offset);
         case OP_POWER:
             return simpleInstruction("POWER", offset);
+        case OP_TRUE_DIVIDE:
+            return simpleInstruction("TRUE DIVIDE", offset);
+        case OP_FLOOR_DIVIDE:
+            return simpleInstruction("FLOOR DIVIDE", offset);
+        case OP_MOD:
+            return simpleInstruction("MOD", offset);
+        case OP_POSITIVE:
+            return simpleInstruction("POSITIVE", offset);
+        case OP_NEGATIVE:
+            return simpleInstruction("NEGATIVE", offset);
+        case OP_BITWISE_AND:
+            return simpleInstruction("AND", offset);
+        case OP_BITWISE_XOR:
+            return simpleInstruction("XOR", offset);
+        case OP_BITWISE_OR:
+            return simpleInstruction("OR", offset);
+        case OP_LEFT_SHIFT:
+            return simpleInstruction("LEFT SHIFT", offset);
+        case OP_RIGHT_SHIFT:
+            return simpleInstruction("RIGHT SHIFT", offset);
+        case OP_INVERT:
+            return simpleInstruction("INVERT", offset);
         case OP_NOT:
             return simpleInstruction("NOT", offset);
-        case OP_NEGATE:
-            return simpleInstruction("NEGATE", offset);
         case OP_EQUAL:
             return simpleInstruction("EQUAL", offset);
         case OP_NOT_EQUAL:
@@ -137,10 +271,24 @@ int printInstruction(CodeVec *vec, int offset) {
             return simpleInstruction("LESS EQUAL", offset);
         case OP_RETURN:
             return simpleInstruction("RETURN", offset);
+        case OP_CONTAINS:
+            return simpleInstruction("CONTAINS", offset);
+        case OP_MAKE_ITERATOR:
+            return simpleInstruction("MAKE ITERATOR", offset);
+        case OP_NEXT:
+            return simpleInstruction("NEXT", offset);
+        case OP_IS_INSTANCE:
+            return simpleInstruction("IS INSTANCE", offset);
+        case OP_IS:
+            return simpleInstruction("IS", offset);
         case OP_BUILD_FSTRING:
             return argInstruction("BUILD FSTRING", vec, offset);
-        case OP_BUILD_ARRAY:
-            return argInstruction("BUILD ARRAY", vec, offset);
+        case OP_BUILD_LIST:
+            return argInstruction("BUILD LIST", vec, offset);
+        case OP_BUILD_TUPLE:
+            return argInstruction("BUILD TUPLE", vec, offset);
+        case OP_BUILD_DICT:
+            return argInstruction("BUILD DICT", vec, offset);
         case OP_JUMP:
             return jumpInstruction("JUMP", 1, vec, offset);
         case OP_JUMP_TRUE:
@@ -155,8 +303,16 @@ int printInstruction(CodeVec *vec, int offset) {
             return jumpInstruction("LOOP", -1, vec, offset);
         case OP_LOOP_TRUE_POP:
             return jumpInstruction("LOOP TRUE POP", -1, vec, offset);
+        case OP_SETUP_TRY:
+            return jumpInstruction("SETUP TRY", 1, vec, offset);
+        case OP_END_TRY:
+            return simpleInstruction("END TRY", offset);
+        case OP_RAISE:
+            return simpleInstruction("RAISE", offset);
+        case OP_ASSERT:
+            return simpleInstruction("ASSERT", offset);
         case OP_CALL:
-            return byteInstruction("CALL", vec, offset);
+            return callInstruction("CALL", vec, offset);
         case OP_CLOSURE: {
             offset++;
             uint8_t constant = vec->code[offset++];
@@ -178,125 +334,28 @@ int printInstruction(CodeVec *vec, int offset) {
             return constantInstruction("CLASS", vec, offset);
         case OP_METHOD:
             return constantInstruction("METHOD", vec, offset);
-        case OP_GET_PROPERTY:
-            return constantInstruction("GET PROPERTY", vec, offset);
-        case OP_SET_PROPERTY:
-            return constantInstruction("SET PROPERTY", vec, offset);
+        case OP_GET_ATTRIBUTE:
+            return constantInstruction("GET ATTRIBUTE", vec, offset);
+        case OP_SET_ATTRIBUTE:
+            return constantInstruction("SET ATTRIBUTE", vec, offset);
+        case OP_DEL_ATTRIBUTE:
+            return constantInstruction("DEL ATTRIBUTE", vec, offset);
         default:
             printf("Unknown opcode %d\n", opcode);
             return offset + 1;
     }
 }
 
+const char* decodeValueType(Value value) {
+    if (value.type < 0 || value.type > VAL_INSTANCE)
+        return "<unknown type>";
+    return ValueTypeToString[value.type];
+ }
+
 static char* decodeTokenType(TokenType type) {
-    switch (type) {
-        case TOKEN_LEFT_PAREN:
-            return "LEFT PAREN";
-        case TOKEN_RIGHT_PAREN:
-            return "RIGHT PAREN";
-        case TOKEN_LEFT_BRACE:
-            return "LEFT BRACE";
-        case TOKEN_RIGHT_BRACE:
-            return "RIGHT BRACE";
-        case TOKEN_LEFT_BRACKET:
-            return "LEFT BRACKET";
-        case TOKEN_RIGHT_BRACKET:
-            return "RIGHT BRACKET";
-        case TOKEN_COMMA:
-            return "COMMA";
-        case TOKEN_DOT:
-            return "DOT";
-        case TOKEN_MINUS:
-            return "MINUS";
-        case TOKEN_PLUS:
-            return "PLUS";
-        case TOKEN_SLASH:
-            return "SLASH";
-        case TOKEN_STAR:
-            return "STAR";
-        case TOKEN_PERCENT:
-            return "PERCENT";
-        case TOKEN_CARET:
-            return "CARET";
-        case TOKEN_MINUS_EQUAL:
-            return "MINUS EQUAL";
-        case TOKEN_PLUS_EQUAL:
-            return "PLUS EQUAL";
-        case TOKEN_SLASH_EQUAL:
-            return "SLASH EQUAL";
-        case TOKEN_STAR_EQUAL:
-            return "STAR EQUAL";
-        case TOKEN_PERCENT_EQUAL:
-            return "PERCENT EQUAL";
-        case TOKEN_CARET_EQUAL:
-            return "CARET EQUAL";
-        case TOKEN_PLUS_PLUS:
-            return "PLUS PLUS";
-        case TOKEN_MINUS_MINUS:
-            return "MINUS MINUS";
-        case TOKEN_BANG_EQUAL:
-            return "BANG EQUAL";
-        case TOKEN_EQUAL:
-            return "EQUAL";
-        case TOKEN_DOUBLE_EQUAL:
-            return "DOUBLE EQUAL";
-        case TOKEN_GREATER:
-            return "GREATER";
-        case TOKEN_GREATER_EQUAL:
-            return "GREATER EQUAL";
-        case TOKEN_LESS:
-            return "LESS";
-        case TOKEN_LESS_EQUAL:
-            return "LESS EQUAL";
-        case TOKEN_IDENTIFIER:
-            return "IDENTIFIER";
-        case TOKEN_STRING:
-            return "STRING";
-        case TOKEN_FSTRING:
-            return "FSTRING";
-        case TOKEN_NUMBER:
-            return "NUMBER";
-        case TOKEN_IF:
-            return "IF";
-        case TOKEN_ELSE:
-            return "ELSE";
-        case TOKEN_ELIF:
-            return "ELIF";
-        case TOKEN_FOR:
-            return "FOR";
-        case TOKEN_BREAK:
-            return "BREAK";
-        case TOKEN_CONTINUE:
-            return "CONTINUE";
-        case TOKEN_NOT:
-            return "NOT";
-        case TOKEN_AND:
-            return "AND";
-        case TOKEN_OR:
-            return "OR";
-        case TOKEN_TRUE:
-            return "TRUE";
-        case TOKEN_FALSE:
-            return "FALSE";
-        case TOKEN_NIL:
-            return "NIL";
-        case TOKEN_DEF:
-            return "DEF";
-        case TOKEN_RETURN:
-            return "RETURN";
-        case TOKEN_CLASS:
-            return "CLASS";
-        case TOKEN_ERROR:
-            return "ERROR";
-        case TOKEN_LINE_BREAK:
-            return "LINE BREAK";
-        case TOKEN_SEMICOLON:
-            return "SEMICOLON";
-        case TOKEN_EOF:
-            return "EOF";
-        default:
-            return "Unknow Token";
-    }
+    if (type < 0 || type > TOKEN_DEDENT)
+        return "UNKNOWN TOKEN";
+    return TokenTypeToString[type];
 }
 
 void printToken(Token *token) {

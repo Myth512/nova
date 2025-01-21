@@ -1,0 +1,25 @@
+%{
+#include <string.h>
+#include "py_list.h"
+#include "value.h"
+%}
+
+struct StaticAttribute
+
+%readonly-tables
+%struct-type
+%define lookup-function-name in_list_set
+
+%%
+append, PyList_Append, true
+clear, PyList_Clear, true
+copy, PyList_Copy, true
+count, PyList_Count, true
+extend, PyList_Extend, true
+index, PyList_Index, true
+insert, PyList_Insert, true
+pop, PyList_Pop, true
+remove, PyList_Remove, true
+reverse, PyList_Reverse, true
+sort, PyList_Sort, true
+%%

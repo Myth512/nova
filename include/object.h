@@ -4,35 +4,19 @@
 #include <stdint.h>
 
 #include "value.h"
-#include "table.h"
+#include "name_table.h"
 #include "code.h"
 
-#define OBJ_TYPE(value)         (AS_OBJ(value)->type)
-
-typedef enum {
-    OBJ_CLASS,
-    OBJ_METHOD,
-    OBJ_NATIVE_METHOD,
-    OBJ_INSTANCE,
-    OBJ_CLOSURE,
-    OBJ_FUNCTION,
-    OBJ_NATIVE,
-    OBJ_STRING,
-    OBJ_RAW_STRING,
-    OBJ_UPVALUE,
-    OBJ_ARRAY
-} ObjType;
-
 struct Obj {
-    ObjType type;
+    ValueType type;
     bool isMarked;
     struct Obj *next;
 };
 
-static inline bool isObjType(Value value, ObjType type) {
-    return IS_OBJ(value) && AS_OBJ(value)->type == type;
-}
+#define OBJ_VAL(value)      ((Value){.type=((Obj*)value)->type, .as.object=(Obj*)value})
 
-Obj* allocateObject(size_t size, ObjType type);
+Obj* allocateObject(size_t size, ValueType);
+
+bool isObject(Value value);
 
 #endif

@@ -3,25 +3,46 @@
 
 #include "object.h"
 
-#define IS_STRING(value)        isObjType(value, OBJ_STRING)
+#define STRING_VAL(string)      ((Value){.type=VAL_STRING, .as.object=(Obj*)string})
 
-#define AS_STRING(value)        ((ObjString*)AS_OBJ(value))
-#define AS_CSTRING(value)       (((ObjString*)AS_OBJ(value))->chars)
-#define AS_RAW_STRING(value)    ((ObjRawString*)AS_OBJ(value))
+#define IS_STRING(value)        ((value).type == VAL_STRING) 
+
+#define AS_STRING(value)        ((ObjString*)((value).as.object))
+#define AS_CHARS(value)         (((ObjString*)((value).as.object))->chars)
+
+#define STRING_METHODS (ValueMethods){ \
+    .eq = String_Equal,                \
+    .ne = String_NotEqual,             \
+    .gt = String_Greater,              \
+    .ge = String_GreaterEqual,         \
+    .lt = String_Less,                 \
+    .le = String_LessEqual,            \
+    .add = String_Add,                 \
+    .radd = String_Add,                \
+    .mul = String_Multiply,            \
+    .rmul = String_RightMultiply,      \
+    .contains = String_Contains,       \
+    .class = String_Class,             \
+    .init = String_Init,               \
+    .iter = String_Iter,               \
+    .getattr = String_GetAttribute,    \
+    .getitem = String_GetItem,         \
+    .hash = String_Hash,               \
+    .len = String_Len,                 \
+    .toBool = String_ToBool,           \
+    .toInt = String_ToInt,             \
+    .toFloat = String_ToFloat,         \
+    .str = String_ToStr,               \
+    .repr = String_ToRepr,             \
+}
 
 struct ObjString {
     Obj obj;
     int length;
-    uint32_t hash;
+    uint64_t hash;
     bool isHashed;
     bool isInterned;
     char chars[];
-};
-
-struct ObjRawString {
-    Obj obj;
-    int length;
-    const char *chars;
 };
 
 ObjString *allocateString(size_t length);
@@ -30,38 +51,48 @@ ObjString *copyString(const char *chars, size_t length);
 
 ObjString *copyEscapedString(const char *chars, size_t length);
 
-ObjRawString* createRawString(const char *chars, int length);
+Value String_Equal(Value a, Value b);
 
-bool stringEqual(ObjString *a, ObjString *b);
+Value String_NotEqual(Value a, Value b);
 
-bool stringNotEqual(ObjString *a, ObjString *b);
+Value String_Greater(Value, Value b);
 
-bool stringGreater(ObjString *a, ObjString *b);
+Value String_GreaterEqual(Value a, Value b);
 
-bool stringGreaterEqual(ObjString *a, ObjString *b);
+Value String_Less(Value a, Value b);
 
-bool stringLess(ObjString *a, ObjString *b);
+Value String_LessEqual(Value a, Value b);
 
-bool stringLessEqual(ObjString *a, ObjString *b);
+Value String_Add(Value a, Value b);
 
-ObjString *stringAdd(ObjString *a, ObjString *b);
+Value String_Multiply(Value a, Value b);
 
-ObjString *stringMultiply(ObjString *string, int scalar);
+Value String_RightMultiply(Value a, Value b);
 
-OptValue stringGetField(Value string, ObjString *name);
+Value String_Contains(Value a, Value b);
 
-Value stringGetAt(ObjString *string, Value index);
+Value String_Class(Value value);
 
-int stringLen(ObjString *string);
+Value String_Init(Value callee, int argc, Value *argv);
 
-bool stringToBool(ObjString *string);
+Value String_Iter(Value value);
 
-int stringToInt(ObjString *string);
+Value String_GetAttribute(Value value, ObjString *name);
 
-double stringToFloat(ObjString *string);
+Value String_GetItem(Value value, Value key);
 
-int writeRawstring(char *buffer, ObjRawString *string);
+uint64_t String_Hash(Value value);
 
-uint32_t getStringHash(ObjString *string);
+long long String_Len(Value value);
+
+bool String_ToBool(Value value);
+
+long long String_ToInt(Value value);
+
+double String_ToFloat(Value value);
+
+int String_ToStr(Value value, char *buffer, size_t size);
+
+int String_ToRepr(Value value, char *buffer, size_t size);
 
 #endif

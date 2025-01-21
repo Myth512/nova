@@ -5,6 +5,7 @@
 #include "compiler.h"
 #include "object_string.h"
 #include "object_class.h"
+#include "object_instance.h"
 #include "vm.h"
 
 #define GC_HEAP_GROW_FACTOR 2
@@ -53,49 +54,45 @@ static void freeObject(Obj *object) {
         printf("\n");
     #endif
     switch (object->type) {
-        case OBJ_CLOSURE: {
+        case VAL_CLOSURE: {
             ObjClosure *closure = (ObjClosure*)object;
             FREE_VEC(ObjUpvalue*, closure->upvalues, closure->upvalueCount);
             FREE(ObjClosure, closure);
             break;
         }
-        case OBJ_FUNCTION: {
+        case VAL_FUNCTION: {
             ObjFunction *function = (ObjFunction*)object;
             freeCodeVec(&function->code);
             FREE(ObjFunction, object);
             break;
         }
-        case OBJ_NATIVE:
+        case VAL_NATIVE:
             FREE(ObjNative, object);
             break;
-        case OBJ_STRING: {
+        case VAL_STRING: {
             ObjString *string = (ObjString*)object;
             FREE(ObjString, object);
             break;
         }
-        case OBJ_RAW_STRING: {
-            FREE(ObjRawString, object);
-            break;
-        }
-        case OBJ_UPVALUE: {
+        case VAL_UPVALUE: {
             FREE(ObjUpvalue, object);
             break;
         }
-        case OBJ_CLASS: {
+        case VAL_CLASS: {
             FREE(ObjClass, object);
             break;
         }
-        case OBJ_INSTANCE: {
+        case VAL_INSTANCE: {
             ObjInstance *instance = (ObjInstance*)object;
-            freeTable(&instance->fields);
+            freeTable(&instance->attributes);
             FREE(ObjInstance, object);
             break;
         }
-        case OBJ_METHOD: {
+        case VAL_METHOD: {
             FREE(ObjMethod, object);
             break;
         }
-    }
+    } 
 }
 
 void freeObjects() {
@@ -115,10 +112,10 @@ static void markVec(ValueVec *vec) {
 
 static void markReferences(Obj *obj) {
     switch (obj->type) {
-        case OBJ_UPVALUE:
+        case VAL_UPVALUE:
             markValue(((ObjUpvalue*)obj)->closed);
             break;
-        case OBJ_FUNCTION: {
+        case VAL_FUNCTION: {
             ObjFunction *function = (ObjFunction*)obj;
             #ifdef DEBUG_LOG_GC
                 printIndent();
@@ -138,7 +135,7 @@ static void markReferences(Obj *obj) {
             #endif
             break;
         }
-        case OBJ_CLOSURE: {
+        case VAL_CLOSURE: {
             ObjClosure *closure = (ObjClosure*)obj;
             #ifdef DEBUG_LOG_GC
                 printIndent();
@@ -160,18 +157,18 @@ static void markReferences(Obj *obj) {
             #endif
             break;
         }
-        case OBJ_CLASS: {
+        case VAL_CLASS: {
             ObjClass *class = (ObjClass*)obj;
             markObject((Obj*)class->name);
             break;
         }
-        case OBJ_INSTANCE: {
+        case VAL_INSTANCE: {
             ObjInstance *instance = (ObjInstance*)obj;
             markObject((Obj*)instance->class);
-            markTable(&instance->fields);
+            markTable(&instance->attributes);
             break;
         }
-        case OBJ_METHOD: {
+        case VAL_METHOD: {
             ObjMethod *method = (ObjMethod*)obj;
             markValue(method->reciever);
             markObject((Obj*)method->method);
@@ -205,8 +202,8 @@ void markObject(Obj *obj) {
 }
 
 void markValue(Value value) {
-    if (IS_OBJ(value))
-        markObject(AS_OBJ(value));
+    if (isObject(value))
+        markObject(value.as.object);
 }
 
 static void mark() {
@@ -280,6 +277,7 @@ static void sweep() {
 }
 
 void collectGarbage() {
+    return;
     #ifdef DEBUG_LOG_GC
         printf("gc begin\n");
         size_t before = vm.bytesAllocated;

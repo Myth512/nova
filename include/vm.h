@@ -3,17 +3,24 @@
 
 #include "common.h"
 #include "code.h"
-#include "table.h"
+#include "name_table.h"
 #include "object.h"
 #include "object_function.h"
+#include "object_class.h"
 
 #define FRAMES_SIZE 64
 #define STACK_SIZE (FRAMES_SIZE * UINT8_MAX)
+
+#define TYPE_CLASS(name)    (OBJ_VAL(vm.types.name))
+
+#define PARSE_ARGS(...) \
+    parseArgs(argc, kwargc, sizeof(keywords) / sizeof(char*), keywords, ##__VA_ARGS__)
 
 typedef struct {
     ObjClosure *closure;
     uint8_t *ip;
     Value *slots;
+    uint8_t *exceptAddr;
     bool isMethod;
 } CallFrame;
 
@@ -54,8 +61,39 @@ typedef struct {
     ObjString *str;
     ObjString *int_;
     ObjString *float_;
-    ObjString *unsupported;
 } MagicStrings;
+
+typedef struct {
+    ObjNativeClass *object;
+    ObjNativeClass *none;
+    ObjNativeClass *bool_;
+    ObjNativeClass *int_;
+    ObjNativeClass *float_;
+    ObjNativeClass *type;
+    ObjNativeClass *str;
+    ObjNativeClass *strIterator;
+    ObjNativeClass *list;
+    ObjNativeClass *listIterator;
+    ObjNativeClass *tuple;
+    ObjNativeClass *tupleIterator;
+    ObjNativeClass *dict;
+    ObjNativeClass *dictIterator;
+    ObjNativeClass *exception;
+    ObjNativeClass *zeroDivisionError;
+    ObjNativeClass *stopIteration;
+    ObjNativeClass *nameError;
+    ObjNativeClass *typeError;
+    ObjNativeClass *valueError;
+    ObjNativeClass *indexError;
+    ObjNativeClass *keyError;
+    ObjNativeClass *attributeError;
+    ObjNativeClass *runtimeError;
+    ObjNativeClass *assertionError;
+    ObjNativeClass *super;
+    ObjNativeClass *range;
+    ObjNativeClass *rangeIterator;
+    ObjNativeClass *notImplementedType;
+} BaseTypes;
 
 typedef struct {
     const char *source;
@@ -65,14 +103,15 @@ typedef struct {
     uint8_t *ip;
     Value stack[STACK_SIZE];
     Value *top;
-    Table globals;
-    Table strings;
+    NameTable globals;
+    NameTable strings;
     MagicStrings magicStrings;
+    BaseTypes types;
     ObjUpvalue *openUpvalues;
     Obj *objects;
     size_t bytesAllocated;
     size_t nextGC;
-    bool stackPrinting;
+    bool allowStackPrinting;
 } VM;
 
 typedef enum {
@@ -88,6 +127,14 @@ void push(Value value);
 
 Value pop();
 
+void insert(int distance, Value value);
+
+void parseArgs(int argc, int kwargc, int arity, char *keywords[], ...);
+
+void raise();
+
+void raiseIfException();
+
 void reportRuntimeError(const char *format, ...);
 
 void reportArityError(int min, int max, int got);
@@ -97,6 +144,8 @@ void operatorNotImplemented(char *operator, Value a, Value b);
 void operatorNotImplementedUnary(char *operator, Value a);
 
 void functionNotImplemented(char *function, Value a);
+
+void call(ObjClosure *closure, int argc, int kwargc, bool isMethod);
 
 Value callNovaValue(Value callee, int argc);
 

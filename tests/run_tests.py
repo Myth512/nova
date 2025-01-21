@@ -1,81 +1,64 @@
 import subprocess
 import os
-from itertools import zip_longest
+import time
 
 RED = '\033[31m'
 GREEN = '\033[32m'
 YELLOW = '\033[33m'
 RESET = '\033[0m'
 
-SCRIPTS_DIR = 'tests/scripts'
-GOLDEN_DIR = 'tests/golden'
-RESULTS_DIR = 'tests/results'
+TEST_DIR = 'tests'
 INTERPRETER = 'nova'
 
-def run_test(name: str) -> None:
-    script_path = os.path.join(SCRIPTS_DIR, name)
-    stdout_path = os.path.join(RESULTS_DIR, f'{name[:-3]}.out')
-    stderr_path = os.path.join(RESULTS_DIR, f'{name[:-3]}.err')
+def run_test(name: str) -> int:
+    script_path = os.path.join(TEST_DIR, name)
 
-    with open(stdout_path, 'w') as stdout_file, open(stderr_path, 'w') as stderr_file:
-        subprocess.run([INTERPRETER, script_path], stdout=stdout_file, stderr=stderr_file)
+    start_time = time.time()
 
-def compare(name: str) -> bool:
-    golden_stdout_path = os.path.join(GOLDEN_DIR, f'{name[:-3]}.out')
-    golden_stderr_path = os.path.join(GOLDEN_DIR, f'{name[:-3]}.err')
-    result_stdout_path = os.path.join(RESULTS_DIR, f'{name[:-3]}.out')
-    result_stderr_path = os.path.join(RESULTS_DIR, f'{name[:-3]}.err')
+    result = subprocess.run([INTERPRETER, script_path], capture_output=True)
 
-    with open(golden_stdout_path) as f1, open(golden_stderr_path) as f2:
-        golden_stdout = f1.read()
-        golden_stderr = f2.read()
+    missing = 0
+    for line in result.stdout.splitlines():
+        if b'missing' in line:
+            missing = int(line.split()[-1])
 
-    with open(result_stdout_path) as f1, open(result_stderr_path) as f2:
-        result_stdout = f1.read()
-        result_stderr = f2.read()
+    end_time = time.time()
 
-    return golden_stdout == result_stdout and golden_stderr == result_stderr
+    duration = end_time - start_time
 
-def print_diff(name: str) -> None:
-    golden_stdout_path = os.path.join(GOLDEN_DIR, f'{name[:-3]}.out')
-    golden_stderr_path = os.path.join(GOLDEN_DIR, f'{name[:-3]}.err')
-    result_stdout_path = os.path.join(RESULTS_DIR, f'{name[:-3]}.out')
-    result_stderr_path = os.path.join(RESULTS_DIR, f'{name[:-3]}.err')
-
-    with open(golden_stdout_path, 'r') as f1, open(result_stdout_path, 'r') as f2:
-        for i, (golden_line, result_line) in enumerate(zip_longest(f1, f2, fillvalue='(no out)\n')):
-            if golden_line != result_line:
-                print(f'Line {i}')
-                print(f'{YELLOW}Expected:{RESET} {golden_line}', end='')
-                print(f'{RED}Got:{RESET}      {result_line}', end='')
-
-    with open(golden_stderr_path, 'r') as f1, open(result_stderr_path, 'r') as f2:
-        for i, (golden_line, result_line) in enumerate(zip_longest(f1, f2, fillvalue='(no err)\n')):
-            if golden_line != result_line:
-                print(f'Line {i}')
-                print(f'{YELLOW}Expected:{RESET} {golden_line}', end='')
-                print(f'{RED}Got:{RESET}      {result_line}', end='')
+    return result.returncode, duration, missing 
 
 def main():
-    scripts = [f for f in os.listdir(SCRIPTS_DIR)]
+    print("\nStatus File Name                      Time    Details")
+    tests = [f for f in os.listdir(TEST_DIR) if f.startswith('test_')]
     test_count = 0
     pass_count = 0
+    total_duration = 0
+    total_missing = 0
 
-    for script in scripts:
+    for test in tests:
         test_count += 1
-        run_test(script)
+        returncode, duration, missing = run_test(test)
+        total_duration += duration
+        total_missing += missing 
 
-        if compare(script):
+        if returncode == 0: 
             pass_count += 1
-            print(f'{GREEN}[✓]{RESET} {script} passed')
+            if missing == 0:
+                print(f'{GREEN}  [✓] {RESET} {test:<30} {duration:.3f}s')
+            else:
+                print(f'{YELLOW}  [!] {RESET} {test:<30} {duration:.3f}s  missing {missing} {'cases' if missing > 1 else 'case'}')
         else:
-            print(f'{RED}[✗]{RESET} {script} failed')
-            print_diff(script)
-        
+            print(f'{RED}  [✗] {RESET} {test:<30} {duration:.3f}s')
+
+    print()
     if pass_count == test_count:
-        print(f'{GREEN}All tests passed{RESET}')
+        if total_missing == 0:
+            print(f'{GREEN}All tests passed{RESET} in {total_duration:.3f} seconds')
+        else:
+            print(f'{YELLOW}All tests passed{RESET} in {total_duration:.3f} seconds, missing {total_missing} cases')
     else:
-        print(f'{RED}{pass_count} out of {test_count} tests passed{RESET}')
+        print(f'{RED}{pass_count} out of {test_count} tests passed{RESET}, in {total_duration:.3f} seconds')
     
 if __name__ == '__main__':
     main()

@@ -1,0 +1,45 @@
+%{
+#include <string.h>
+#include "py_bool.h"
+#include "value.h"
+%}
+
+struct StaticAttribute
+
+%readonly-tables
+%struct-type
+%define lookup-function-name in_bool_set
+%define hash-function-name bool_hash
+
+%%
+__eq__, PyBool_Equal, true
+__ne__, PyBool_NotEqual, true
+__gt__, PyBool_Greater, true
+__ge__, PyBool_GreaterEqual, true
+__lt__, PyBool_Less, true
+__le__, PyBool_LessEqual, true
+__add__, PyBool_Add, true
+__sub__, PyBool_Subtract, true
+__rsub__, PyBool_RightSubtract, true
+__mul__, PyBool_Multiply, true
+__truediv__, PyBool_TrueDivide, true
+__rtruediv__, PyBool_RightTrueDivide, true
+__floordiv__, PyBool_FloorDivide, true
+__rfloordiv__, PyBool_RightFloorDivide, true
+__mod__, PyBool_Modulo, true
+__rmod__, PyBool_RightModulo, true
+__pow__, PyBool_Power, true
+__rpow__, PyBool_RightPower, true
+__pos__, PyBool_Positive, true
+__neg__, PyBool_Negative, true
+__and__, PyBool_And, true
+__xor__, PyBool_Xor, true
+__or__, PyBool_Or, true
+__invert__, PyBool_Invert, true
+__lshift__, PyBool_LeftShift, true
+__rlshift__, PyBool_RightLeftShift, true
+__rshift__, PyBool_RightShift, true
+__rrshift__, PyBool_RightRightShift, true
+__getattr__, PyBool_GetAttribute, true
+__class__, PyBool_Class, false
+%%

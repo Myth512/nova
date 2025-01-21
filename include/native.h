@@ -3,30 +3,22 @@
 
 #include "value.h"
 
-Value printNative(int argc, Value *argv);
+Value Py_Print(int argc, int kwargc);
 
-Value clockNative(int argc, Value *argv);
+Value Py_Id(int argc, int kwargc);
 
-Value sqrtNative(int argc, Value *argv);
+Value Py_Len(int argc, int kwargc);
 
-Value minNative(int argc, Value *argv);
+Value Py_Repr(int argc, int kwargc);
 
-Value maxNative(int argc, Value *argv);
+Value Py_Input(int argc, int kwargc);
 
-Value typeNative(int argc, Value *argv);
+Value Py_Hex(int argc, int kwargc);
 
-Value novaAddr(int argc, Value *argv);
+Value Py_IsInstance(int argc, int kwargc);
 
-Value novaLen(int argc, Value *argv);
+Value Py_Iter(int argc, int kwargc);
 
-Value novaBool(int argc, Value *argv);
-
-Value novaInt(int argc, Value *argv);
-
-Value novaFloat(int argc, Value *argv);
-
-Value novaStr(int argc, Value *argv);
-
-Value novaInput(int argc, Value *argv);
+Value Py_Next(int argc, int kwargc);
 
 #endif

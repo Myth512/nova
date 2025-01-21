@@ -12,4 +12,6 @@ int printInstruction(CodeVec *codeVec, int offset);
 
 void printToken(Token *token);
 
+const char* decodeValueType(Value value);
+
 #endif

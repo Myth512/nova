@@ -1,0 +1,52 @@
+%{
+#include <string.h>
+#include "token.h"
+%}
+
+%readonly-tables
+%struct-type
+%define lookup-function-name in_keyword_set
+%compare-strncmp
+
+struct Keyword {
+	const char *name;
+    TokenType type;
+}
+
+%%
+and, TOKEN_AND
+as, TOKEN_AS
+assert, TOKEN_ASSERT
+async, TOKEN_ASYNC
+await, TOKEN_AWAIT
+break, TOKEN_BREAK
+class, TOKEN_CLASS
+continue, TOKEN_CONTINUE
+def, TOKEN_DEF
+del, TOKEN_DEL
+elif, TOKEN_ELIF
+else, TOKEN_ELSE
+except, TOKEN_EXCEPT
+False, TOKEN_FALSE
+finally, TOKEN_FINALLY
+for, TOKEN_FOR
+from, TOKEN_FROM
+global, TOKEN_GLOBAL
+if, TOKEN_IF
+in, TOKEN_IN
+is, TOKEN_IS
+import, TOKEN_IMPORT
+lambda, TOKEN_LAMBDA
+None, TOKEN_NONE
+nonlocal, TOKEN_NONLOCAL
+not, TOKEN_NOT
+or, TOKEN_OR
+pass, TOKEN_PASS
+raise, TOKEN_RAISE
+return, TOKEN_RETURN
+True, TOKEN_TRUE,
+try, TOKEN_TRY
+while, TOKEN_WHILE
+with, TOKEN_WITH
+yield, TOKEN_YIELD
+%%

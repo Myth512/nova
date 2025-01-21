@@ -1,104 +1,77 @@
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
+#include <stdarg.h>
 #include <time.h>
 
 #include "native.h"
 #include "value.h"
+#include "value_int.h"
+#include "value_methods.h"
 #include "object.h"
 #include "object_string.h"
 #include "vm.h"
 
-Value clockNative(int argc, Value *argv) {
-    return NUMBER_VAL((double)clock() / CLOCKS_PER_SEC);
-}
+Value Py_Print(int argc, int kwargc) {
+    static char *keywords[] = {"*objects", "sep", "end"};
+    Value objects, sep, end;
+    PARSE_ARGS(&objects, &sep, &end);
 
-Value printNative(int argc, Value *argv) {
-    for (int i = 0; i < argc; i++) {
-        valuePrint(argv[i]);
-        putchar(i < argc - 1 ? ' ' : '\n');
+    char *s;
+    if (IS_UNDEFINED(sep))
+        s = " ";
+    else
+        s = AS_STRING(sep)->chars;
+    
+    char *e;
+    if (IS_UNDEFINED(end))
+        e = "\n";
+    else
+        e = AS_STRING(end)->chars;
+
+    int size = AS_TUPLE(objects)->size;
+
+    for (int i = 0; i < size; i++) {
+        valuePrint(AS_TUPLE(objects)->values[i]);
+        if (i + 1 != size)
+            printf("%s", s);
     }
-    return NIL_VAL;
+
+    printf("%s", e);
+    return NONE_VAL;
 }
 
-Value sqrtNative(int argc, Value *argv) {
-    if (argc != 1) {
-        reportRuntimeError("Expect 1 argument but got %d\n", argc);
-    }
-    if (!IS_NUMBER(argv[0])) {
-        reportRuntimeError("argument must be a number\n");
-    }
-    return NUMBER_VAL(sqrt(AS_NUMBER(argv[0])));
+Value Py_Id(int argc, int kwargc) {
+    static char *keywords[] = {"obj"};
+    Value obj;
+    PARSE_ARGS(&obj);
+
+    return INT_VAL(valueId(obj));
 }
 
-Value minNative(int argc, Value *argv) {
-    double result = AS_NUMBER(argv[0]);
-    for (int i = 1; i < argc; i++) {
-        double cur = AS_NUMBER(argv[i]);
-        if (cur < result)
-            result = cur;
-    } 
-    return NUMBER_VAL(result);
+Value Py_Len(int argc, int kwargc) {
+    static char *keywords[] = {"obj"};
+    Value obj;
+    PARSE_ARGS(&obj);
+
+    return INT_VAL(valueLen(obj));
 }
 
-Value maxNative(int argc, Value *argv) {
-    double result = AS_NUMBER(argv[0]);
-    for (int i = 1; i < argc; i++) {
-        double cur = AS_NUMBER(argv[i]);
-        if (cur > result)
-            result = cur;
-    } 
-    return NUMBER_VAL(result);
+Value Py_Repr(int argc, int kwargc) {
+    static char *keywords[] = {"obj"};
+    Value obj;
+    PARSE_ARGS(&obj);
+
+    return OBJ_VAL(valueToRepr(obj));
 }
 
-Value typeNative(int argc, Value *argv) {
-    const char *type = decodeValueTypeClean(argv[0]);
-    size_t len = strlen(type);
-    ObjString *string = copyString(type, len);
-    return OBJ_VAL(string);
-}
+Value Py_Input(int argc, int kwargc) {
+    static char *keywords[] = {"promt"};
+    Value promt;
+    PARSE_ARGS(&promt);
 
-Value novaAddr(int argc, Value *argv) {
-    if (argc != 1)
-        reportArityError(1, 1, argc);
-    return NUMBER_VAL(valueAddr(argv[0]));
-}
-
-Value novaLen(int argc, Value *argv) {
-    if (argc != 1)
-        reportArityError(1, 1, argc);
-    return NUMBER_VAL(valueLen(argv[0]));
-}
-
-Value novaBool(int argc, Value *argv) {
-    if (argc != 1)
-        reportArityError(1, 1, argc);
-    return BOOL_VAL(valueToBool(argv[0]));
-}
-
-Value novaInt(int argc, Value *argv) {
-    if (argc != 1)
-        reportArityError(1, 1, argc);
-    return NUMBER_VAL(valueToInt(argv[0]));
-}
-
-Value novaFloat(int argc, Value *argv) {
-    if (argc != 1)
-        reportArityError(1, 1, argc);
-    return NUMBER_VAL(valueToFloat(argv[0]));
-}
-
-Value novaStr(int argc, Value *argv) {
-    if (argc != 1)
-        reportArityError(1, 1, argc);
-    return OBJ_VAL(valueToStr(argv[0]));
-}
-
-Value novaInput(int argc, Value *argv) {
-    if (argc == 1)
-        valuePrint(argv[0]);
-    if (argc > 1)
-        reportArityError(0, 1, argc);
+    if (!IS_UNDEFINED(promt))
+        valuePrint(promt);
 
     const size_t size = 256;
     char buffer[size];
@@ -112,5 +85,44 @@ Value novaInput(int argc, Value *argv) {
 
     ObjString *string = copyString(buffer, length);
 
-    return OBJ_VAL(string);
+    return STRING_VAL(string);
+}
+
+Value Py_Hex(int argc, int kwargc) {
+    static char *keywords[] = {"number"};
+    Value number;
+    PARSE_ARGS(&number);
+
+    if (!IS_INT(number))
+        reportRuntimeError("expect int");
+
+    char buffer[19];
+    int len = snprintf(buffer, sizeof(buffer), "0x%llx", AS_INT(number));
+
+    ObjString *res = copyString(buffer, len + 1);
+    return OBJ_VAL(res);
+}
+
+Value Py_IsInstance(int argc, int kwargc) {
+    static char *keywords[] = {"obj", "class"};
+    Value obj, class;
+    PARSE_ARGS(&obj, &class);
+
+    return BOOL_VAL(isInstance(obj, class));
+}
+
+Value Py_Iter(int argc, int kwargc) {
+    static char *keywords[] = {"object"};
+    Value object;
+    PARSE_ARGS(&object);
+
+    return valueIter(object);
+}
+
+Value Py_Next(int argc, int kwargc) {
+    static char *keywords[] = {"object"};
+    Value object;
+    PARSE_ARGS(&object);
+
+    return valueNext(object);
 }

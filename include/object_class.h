@@ -4,28 +4,58 @@
 #include "object.h"
 #include "object_function.h"
 
-#define IS_CLASS(value)         isObjType(value, OBJ_CLASS)
-#define IS_INSTANCE(value)      isObjType(value, OBJ_INSTANCE)
-#define IS_METHOD(value)        isObjType(value, OBJ_METHOD)
-#define IS_NATIVE_METHOD(value) isObjType(value, OBJ_NATIVE_METHOD)
+#define NATIVE_VAL(native)      ((Value){.type=VAL_NATIVE, .as.object=(Obj*)native})
 
-#define AS_CLASS(value)         ((ObjClass*)AS_OBJ(value))
-#define AS_INSTANCE(value)      ((ObjInstance*)AS_OBJ(value))
-#define AS_METHOD(value)        ((ObjMethod*)AS_OBJ(value))
-#define AS_NATIVE_METHOD(value) ((ObjNativeMethod*)AS_OBJ(value))
+#define IS_CLASS(value)         (value.type == VAL_CLASS) 
+#define IS_NATIVE_CLASS(value)  (value.type == VAL_NATIVE_CLASS)
+#define IS_METHOD(value)        (value.type == VAL_METHOD) 
+#define IS_NATIVE_METHOD(value) (value.type == VAL_NATIVE_METHOD) 
+
+#define AS_CLASS(value)         ((ObjClass*)value.as.object)
+#define AS_NATIVE_CLASS(value)  ((ObjNativeClass*)value.as.object)
+#define AS_METHOD(value)        ((ObjMethod*)value.as.object)
+#define AS_NATIVE_METHOD(value) ((ObjNativeMethod*)value.as.object)
+
+#define CLASS_METHODS (ValueMethods){ \
+    .call = Class_Call,               \
+    .class = Class_Class,             \
+    .getattr = Class_GetAttr,         \
+    .str = Class_ToStr,               \
+    .repr = Class_ToStr,              \
+}
+
+#define NATIVE_CLASS_METHODS (ValueMethods){ \
+    .call = NativeClass_Call,                \
+    .class = Class_Class,                    \
+    .str = NativeClass_ToStr,                \
+    .repr = NativeClass_ToStr,               \
+}
+
+#define MEHTOD_METHODS (ValueMethods) { \
+    .call = Method_Call,                \
+    .str = Method_ToStr,                \
+    .repr = Method_ToStr                \
+}
+
+#define NATIVE_METHOD_METHODS (ValueMethods){ \
+    .call = NativeMethod_Call,                \
+    .str = NativeMethod_ToStr,                \
+    .repr = NativeMethod_ToStr,               \
+}
 
 typedef struct {
     Obj obj;
     ObjString *name;
-    Table methods;
+    NameTable methods;
+    Value super;
 } ObjClass;
 
 typedef struct {
     Obj obj;
-    ObjClass *class;
-    Table fields;
-    bool isInitiazed;
-} ObjInstance;
+    ObjString *name;
+    ValueType type;
+    ValueType super;
+} ObjNativeClass;
 
 typedef struct {
     Obj obj;
@@ -40,62 +70,32 @@ typedef struct {
     NativeFn method;
 } ObjNativeMethod;
 
-ObjClass *createClass(ObjString *name);
+ObjClass *createClass(ObjString *name, Value super);
 
-ObjInstance *createInstance(ObjClass *class);
+ObjNativeClass *createNativeClass(ObjString *name, ValueType type, ValueType super);
 
 ObjMethod *createMethod(Value reciever, ObjClosure *method);
 
 ObjNativeMethod *createNativeMethod(Value reciever, NativeFn function, const char *name);
 
-int instanceWrite(Value instance, char *buffer, const size_t size);
+Value Class_Class(Value value);
 
-int instancePrint(Value instance);
+Value Class_Call(Value callee, int argc, int kwargc, Value *argv);
 
-bool instanceEqual(Value a, Value b);
+Value Class_GetAttr(Value obj, ObjString *name);
 
-bool instanceNotEqual(Value a, Value b);
+int Class_ToStr(Value value, char *buffer, size_t size);
 
-bool instanceGreater(Value a, Value b);
+Value NativeClass_Call(Value value, int argc, int kwargc, Value *argv);
 
-bool instanceGreaterEqual(Value a, Value b);
+int NativeClass_ToStr(Value value, char *buffer, size_t size);
 
-bool instanceLess(Value a, Value b);
+Value Method_Call(Value callee, int argc, int kwargc, Value *argv);
 
-bool instanceLessEqual(Value a, Value b);
+int Method_ToStr(Value value, char *buffer, size_t size);
 
-Value instanceAdd(Value a, Value b);
+Value NativeMethod_Call(Value callee, int argc, int kwargc, Value *argv);
 
-Value instanceSubtract(Value a, Value b);
-
-Value instanceMultiply(Value a, Value b);
-
-Value instanceDivide(Value a, Value b);
-
-Value instanceModulo(Value a, Value b);
-
-Value instancePower(Value a, Value b);
-
-Value instanceNegate(Value a);
-
-Value instanceIncrement(Value a);
-
-Value instanceDecrement(Value a);
-
-OptValue instanceGetField(Value obj, ObjString *name);
-
-void instanceSetField(Value obj, ObjString *name, Value value);
-
-Value instanceGetAt(Value obj, Value key);
-
-void instanceSetAt(Value obj, Value key, Value value);
-
-int instanceLen(Value value);
-
-bool instanceToBool(Value value);
-
-int instanceToInt(Value value);
-
-double instanceToFloat(Value value);
+int NativeMethod_ToStr(Value value, char *buffer, size_t size);
 
 #endif

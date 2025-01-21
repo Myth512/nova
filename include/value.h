@@ -7,21 +7,57 @@
 
 typedef struct Obj Obj;
 typedef struct ObjString ObjString;
-typedef struct ObjRawString ObjRawString;
 
 typedef enum {
+    // Values
+    VAL_OBJECT,
+    VAL_UNDEFINED,
+    VAL_NONE,
     VAL_BOOL,
-    VAL_NIL,
-    VAL_NUMBER,
-    VAL_OBJ
+    VAL_INT,
+    VAL_FLOAT,
+    VAL_NOT_IMPLEMENTED,
+    VAL_TYPE,
+    // Objects
+    VAL_STRING,
+    VAL_STRING_ITERATOR,
+    VAL_LIST,
+    VAL_LIST_ITERATOR,
+    VAL_TUPLE,
+    VAL_TUPLE_ITERATOR,
+    VAL_DICT,
+    VAL_DICT_ITERATOR,
+    VAL_FUNCTION,
+    VAL_CLOSURE,
+    VAL_UPVALUE,
+    VAL_NATIVE,
+    VAL_CLASS,
+    VAL_NATIVE_CLASS,
+    VAL_METHOD,
+    VAL_NATIVE_METHOD,
+    VAL_INSTANCE,
+    VAL_SUPER,
+    VAL_RANGE,
+    VAL_RANGE_ITERATOR,
+    VAL_EXCEPTION,
+    VAL_ZERO_DIVISON_ERROR,
+    VAL_STOP_ITERATION,
+    VAL_NAME_ERROR,
+    VAL_TYPE_ERROR,
+    VAL_VALUE_ERROR,
+    VAL_INDEX_ERROR,
+    VAL_KEY_ERROR,
+    VAL_ATTRIBUTE_ERROR,
+    VAL_RUNTIME_ERROR,
+    VAL_ASSERTION_ERROR,
 } ValueType;
 
 typedef struct {
     ValueType type;
     union {
-        bool boolean;
-        double number;
-        Obj *obj;
+        double floating;
+        long long integer;
+        Obj *object;
     } as;
 } Value;
 
@@ -30,94 +66,90 @@ typedef struct {
     Value value;
 } OptValue;
 
-#define BOOL_VAL(value)     ((Value){VAL_BOOL, {.boolean = value}})
-#define NIL_VAL             ((Value){VAL_NIL, {.number = 0}})
-#define NUMBER_VAL(value)   ((Value){VAL_NUMBER, {.number = value}}) 
-#define OBJ_VAL(object)     ((Value){VAL_OBJ, {.obj = (Obj*)object}})
+typedef Value (*NativeFn)(int argc, int kwargc);
 
-#define IS_BOOL(value)      ((value).type == VAL_BOOL)
-#define IS_NIL(value)       ((value).type == VAL_NIL)
-#define IS_NUMBER(value)    ((value).type == VAL_NUMBER)
-#define IS_OBJ(value)       ((value).type == VAL_OBJ)
+typedef struct StaticAttribute {
+	const char *name;
+    union {
+        void *raw;
+        Value (*method)(int, int);
+        Value (*attribue)(Value);
+    } as;
+    bool isMethod;
+} StaticAttribute;
 
-#define AS_BOOL(value)      ((value).as.boolean)
-#define AS_NUMBER(value)    ((value).as.number)
-#define AS_OBJ(value)       ((value).as.obj)
+typedef Value (*BinaryMethod)(Value, Value);
+typedef Value (*UnaryMethod)(Value);
 
-bool isInt(Value value);
+typedef struct {
+    BinaryMethod eq;
+    BinaryMethod ne;
+    BinaryMethod gt;
+    BinaryMethod ge;
+    BinaryMethod lt;
+    BinaryMethod le;
+    BinaryMethod add;
+    BinaryMethod radd;
+    BinaryMethod sub;
+    BinaryMethod rsub;
+    BinaryMethod mul;
+    BinaryMethod rmul;
+    BinaryMethod truediv;
+    BinaryMethod rtruediv;
+    BinaryMethod floordiv;
+    BinaryMethod rfloordiv;
+    BinaryMethod mod;
+    BinaryMethod rmod;
+    BinaryMethod pow;
+    BinaryMethod rpow;
+    UnaryMethod pos;
+    UnaryMethod neg;
+    BinaryMethod and;
+    BinaryMethod rand;
+    BinaryMethod xor;
+    BinaryMethod rxor;
+    BinaryMethod or;
+    BinaryMethod ror;
+    UnaryMethod invert;
+    BinaryMethod lshift;
+    BinaryMethod rlshift;
+    BinaryMethod rshift;
+    BinaryMethod rrshift;
+    BinaryMethod contains;
+    Value (*init)(Value, int, Value*);
+    Value (*call)(Value, int, int, Value*);
+    UnaryMethod class;
+    UnaryMethod iter;
+    UnaryMethod next;
+    Value (*getattr)(Value, ObjString *name);
+    Value (*setattr)(Value, ObjString *name, Value);
+    Value (*delattr)(Value, ObjString *name);
+    Value (*getitem)(Value, Value);
+    Value (*setitem)(Value, Value, Value);
+    Value (*delitem)(Value, Value);
+    uint64_t (*hash)(Value);
+    long long (*len)(Value);
+    bool (*toBool)(Value);
+    long long (*toInt)(Value);
+    double (*toFloat)(Value);
+    int (*str)(Value, char*, size_t);
+    int (*repr)(Value, char*, size_t);
+} ValueMethods;
 
-int asInt(Value value);
+#define NONE_VAL             ((Value){.type=VAL_NONE, .as.integer=0})
+#define UNDEFINED_VAL       ((Value){.type=VAL_UNDEFINED, .as.integer=0})
+#define NOT_IMPLEMENTED_VAL ((Value){.type=VAL_NOT_IMPLEMENTED, .as.integer=0})
+
+#define IS_NONE(value)      ((value).type == VAL_NONE)
+#define IS_UNDEFINED(value) ((value).type == VAL_UNDEFINED)
+#define IS_NOT_IMPLEMENTED(value)  ((value).type == VAL_NOT_IMPLEMENTED)
 
 int writeToBuffer(char *buffer, const size_t size, const char *format, ...);
 
-int valueWrite(Value value, char *buffer, const size_t size);
+Value getStaticAttribute(Value value, ObjString *name, const struct StaticAttribute*(*in_word_set)(register const char*, register size_t));
 
-int valuePrint(Value value);
+int calculateIndex(int index, int length);
 
-bool greater(double a, double b);
-
-bool greaterEqual(double a, double b);
-
-bool less(double a, double b);
-
-bool lessEqual(double a, double b);
-
-bool valueEqual(Value a, Value b);
-
-bool valueNotEqual(Value a, Value b);
-
-bool valueGreater(Value a, Value b);
-
-bool valueGreaterEqual(Value a, Value b);
-
-bool valueLess(Value a, Value b);
-
-bool valueLessEqual(Value a, Value b);
-
-Value valueAdd(Value a, Value b);
-
-Value valueSubtract(Value a, Value b);
-
-Value valueMultiply(Value a, Value b);
-
-Value valueDivide(Value a, Value b);
-
-Value valueModulo(Value a, Value b);
-
-Value valuePower(Value a, Value b);
-
-Value valueNegate(Value a);
-
-Value valueIncrement(Value a);
-
-Value valueDecrement(Value a);
-
-OptValue valueGetField(Value obj, ObjString *name);
-
-void valueSetField(Value obj, ObjString *name, Value value);
-
-Value valueGetAt(Value obj, Value key);
-
-void valueSetAt(Value obj, Value key, Value value);
-
-uint64_t hashLong(long value);
-
-uint64_t valueHash(Value value);
-
-uint64_t valueAddr(Value value);
-
-int valueLen(Value value);
-
-bool valueToBool(Value value);
-
-int valueToInt(Value value);
-
-double valueToFloat(Value value);
-
-ObjString *valueToStr(Value value);
-
-const char* decodeValueType(Value value);
-
-const char *decodeValueTypeClean(Value value);
+int movePointer(char **buffer, int bytesWritten);
 
 #endif
