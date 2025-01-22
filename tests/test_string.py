@@ -32,14 +32,11 @@ assert "hello"[1] == "e"
 
 assert "hello"[-1] == "o"
 
-missing += 1
-# assert "hello"[1:4] == "ell"
+assert "hello"[1:4] == "ell"
 
-missing += 1
-# assert "hello"[::2] == "hlo"
+assert "hello"[::2] == "hlo"
 
-missing += 1
-# assert "hello"[::-1] == "olleh"
+assert "hello"[::-1] == "olleh"
 
 assert "hello".upper() == "HELLO"
 

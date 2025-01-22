@@ -26,6 +26,7 @@ typedef struct {
     .ne = Slice_NotEqual,              \
     .init = Slice_Init,                \
     .class = Slice_Class,              \
+    .getattr = Slice_GetAttr,          \
     .str = Slice_ToStr,                \
     .repr = Slice_ToStr,               \
 }
@@ -41,6 +42,8 @@ Value Slice_NotEqual(Value a, Value b);
 Value Slice_Init(Value callee, int argc, Value *argv);
 
 Value Slice_Class(Value self);
+
+Value Slice_GetAttr(Value list, ObjString *name);
 
 int Slice_ToStr(Value value, char *buffer, size_t size);
 

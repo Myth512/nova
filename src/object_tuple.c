@@ -5,6 +5,7 @@
 #include "methods_tuple.h"
 #include "object_tuple_iterator.h"
 #include "object_exception.h"
+#include "object_slice.h"
 #include "value_int.h"
 #include "vm.h"
 
@@ -115,15 +116,33 @@ Value Tuple_Contains(Value a, Value b) {
 }
 
 Value Tuple_GetItem(Value obj, Value key) {
-    if (!IS_INT(key))
-        return createException(VAL_INDEX_ERROR, "tuple indices must be integers or slices, not %s", getValueType(key));
-    
-    int index = calculateIndex(AS_INT(key), AS_TUPLE(obj)->size);
+    if (IS_INT(key)) {
+        int index = calculateIndex(AS_INT(key), AS_TUPLE(obj)->size);
 
-    if (index < 0)
-        return createException(VAL_INDEX_ERROR, "tuple index out of range");
+        if (index < 0)
+            return createException(VAL_INDEX_ERROR, "tuple index out of range");
+        
+        return AS_TUPLE(obj)->values[index];
+    } else if (IS_SLICE(key)) {
+        ParsedSlice slice = parseSlice(AS_SLICE(key), AS_TUPLE(obj)->size);
+        if (slice.step == 0)
+            return createException(VAL_VALUE_ERROR, "slice step cannot be zero");
+        
+        ObjTuple *result = allocateTuple(slice.length);
+
+        if (slice.step > 0) {
+            for (int i = slice.start, j = 0; i < slice.stop; i += slice.step, j++) {
+                result->values[j] = AS_TUPLE(obj)->values[i];
+            }
+        } else {
+            for (int i = slice.stop - 1, j = 0; i >= slice.start; i += slice.step, j++) {
+                result->values[j] = AS_TUPLE(obj)->values[i];
+            }
+        }
+        return OBJ_VAL(result);
+    }
     
-    return AS_TUPLE(obj)->values[index];
+    return createException(VAL_INDEX_ERROR, "tuple indices must be integers or slices, not %s", getValueType(key));
 }
 
 Value Tuple_Class(Value value) {

@@ -25,11 +25,10 @@ assert t1[-2] == 2
 assert t1[-3] == 1
 
 # Test tuple slicing
-missing += 1
-# assert t1[1:3] == (2, 3)
-# assert t1[:2] == (1, 2)
-# assert t1[3:] == (4, 5)
-# assert t1[::2] == (1, 3, 5)
+assert t1[1:3] == (2, 3)
+assert t1[:2] == (1, 2)
+assert t4[3:] == (4, 5)
+assert t4[::2] == (1, 3, 5)
 
 # Test concatenation of tuples
 t5 = (6, 7, 8)
@@ -132,13 +131,11 @@ t18 = t16 + tuple(t17)
 assert t18 == (1, 2, 3)
 
 # Test slicing with steps (positive step)
-missing += 1
-# t19 = (1, 2, 3, 4, 5)
-# assert t19[::2] == (1, 3, 5)
+t19 = (1, 2, 3, 4, 5)
+assert t19[::2] == (1, 3, 5)
 
 # Test slicing with negative step
-missing += 1
-# assert t19[::-1] == (5, 4, 3, 2, 1)
+assert t19[::-1] == (5, 4, 3, 2, 1)
 
 # Test repeated elements in tuple
 t20 = (1, 1, 1)
@@ -178,9 +175,8 @@ t24 = (None, None)
 assert t24 == (None, None)
 
 # Test slicing with a step size of 1
-missing += 1
-# t25 = (10, 20, 30, 40, 50)
-# assert t25[1:4:1] == (20, 30, 40)
+t25 = (10, 20, 30, 40, 50)
+assert t25[1:4:1] == (20, 30, 40)
 
 # Test changing a mutable element inside a tuple (unsupported in your interpreter)
 t26 = ([], [], [])

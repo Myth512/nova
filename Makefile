@@ -56,3 +56,4 @@ gperf:
 	gperf gperf/methods_list.txt > include/methods_list.h
 	gperf gperf/methods_tuple.txt > include/methods_tuple.h
 	gperf gperf/methods_dict.txt > include/methods_dict.h
+	gperf gperf/methods_slice.txt > include/methods_slice.h

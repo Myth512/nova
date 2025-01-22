@@ -5,6 +5,7 @@
 #include "object_string.h"
 #include "object_class.h"
 #include "object_exception.h"
+#include "object_slice.h"
 #include "object_range.h"
 #include "methods_list.h"
 #include "value_int.h"
@@ -178,15 +179,33 @@ Value List_GetAttr(Value list, ObjString *name) {
 }
 
 Value List_GetItem(Value obj, Value key) {
-    if (!IS_INT(key))
-        return createException(VAL_INDEX_ERROR, "list indices must be integers or slices, not %s", getValueType(key));
-    
-    int index = calculateIndex(AS_INT(key), AS_LIST(obj)->vec.size);
+    if (IS_INT(key)) {
+        int index = calculateIndex(AS_INT(key), AS_LIST(obj)->vec.size);
 
-    if (index < 0)
-        return createException(VAL_INDEX_ERROR, "list index out of range");
+        if (index < 0)
+            return createException(VAL_INDEX_ERROR, "list index out of range");
+        
+        return AS_LIST(obj)->vec.values[index];
+    } else if (IS_SLICE(key)) {
+        ParsedSlice slice = parseSlice(AS_SLICE(key), AS_LIST(obj)->vec.size);
+        if (slice.step == 0)
+            return createException(VAL_VALUE_ERROR, "slice step cannot be zero");
+        
+        ObjList *result = allocateList(slice.length);
+
+        if (slice.step > 0) {
+            for (int i = slice.start, j = 0; i < slice.stop; i += slice.step, j++) {
+                result->vec.values[j] = AS_LIST(obj)->vec.values[i];
+            }
+        } else {
+            for (int i = slice.stop - 1, j = 0; i >= slice.start; i += slice.step, j++) {
+                result->vec.values[j] = AS_LIST(obj)->vec.values[i];
+            }
+        }
+        return OBJ_VAL(result);
+    }
     
-    return AS_LIST(obj)->vec.values[index];
+    return createException(VAL_INDEX_ERROR, "list indices must be integers or slices, not %s", getValueType(key));
 }
 
 Value List_SetItem(Value obj, Value key, Value value) {

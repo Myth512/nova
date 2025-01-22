@@ -1,6 +1,7 @@
 #include "object_slice.h"
 #include "value_methods.h"
 #include "object_string.h"
+#include "methods_slice.h"
 #include "value_int.h"
 #include "vm.h"
 
@@ -44,7 +45,8 @@ ParsedSlice parseSlice(ObjSlice *slice, long long length) {
     else
         result.step = valueToInt(slice->step);
     
-    result.length = (result.stop - result.start + result.step - 1) / result.step;
+    if (result.step != 0)
+        result.length = (result.stop - result.start + result.step - (result.step > 0 ? 1 : -1)) / (result.step > 0 ? result.step : -result.step);
     
     return result;
 }
@@ -71,6 +73,10 @@ Value Slice_Init(Value callee, int argc, Value *argv) {
 
 Value Slice_Class(Value self) {
     return TYPE_CLASS(slice);
+}
+
+Value Slice_GetAttr(Value list, ObjString *name) {
+    return getStaticAttribute(list, name, in_slice_set);
 }
 
 int Slice_ToStr(Value value, char *buffer, size_t size) {

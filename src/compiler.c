@@ -1513,8 +1513,35 @@ static void dot(bool assign, bool tuple, bool skip, bool del) {
 static void item(bool assign, bool tuple, bool skip, bool del) {
     advance(true);
     Token index = parser.current;
-    expression(true, true);
+    bool isSlice = false;
+
+    if (!check(TOKEN_COLON))
+        expression(true, true);
+    else {
+        emitByte(OP_NONE, (Token){0});
+        isSlice = true;
+    }
+
+    if (consume(TOKEN_COLON, false)) {
+        if (!check(TOKEN_RIGHT_BRACKET) && !check(TOKEN_COLON))
+            expression(true, true);
+        else
+            emitByte(OP_NONE, (Token){0});
+        isSlice = true;
+    }
+
+    if (consume(TOKEN_COLON, false)) {
+        if (!check(TOKEN_RIGHT_BRACKET))
+            expression(true, true);
+        else
+            emitByte(OP_NONE, (Token){0});
+    } else if (isSlice) {
+        emitByte(OP_NONE, (Token){0});
+    }
     advance(false);
+
+    if (isSlice)
+        emitByte(OP_BUILD_SLICE, (Token){0});
 
     Token operator = parser.current;
 

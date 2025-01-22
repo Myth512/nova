@@ -204,11 +204,19 @@ Value String_GetItem(Value value, Value key) {
         return OBJ_VAL(res);
     } else if (IS_SLICE(key)) {
         ParsedSlice slice = parseSlice(AS_SLICE(key), AS_STRING(value)->length);
+        if (slice.step == 0)
+            return createException(VAL_VALUE_ERROR, "slice step cannot be zero");
 
         ObjString *res = allocateString(slice.length);
 
-        for (int i = slice.start, j = 0; i < slice.stop; i += slice.step, j++) {
-            res->chars[j] = AS_STRING(value)->chars[i];
+        if (slice.step > 0) {
+            for (int i = slice.start, j = 0; i < slice.stop; i += slice.step, j++) {
+                res->chars[j] = AS_STRING(value)->chars[i];
+            }
+        } else {
+            for (int i = slice.stop - 1, j = 0; i >= slice.start; i += slice.step, j++) {
+                res->chars[j] = AS_STRING(value)->chars[i];
+            }
         }
         return OBJ_VAL(res);
     }

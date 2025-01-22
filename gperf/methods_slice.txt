@@ -1,0 +1,19 @@
+%{
+#include <string.h>
+#include "py_slice.h"
+#include "value.h"
+%}
+
+struct StaticAttribute
+
+%readonly-tables
+%struct-type
+%define lookup-function-name in_slice_set
+
+%%
+indices, PySlice_Indices, true
+start, PySlice_Start, false
+step, PySlice_Step, false
+stop, PySlice_Stop, false
+__class__, PySlice_Class, false
+%%

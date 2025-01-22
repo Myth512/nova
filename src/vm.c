@@ -16,6 +16,7 @@
 #include "object_instance.h"
 #include "object_function.h"
 #include "object_exception.h"
+#include "object_slice.h"
 #include "memory.h"
 #include "compiler.h"
 #include "native.h"
@@ -481,6 +482,13 @@ static void buildDict() {
     push(res);
 }
 
+static void buildSlice() {
+    Value step = pop();
+    Value stop = pop();
+    Value start = pop();
+    push(OBJ_VAL(allocateSlice(start, stop, step)));
+}
+
 static bool return_() {
     Value result = pop();
     
@@ -808,6 +816,9 @@ static Value run() {
                 break;
             case OP_BUILD_DICT:
                 buildDict();
+                break;
+            case OP_BUILD_SLICE:
+                buildSlice();
                 break;
             case OP_JUMP: {
                 uint16_t offset = READ_SHORT();
