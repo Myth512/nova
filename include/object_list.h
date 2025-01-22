@@ -27,6 +27,7 @@ typedef struct {
     .init = List_Init,                \
     .iter = List_Iter,                \
     .class = List_Class,              \
+    .init = List_Init,                \
     .getattr = List_GetAttr,          \
     .getitem = List_GetItem,          \
     .setitem = List_SetItem,          \
@@ -59,11 +60,11 @@ Value List_RightMultiply(Value a, Value b);
 
 Value List_Contains(Value a, Value b);
 
-Value List_Init(Value callee, int argc, Value *argv);
-
 Value List_Iter(Value value);
 
 Value List_Class(Value value);
+
+Value List_Init(Value callee, int argc, Value *argv);
 
 Value List_GetAttr(Value list, ObjString *name);
 

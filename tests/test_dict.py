@@ -34,13 +34,13 @@ assert d.get("z") is None, f"Expected None, but got {d.get('z')}"
 assert d.get("z", 0) == 0, f"Expected 0, but got {d.get('z', 0)}"
 
 # Test `keys` method (order matters)
-assert d.keys() == ["a", "b", "c"], f"Expected ['a', 'b', 'c'], but got {d.keys()}"
+assert list(d.keys()) == ["a", "b", "c"], f"Expected ['a', 'b', 'c'], but got {d.keys()}"
 
 # Test `values` method (order matters)
-assert d.values() == [10, 2, 3], f"Expected [10, 2, 3], but got {d.values()}"
+assert list(d.values()) == [10, 2, 3], f"Expected [10, 2, 3], but got {d.values()}"
 
 # Test `items` method (order matters)
-assert d.items() == [("a", 10), ("b", 2), ("c", 3)], f"Expected [('a', 10), ('b', 2), ('c', 3)], but got {d.items()}"
+assert list(d.items()) == [("a", 10), ("b", 2), ("c", 3)], f"Expected [('a', 10), ('b', 2), ('c', 3)], but got {d.items()}"
 
 # Test `pop` method
 value = d.pop("a")
@@ -55,22 +55,19 @@ assert value == "default", f"Expected 'default', but got {value}"
 d = {"a": 1, "b": 2, "c": 3}
 key, value = d.popitem()
 assert (key, value) == ("c", 3), f"Expected ('c', 3), but got ({key}, {value})"
-assert d.items() == [("a", 1), ("b", 2)], f"Expected [('a', 1), ('b', 2)], but got {d.items()}"
+assert list(d.items()) == [("a", 1), ("b", 2)], f"Expected [('a', 1), ('b', 2)], but got {d.items()}"
 
 # Test `update` method with overlapping keys
-missing += 1
-# d.update({"b": 20, "d": 4})
-# assert d == {"a": 1, "b": 20, "d": 4}, f"Expected {{'a': 1, 'b': 20, 'd': 4}}, but got {d}"
+d.update({"b": 20, "d": 4})
+assert d == {"a": 1, "b": 20, "d": 4}, f"Expected {{'a': 1, 'b': 20, 'd': 4}}, but got {d}"
 
 # Test `update` with no overlap
-missing += 1
-# d.update({"e": 5})
-# assert d == {"a": 1, "b": 20, "d": 4, "e": 5}, f"Expected {{'a': 1, 'b': 20, 'd': 4, 'e': 5}}, but got {d}"
+d.update({"e": 5})
+assert d == {"a": 1, "b": 20, "d": 4, "e": 5}, f"Expected {{'a': 1, 'b': 20, 'd': 4, 'e': 5}}, but got {d}"
 
 # Test `clear` method
-missing += 1
-# d.clear()
-# assert d == {}, f"Expected an empty dictionary, but got {d}"
+d.clear()
+assert d == {}, f"Expected an empty dictionary, but got {d}"
 
 # Test `fromkeys` with no default value
 missing += 1
@@ -91,16 +88,15 @@ missing += 1
 # assert d_copy is not d, "d_copy should be a separate instance"
 
 # Test `setdefault` with existing key
-missing += 1
-# value = d.setdefault("a", 10)
-# assert value == 1, f"Expected 1, but got {value}"
-# assert d == {"a": 1, "b": 2}, f"Expected {{'a': 1, 'b': 2}}, but got {d}"
+d = {"a": 1, "b": 2}
+value = d.setdefault("a", 10)
+assert value == 1, f"Expected 1, but got {value}"
+assert d == {"a": 1, "b": 2}, f"Expected {{'a': 1, 'b': 2}}, but got {d}"
 
 # Test `setdefault` with new key
-missing += 1
-# value = d.setdefault("c", 3)
-# assert value == 3, f"Expected 3, but got {value}"
-# assert d == {"a": 1, "b": 2, "c": 3}, f"Expected {{'a': 1, 'b': 2, 'c': 3}}, but got {d}"
+value = d.setdefault("c", 3)
+assert value == 3, f"Expected 3, but got {value}"
+assert d == {"a": 1, "b": 2, "c": 3}, f"Expected {{'a': 1, 'b': 2, 'c': 3}}, but got {d}"
 
 # Test dictionary comparisons (equality and order-insensitive keys)
 d1 = {"a": 1, "b": 2}

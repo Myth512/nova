@@ -134,3 +134,11 @@ Value AssertionError_Init(Value callee, int argc, Value *argv) {
 Value AssertionError_Class(Value value) {
     return TYPE_CLASS(assertionError);
 }
+
+Value NotImplementedError_Init(Value callee, int argc, Value *argv) {
+    return init(argc, argv, VAL_NOT_IMPLEMENTED_ERROR);
+}
+
+Value NotImplementedError_Class(Value value) {
+    return TYPE_CLASS(notImplementedError);
+}

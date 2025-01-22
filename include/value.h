@@ -50,6 +50,7 @@ typedef enum {
     VAL_ATTRIBUTE_ERROR,
     VAL_RUNTIME_ERROR,
     VAL_ASSERTION_ERROR,
+    VAL_NOT_IMPLEMENTED_ERROR,
 } ValueType;
 
 typedef struct {

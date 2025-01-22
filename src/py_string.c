@@ -3,6 +3,7 @@
 
 #include "py_string.h"
 #include "object_string.h"
+#include "object_exception.h"
 #include "value_int.h"
 #include "value_float.h"
 #include "vm.h"    
@@ -147,99 +148,99 @@ Value PyString_Capitalize(int argc, int kwargc) {
 }
 
 Value PyString_CaseFold(int argc, int kwargc) {
-    return NOT_IMPLEMENTED_VAL;
+    return createException(VAL_NOT_IMPLEMENTED_ERROR, "str.casefold is not implemented");
 }
 
 Value PyString_Center(int argc, int kwargc) {
-    return NOT_IMPLEMENTED_VAL;
+    return createException(VAL_NOT_IMPLEMENTED_ERROR, "str.center is not implemented");
 }
 
 Value PyString_Count(int argc, int kwargc) {
-    return NOT_IMPLEMENTED_VAL;
+    return createException(VAL_NOT_IMPLEMENTED_ERROR, "str.count is not implemented");
 }
 
 Value PyString_Encode(int argc, int kwargc) {
-    return NOT_IMPLEMENTED_VAL;
+    return createException(VAL_NOT_IMPLEMENTED_ERROR, "str.encode is not implemented");
 }
 
 Value PyString_Endswith(int argc, int kwargc) {
-    return NOT_IMPLEMENTED_VAL;
+    return createException(VAL_NOT_IMPLEMENTED_ERROR, "str.endswith is not implemented");
 }
 
 Value PyString_Expandtabs(int argc, int kwargc) {
-    return NOT_IMPLEMENTED_VAL;
+    return createException(VAL_NOT_IMPLEMENTED_ERROR, "str.expandtabs is not implemented");
 }
 
 Value PyString_Find(int argc, int kwargc) {
-    return NOT_IMPLEMENTED_VAL;
+    return createException(VAL_NOT_IMPLEMENTED_ERROR, "str.find is not implemented");
 }
 
 Value PyString_Format(int argc, int kwargc) {
-    return NOT_IMPLEMENTED_VAL;
+    return createException(VAL_NOT_IMPLEMENTED_ERROR, "str.format is not implemented");
 }
 
 Value PyString_FormatMap(int argc, int kwargc) {
-    return NOT_IMPLEMENTED_VAL;
+    return createException(VAL_NOT_IMPLEMENTED_ERROR, "str.format_map is not implemented");
 }
 
 Value PyString_Index(int argc, int kwargc) {
-    return NOT_IMPLEMENTED_VAL;
+    return createException(VAL_NOT_IMPLEMENTED_ERROR, "str.index is not implemented");
 }
 
 Value PyString_IsAlnum(int argc, int kwargc) {
-    return NOT_IMPLEMENTED_VAL;
+    return createException(VAL_NOT_IMPLEMENTED_ERROR, "str.isalnum is not implemented");
 }
 
 Value PyString_IsAlpha(int argc, int kwargc) {
-    return NOT_IMPLEMENTED_VAL;
+    return createException(VAL_NOT_IMPLEMENTED_ERROR, "str.isalpha is not implemented");
 }
 
 Value PyString_IsAscii(int argc, int kwargc) {
-    return NOT_IMPLEMENTED_VAL;
+    return createException(VAL_NOT_IMPLEMENTED_ERROR, "str.isascii is not implemented");
 }
 
 Value PyString_IsDecimal(int argc, int kwargc) {
-    return NOT_IMPLEMENTED_VAL;
+    return createException(VAL_NOT_IMPLEMENTED_ERROR, "str.isdecimal is not implemented");
 }
 
 Value PyString_IsDigit(int argc, int kwargc) {
-    return NOT_IMPLEMENTED_VAL;
+    return createException(VAL_NOT_IMPLEMENTED_ERROR, "str.isdigit is not implemented");
 }
 
 Value PyString_IsIdentifier(int argc, int kwargc) {
-    return NOT_IMPLEMENTED_VAL;
+    return createException(VAL_NOT_IMPLEMENTED_ERROR, "str.isidentifier is not implemented");
 }
 
 Value PyString_IsLower(int argc, int kwargc) {
-    return NOT_IMPLEMENTED_VAL;
+    return createException(VAL_NOT_IMPLEMENTED_ERROR, "str.islower is not implemented");
 }
 
 Value PyString_IsNumeric(int argc, int kwargc) {
-    return NOT_IMPLEMENTED_VAL;
+    return createException(VAL_NOT_IMPLEMENTED_ERROR, "str.isnumeric is not implemented");
 }
 
 Value PyString_IsPrintable(int argc, int kwargc) {
-    return NOT_IMPLEMENTED_VAL;
+    return createException(VAL_NOT_IMPLEMENTED_ERROR, "str.isprintable is not implemented");
 }
 
 Value PyString_IsSpace(int argc, int kwargc) {
-    return NOT_IMPLEMENTED_VAL;
+    return createException(VAL_NOT_IMPLEMENTED_ERROR, "str.isspace is not implemented");
 }
 
 Value PyString_IsTitle(int argc, int kwargc) {
-    return NOT_IMPLEMENTED_VAL;
+    return createException(VAL_NOT_IMPLEMENTED_ERROR, "str.istitle is not implemented");
 }
 
 Value PyString_IsUpper(int argc, int kwargc) {
-    return NOT_IMPLEMENTED_VAL;
+    return createException(VAL_NOT_IMPLEMENTED_ERROR, "str.isupper is not implemented");
 }
 
 Value PyString_Join(int argc, int kwargc) {
-    return NOT_IMPLEMENTED_VAL;
+    return createException(VAL_NOT_IMPLEMENTED_ERROR, "str.join is not implemented");
 }
 
 Value PyString_Ljust(int argc, int kwargc) {
-    return NOT_IMPLEMENTED_VAL;
+    return createException(VAL_NOT_IMPLEMENTED_ERROR, "str.ljust is not implemented");
 }
 
 Value PyString_Lower(int argc, int kwargc) {
@@ -257,71 +258,71 @@ Value PyString_Lower(int argc, int kwargc) {
 }
 
 Value PyString_Lstrip(int argc, int kwargc) {
-    return NOT_IMPLEMENTED_VAL;
+    return createException(VAL_NOT_IMPLEMENTED_ERROR, "str.lstrip is not implemented");
 }
 
 Value PyString_Maketrans(int argc, int kwargc) {
-    return NOT_IMPLEMENTED_VAL;
+    return createException(VAL_NOT_IMPLEMENTED_ERROR, "str.maketrans is not implemented");
 }
 
 Value PyString_Partition(int argc, int kwargc) {
-    return NOT_IMPLEMENTED_VAL;
+    return createException(VAL_NOT_IMPLEMENTED_ERROR, "str.partition is not implemented");
 }
 
 Value PyString_Replace(int argc, int kwargc) {
-    return NOT_IMPLEMENTED_VAL;
+    return createException(VAL_NOT_IMPLEMENTED_ERROR, "str.replace is not implemented");
 }
 
 Value PyString_Rfind(int argc, int kwargc) {
-    return NOT_IMPLEMENTED_VAL;
+    return createException(VAL_NOT_IMPLEMENTED_ERROR, "str.rfind is not implemented");
 }
 
 Value PyString_Rindex(int argc, int kwargc) {
-    return NOT_IMPLEMENTED_VAL;
+    return createException(VAL_NOT_IMPLEMENTED_ERROR, "str.rindex is not implemented");
 }
 
 Value PyString_Rjust(int argc, int kwargc) {
-    return NOT_IMPLEMENTED_VAL;
+    return createException(VAL_NOT_IMPLEMENTED_ERROR, "str.rjust is not implemented");
 }
 
 Value PyString_Rpartition(int argc, int kwargc) {
-    return NOT_IMPLEMENTED_VAL;
+    return createException(VAL_NOT_IMPLEMENTED_ERROR, "str.rpartition is not implemented");
 }
 
 Value PyString_Rsplit(int argc, int kwargc) {
-    return NOT_IMPLEMENTED_VAL;
+    return createException(VAL_NOT_IMPLEMENTED_ERROR, "str.rsplit is not implemented");
 }
 
 Value PyString_Rstrip(int argc, int kwargc) {
-    return NOT_IMPLEMENTED_VAL;
+    return createException(VAL_NOT_IMPLEMENTED_ERROR, "str.rstrip is not implemented");
 }
 
 Value PyString_Split(int argc, int kwargc) {
-    return NOT_IMPLEMENTED_VAL;
+    return createException(VAL_NOT_IMPLEMENTED_ERROR, "str.split is not implemented");
 }
 
 Value PyString_Splitlines(int argc, int kwargc) {
-    return NOT_IMPLEMENTED_VAL;
+    return createException(VAL_NOT_IMPLEMENTED_ERROR, "str.splitlines is not implemented");
 }
 
 Value PyString_Startswith(int argc, int kwargc) {
-    return NOT_IMPLEMENTED_VAL;
+    return createException(VAL_NOT_IMPLEMENTED_ERROR, "str.startswith is not implemented");
 }
 
 Value PyString_Strip(int argc, int kwargc) {
-    return NOT_IMPLEMENTED_VAL;
+    return createException(VAL_NOT_IMPLEMENTED_ERROR, "str.strip is not implemented");
 }
 
 Value PyString_Swapcase(int argc, int kwargc) {
-    return NOT_IMPLEMENTED_VAL;
+    return createException(VAL_NOT_IMPLEMENTED_ERROR, "str.swapcase is not implemented");
 }
 
 Value PyString_Title(int argc, int kwargc) {
-    return NOT_IMPLEMENTED_VAL;
+    return createException(VAL_NOT_IMPLEMENTED_ERROR, "str.title is not implemented");
 }
 
 Value PyString_Translate(int argc, int kwargc) {
-    return NOT_IMPLEMENTED_VAL;
+    return createException(VAL_NOT_IMPLEMENTED_ERROR, "str.translate is not implemented");
 }
 
 Value PyString_Upper(int argc, int kwargc) {

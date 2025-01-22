@@ -342,6 +342,7 @@ static void defineNativeTypes() {
     vm.types.attributeError = defineNativeClass("AttributeError", VAL_ATTRIBUTE_ERROR, VAL_EXCEPTION);
     vm.types.runtimeError = defineNativeClass("RuntimeError", VAL_RUNTIME_ERROR, VAL_EXCEPTION);
     vm.types.assertionError = defineNativeClass("AssertionError", VAL_ASSERTION_ERROR, VAL_EXCEPTION);
+    vm.types.notImplementedError = defineNativeClass("NotImplementedError", VAL_NOT_IMPLEMENTED_ERROR, VAL_EXCEPTION);
     vm.types.super = defineNativeClass("super", VAL_SUPER, VAL_OBJECT);
     vm.types.range = defineNativeClass("range", VAL_RANGE, VAL_OBJECT);
     vm.types.rangeIterator = createNativeclass("range_iterator", VAL_RANGE_ITERATOR, VAL_OBJECT);

@@ -164,5 +164,5 @@ Value PyList_Reverse(int argc, int kwargc) {
 }
 
 Value PyList_Sort(int argc, int kwargc) {
-    return NOT_IMPLEMENTED_VAL;
+    return createException(VAL_NOT_IMPLEMENTED_ERROR, "list.sort is not implemented");
 }

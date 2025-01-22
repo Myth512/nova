@@ -84,6 +84,13 @@
     .repr = Exception_ToRepr                     \
 }
 
+#define NOT_IMPLEMENTED_ERROR_METHODS (ValueMethods) { \
+    .init = NotImplementedError_Init,                  \
+    .class = NotImplementedError_Class,                \   
+    .str = Exception_ToStr,                            \
+    .repr = Exception_ToRepr                           \
+}
+
 typedef struct {
     Obj obj;
     Value value;
@@ -140,5 +147,9 @@ Value RuntimeError_Class(Value value);
 Value AssertionError_Init(Value callee, int argc, Value *argv);
 
 Value AssertionError_Class(Value value);
+
+Value NotImplementedError_Init(Value callee, int argc, Value *argv);
+
+Value NotImplementedError_Class(Value value);
 
 #endif

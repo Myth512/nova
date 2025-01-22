@@ -150,19 +150,27 @@ Value List_Iter(Value value) {
     return OBJ_VAL(allocateListIterator(value));
 }
 
-Value List_Init(Value callee, int argc, Value *argv) {
-    if (argc == 1 && IS_RANGE(argv[0])) {
-        long long len = Range_Len(argv[0]);
-        ObjList *list = allocateList(len);
-        for (int i = 0; i < len; i++)
-            list->vec.values[i] = Range_GetItem(argv[0], INT_VAL(i));
-        return OBJ_VAL(list);
-    }
-    return NOT_IMPLEMENTED_VAL;
-}
-
 Value List_Class(Value value) {
     return TYPE_CLASS(list);
+}
+
+Value List_Init(Value callee, int argc, Value *argv) {
+    if (argc == 0)
+        return OBJ_VAL(allocateList(0));
+    
+    long long length = valueLen(argv[0]);
+
+    ObjList *list = allocateList(length);
+
+    Value iterator = valueIter(argv[0]);
+    Value item = valueNext(iterator);
+
+    for (int i = 0; i < length; i++) {
+        list->vec.values[i] = item;
+        item = valueNext(iterator);
+    }
+
+    return OBJ_VAL(list);
 }
 
 Value List_GetAttr(Value list, ObjString *name) {
