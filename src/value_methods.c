@@ -17,6 +17,7 @@
 #include "object_super.h"
 #include "object_range.h"
 #include "object_range_iterator.h"
+#include "object_slice.h"
 #include "object_exception.h"
 #include "vm.h"
 
@@ -65,6 +66,7 @@ ValueMethods MethodTable[] = {
     [VAL_SUPER] = SUPER_METHODS,
     [VAL_RANGE] = RANGE_METHODS,
     [VAL_RANGE_ITERATOR] = RANGE_ITERATOR_METHODS,
+    [VAL_SLICE] = SLICE_METHODS,
     [VAL_EXCEPTION] = EXCEPTION_METHODS,
     [VAL_ZERO_DIVISON_ERROR] = ZERO_DIVISON_ERROR_METHODS,
     [VAL_STOP_ITERATION] = STOP_ITERATION_METHODS,

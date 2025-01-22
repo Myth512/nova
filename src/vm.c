@@ -346,6 +346,7 @@ static void defineNativeTypes() {
     vm.types.super = defineNativeClass("super", VAL_SUPER, VAL_OBJECT);
     vm.types.range = defineNativeClass("range", VAL_RANGE, VAL_OBJECT);
     vm.types.rangeIterator = createNativeclass("range_iterator", VAL_RANGE_ITERATOR, VAL_OBJECT);
+    vm.types.slice = defineNativeClass("slice", VAL_SLICE, VAL_OBJECT);
     vm.types.notImplementedType = createNativeclass("NotImplementedType", VAL_NOT_IMPLEMENTED, VAL_OBJECT);
 }
 

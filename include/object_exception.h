@@ -86,7 +86,7 @@
 
 #define NOT_IMPLEMENTED_ERROR_METHODS (ValueMethods) { \
     .init = NotImplementedError_Init,                  \
-    .class = NotImplementedError_Class,                \   
+    .class = NotImplementedError_Class,                \
     .str = Exception_ToStr,                            \
     .repr = Exception_ToRepr                           \
 }

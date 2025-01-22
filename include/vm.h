@@ -94,6 +94,7 @@ typedef struct {
     ObjNativeClass *range;
     ObjNativeClass *rangeIterator;
     ObjNativeClass *notImplementedType;
+    ObjNativeClass *slice;
 } BaseTypes;
 
 typedef struct {

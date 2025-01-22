@@ -8,6 +8,7 @@
 #include "object_exception.h"
 #include "object_class.h"
 #include "methods_string.h"
+#include "object_slice.h"
 #include "vm.h"
 
 ObjString *allocateString(size_t length) {
@@ -194,15 +195,24 @@ Value String_GetAttribute(Value value, ObjString *name) {
 }
 
 Value String_GetItem(Value value, Value key) {
-    if (!IS_INT(key))
-        return createException(VAL_NAME_ERROR, "string indices must be integers, not '%s'", getValueType(key));
+    if (IS_INT(key)) {
+        int index = calculateIndex(AS_INT(key), AS_STRING(value)->length);
+        if (index < 0)
+            return createException(VAL_INDEX_ERROR, "string index out of range");
+        
+        ObjString *res = copyString(AS_STRING(value)->chars + index, 1);
+        return OBJ_VAL(res);
+    } else if (IS_SLICE(key)) {
+        ParsedSlice slice = parseSlice(AS_SLICE(key), AS_STRING(value)->length);
 
-    int index = calculateIndex(AS_INT(key), AS_STRING(value)->length);
-    if (index < 0)
-        return createException(VAL_INDEX_ERROR, "string index out of range");
-    
-    ObjString *res = copyString(AS_STRING(value)->chars + index, 1);
-    return OBJ_VAL(res);
+        ObjString *res = allocateString(slice.length);
+
+        for (int i = slice.start, j = 0; i < slice.stop; i += slice.step, j++) {
+            res->chars[j] = AS_STRING(value)->chars[i];
+        }
+        return OBJ_VAL(res);
+    }
+    return createException(VAL_TYPE_ERROR, "string indices must be integers, not '%s'", getValueType(key));
 }
 
 static uint64_t hashString(const char *value) {
