@@ -291,6 +291,8 @@ int printInstruction(CodeVec *vec, int offset) {
             return argInstruction("BUILD DICT", vec, offset);
         case OP_BUILD_SLICE:
             return simpleInstruction("BUILD SLICE", offset);
+        case OP_CHECK:
+            return simpleInstruction("CHECK", offset);
         case OP_JUMP:
             return jumpInstruction("JUMP", 1, vec, offset);
         case OP_JUMP_TRUE:

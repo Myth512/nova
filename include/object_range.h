@@ -8,10 +8,14 @@
 #define AS_RANGE(value)     ((ObjRange*)value.as.object)
 
 #define RANGE_METHODS (ValueMethods) { \
+    .eq = Range_Equal,                \
+    .ne = Range_NotEqual,             \
     .init = Range_Init,               \
     .contains = Range_Contains,       \
     .iter = Range_Iter,               \
     .getitem = Range_GetItem,         \
+    .class = Range_Class,             \
+    .getattr = Range_GetAttr,         \
     .len = Range_Len,                 \
     .str = Range_ToStr,               \
     .repr = Range_ToStr,              \
@@ -26,6 +30,10 @@ typedef struct {
 
 ObjRange *allocateRange(long long start, long long end, long long step);
 
+Value Range_Equal(Value a, Value b);
+
+Value Range_NotEqual(Value a, Value b);
+
 Value Range_Init(Value callee, int argc, Value *argv);
 
 Value Range_Contains(Value a, Value b);
@@ -33,6 +41,8 @@ Value Range_Contains(Value a, Value b);
 Value Range_GetItem(Value value, Value key);
 
 Value Range_Class(Value value);
+
+Value Range_GetAttr(Value list, ObjString *name);
 
 Value Range_Iter(Value value);
 

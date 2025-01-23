@@ -73,6 +73,7 @@ Value NativeClass_Call(Value callee, int argc, int kwargc, Value *argv) {
     Value res = valueInit(dummy, argc, argv - argc);
     vm.top -= argc + 1;
     push(res);
+    raiseIfException();
 }
 
 Value Method_Call(Value callee, int argc,  int kwargc, Value *argv) {

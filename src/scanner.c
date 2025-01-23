@@ -91,6 +91,12 @@ static void skipWhitespace(bool skip) {
                 while (peek(0) != '\n')
                     advance();
                 break;
+            case '\\':
+                advance();
+                advance();
+                scanner.line++;
+                scanner.column = 1;  
+                break;
             case '\n':
                 if (!skip)
                     return;

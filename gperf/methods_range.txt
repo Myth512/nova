@@ -1,0 +1,18 @@
+%{
+#include <string.h>
+#include "py_range.h"
+#include "value.h"
+%}
+
+struct StaticAttribute
+
+%readonly-tables
+%struct-type
+%define lookup-function-name in_range_set
+
+%%
+start, PyRange_Start, false
+step, PyRange_Step, false
+stop, PyRange_Stop, false
+__class__, PyRange_Class, false
+%%

@@ -19,8 +19,13 @@ Value RangeIterator_Iter(Value value) {
 
 Value RangeIterator_Next(Value value) {
     ObjRangeIterator *iter = AS_RANGE_ITERATOR(value);
-    if (iter->current >= iter->end)
-        return createException(VAL_STOP_ITERATION, "");
+    if (iter->step > 0) {
+        if (iter->current >= iter->end)
+            return createException(VAL_STOP_ITERATION, "");
+    } else {
+        if (iter->current <= iter->end)
+            return createException(VAL_STOP_ITERATION, "");
+    }
     Value res = INT_VAL(iter->current);
     iter->current += iter->step;
     return res;

@@ -21,15 +21,14 @@ assert lst[-3] == 20
 assert lst[-4] == 10
 
 # Test slicing
-missing += 1
-# lst = [1, 2, 3, 4, 5, 6, 7]
-# assert lst[2:5] == [3, 4, 5]
-# assert lst[:3] == [1, 2, 3]
-# assert lst[3:] == [4, 5, 6, 7]
-# assert lst[::2] == [1, 3, 5, 7]
-# assert lst[::-1] == [7, 6, 5, 4, 3, 2, 1]
-# assert lst[-3:] == [5, 6, 7]
-# assert lst[:-2] == [1, 2, 3, 4, 5]
+lst = [1, 2, 3, 4, 5, 6, 7]
+assert lst[2:5] == [3, 4, 5]
+assert lst[:3] == [1, 2, 3]
+assert lst[3:] == [4, 5, 6, 7]
+assert lst[::2] == [1, 3, 5, 7]
+assert lst[::-1] == [7, 6, 5, 4, 3, 2, 1]
+assert lst[-3:] == [5, 6, 7]
+assert lst[:-2] == [1, 2, 3, 4, 5]
 
 # Test list length
 lst = [1, 2, 3]
@@ -276,9 +275,8 @@ for i in range(5):
 assert lst == [4, 3, 2, 1, 0]
 
 # Test list slicing with step
-missing += 1
-# lst = [1, 2, 3, 4, 5, 6, 7, 8, 9]
-# assert lst[::3] == [1, 4, 7]
+lst = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+assert lst[::3] == [1, 4, 7]
 
 # Test list iteration
 lst = [1, 2, 3]
