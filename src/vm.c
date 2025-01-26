@@ -190,7 +190,6 @@ void call(ObjClosure *closure, int argc, int kwargc, bool isMethod) {
     frame->closure = closure;
     frame->ip = closure->function->code.code;
     frame->isMethod = isMethod;
-    frame->exceptAddr = NULL;
 
     int arity = closure->function->arity;
     int defaultStart = closure->function->defaultStart;
@@ -507,11 +506,11 @@ static bool return_() {
 void raise() {
     Value exception = pop();
 
-    while (frame->exceptAddr == NULL && vm.frameSize > 1) {
+    while (frame->exceptPointer == 0 && vm.frameSize > 1) {
         return_();
     }
 
-    if (frame->exceptAddr == NULL) {
+    if (frame->exceptPointer == 0) {
         fprintf(stderr, "%s: ", getValueType(exception));
         valuePrint(exception);
         printf("\n");
@@ -520,7 +519,7 @@ void raise() {
     }
     vm.top = frame->slots + frame->closure->function->localNames->size;
     push(exception);
-    frame->ip = frame->exceptAddr;
+    frame->ip = frame->exceptAddr[frame->exceptPointer - 1];
 }
 
 void raiseIfException() {
@@ -562,7 +561,13 @@ static void setLocal() {
 
 static void delLocal() {
     uint8_t slot = READ_BYTE();
-    frame->slots[slot] = UNDEFINED_VAL; 
+    if (IS_UNDEFINED(frame->slots[slot])) {
+        char *name = AS_STRING(frame->closure->function->localNames->values[slot])->chars;
+        push(createException(VAL_NAME_ERROR, "name '%s' is not defined", name));
+        raise();
+    } else {
+        frame->slots[slot] = UNDEFINED_VAL; 
+    }
 }
 
 static void getItem(bool popValues) {
@@ -675,7 +680,10 @@ static Value run() {
             }
             case OP_DEL_GLOBAL: {
                 ObjString *name = READ_STRING();
-                tableDelete(&vm.globals, name);
+                if (!tableDelete(&vm.globals, name)) {
+                    push(createException(VAL_NAME_ERROR, "name '%s' is not defined", name->chars));
+                    raise();
+                }
                 break;
             }
             case OP_GET_LOCAL:
@@ -784,18 +792,18 @@ static Value run() {
             case OP_CONTAINS:
                 binary(valueContains);
                 break;
-            case OP_MAKE_ITERATOR:
+            case OP_BUILD_ITERATOR:
                 unary(valueIter);
                 break;
-            case OP_NEXT: {
-                Value tmp = peek(0);
-                Value tmp2 = valueNext(tmp);
-                push(tmp2);
+            case OP_JUMP_NEXT: {
+                uint16_t offset = READ_SHORT();
+                Value tmp = valueNext(peek(0));
+                if (isInstance(tmp, TYPE_CLASS(stopIteration)))
+                    frame->ip += offset;
+                else 
+                    push(tmp);
                 break;
             }
-            case OP_CHECK:
-                raiseIfException();
-                break;
             case OP_IS_INSTANCE: {
                 Value a = pop();
                 Value b = peek(0);
@@ -862,11 +870,11 @@ static Value run() {
             }
             case OP_SETUP_TRY: {
                 uint16_t offset = READ_SHORT();
-                frame->exceptAddr = frame->ip + offset;
+                frame->exceptAddr[frame->exceptPointer++] = frame->ip + offset;
                 break;
             }
             case OP_END_TRY:
-                frame->exceptAddr = NULL;
+                frame->exceptPointer--;
                 break;
             case OP_RAISE: {
                 if (!isInstance(peek(0), TYPE_CLASS(exception)))

@@ -185,15 +185,14 @@ assert result == [0, 100000, 200000, 300000, 400000, 500000, 600000, 700000, 800
     f"Expected [0, 100000, 200000, ..., 900000], but got {result}"
 
 # Nested iteration over range
-missing += 1
-# r1 = range(3)
-# r2 = range(2)
-# result = []
-# for i in r1:
-#     for j in r2:
-#         result.append((i, j))
-# assert result == [(0, 0), (0, 1), (1, 0), (1, 1), (2, 0), (2, 1)], \
-#     f"Expected [(0, 0), (0, 1), ..., (2, 1)], but got {result}"
+r1 = range(3)
+r2 = range(2)
+result = []
+for i in r1:
+    for j in r2:
+        result.append((i, j))
+assert result == [(0, 0), (0, 1), (1, 0), (1, 1), (2, 0), (2, 1)], \
+    f"Expected [(0, 0), (0, 1), ..., (2, 1)], but got {result}"
 
 # Using range with comprehension
 missing += 1

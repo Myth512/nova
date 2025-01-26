@@ -273,10 +273,8 @@ int printInstruction(CodeVec *vec, int offset) {
             return simpleInstruction("RETURN", offset);
         case OP_CONTAINS:
             return simpleInstruction("CONTAINS", offset);
-        case OP_MAKE_ITERATOR:
-            return simpleInstruction("MAKE ITERATOR", offset);
-        case OP_NEXT:
-            return simpleInstruction("NEXT", offset);
+        case OP_BUILD_ITERATOR:
+            return simpleInstruction("BUILD ITERATOR", offset);
         case OP_IS_INSTANCE:
             return simpleInstruction("IS INSTANCE", offset);
         case OP_IS:
@@ -291,8 +289,6 @@ int printInstruction(CodeVec *vec, int offset) {
             return argInstruction("BUILD DICT", vec, offset);
         case OP_BUILD_SLICE:
             return simpleInstruction("BUILD SLICE", offset);
-        case OP_CHECK:
-            return simpleInstruction("CHECK", offset);
         case OP_JUMP:
             return jumpInstruction("JUMP", 1, vec, offset);
         case OP_JUMP_TRUE:
@@ -303,6 +299,8 @@ int printInstruction(CodeVec *vec, int offset) {
             return jumpInstruction("JUMP FALSE", 1, vec, offset);
         case OP_JUMP_FALSE_POP:
             return jumpInstruction("JUMP FALSE POP", 1, vec, offset);
+        case OP_JUMP_NEXT:
+            return jumpInstruction("NEXT", 1, vec, offset);
         case OP_LOOP:
             return jumpInstruction("LOOP", -1, vec, offset);
         case OP_LOOP_TRUE_POP:

@@ -20,7 +20,8 @@ typedef struct {
     ObjClosure *closure;
     uint8_t *ip;
     Value *slots;
-    uint8_t *exceptAddr;
+    uint8_t *exceptAddr[256];
+    int exceptPointer;
     bool isMethod;
 } CallFrame;
 

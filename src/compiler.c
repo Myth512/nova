@@ -1116,8 +1116,12 @@ static void whileStatement() {
 
     emitLoop(OP_LOOP, conditionPointer);
 
-    patchJump(jumpToEnd);
     patchJump(jumpToEndIfFalse);
+
+    if (consume(TOKEN_ELSE, false))
+        parseBlock(-1, -1);
+
+    patchJump(jumpToEnd);
 }
 
 static void forStatement() {
@@ -1132,24 +1136,24 @@ static void forStatement() {
 
     int jumpToEnd = breakJump();
     
-    // question
     expression(true, false);
-    emitByte(OP_MAKE_ITERATOR, name);
+    emitByte(OP_BUILD_ITERATOR, name);
 
-    int jumpToExcept = emitJump(OP_SETUP_TRY);
-
-    emitByte(OP_NEXT, name);
-    emitByte(OP_CHECK, name);
+    int jumpToExcept = emitJump(OP_JUMP_NEXT);
 
     uint8_t getOp, setOp, arg;
     resolveVariableAssignment(&name, &getOp, &setOp, &arg);
     emitBytes(setOp, arg, name);
     emitByte(OP_POP, name);
 
-    parseBlock(jumpToEnd, jumpToExcept + 2);
+    parseBlock(jumpToEnd, jumpToExcept - 1);
 
-    emitLoop(OP_LOOP, jumpToExcept + 2);
+    emitLoop(OP_LOOP, jumpToExcept - 1);
     patchJump(jumpToExcept);
+
+    if (consume(TOKEN_ELSE, false))
+        parseBlock(-1, -1);
+
     patchJump(jumpToEnd);
     emitByte(OP_POP, name);
 }
@@ -1161,14 +1165,17 @@ static void tryStatement(int breakPointer, int continuePointer) {
 
     parseBlock(breakPointer, continuePointer);
 
+    emitByte(OP_NONE, (Token){0});
+
     int jumpToElse = emitJump(OP_JUMP);
     int jumpToFinally = emitJump(OP_JUMP);
 
     patchJump(jumpToExcept);
 
+    emitByte(OP_END_TRY, (Token){0});
     jumpToExcept = emitJump(OP_SETUP_TRY);
 
-    if (!check(TOKEN_EXCEPT))
+    if (!check(TOKEN_EXCEPT) && !check(TOKEN_FINALLY))
         reportError("expected 'except' or 'finally' block", &parser.current);
 
     int jumpToNextBranch = -1;
@@ -1249,7 +1256,7 @@ static void raiseStatement() {
     if (!consumeEOS())
         expression(false, false);
 
-    emitByte(OP_RAISE, (Token){0});
+    emitByte(OP_RAISE, parser.current);
 }
 
 // ======================================
@@ -1550,7 +1557,7 @@ static void item(bool assign, bool tuple, bool skip, bool del) {
         if (!assign)
             reportError("Assignment is not allowed here", &operator);
         assignment(OP_GET_ITEM_NO_POP, OP_SET_ITEM, NO_ARG, operator);
-    } else if (del) {
+    } else if (del && !check(TOKEN_LEFT_BRACKET)) {
         emitByte(OP_DEL_ITEM, index);
     } else {
         emitByte(OP_GET_ITEM, index);
@@ -1575,7 +1582,9 @@ static void returnStatement() {
 
 static void delStatement() {
     advance(false);
-    parseExpression(PREC_ASSIGNMENT, false, false, false, true);
+    do {
+        parseExpression(PREC_ASSIGNMENT, false, false, false, true);
+    } while (consume(TOKEN_COMMA, false));
 }
 
 static void assertStatement() {

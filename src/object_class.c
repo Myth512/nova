@@ -57,6 +57,8 @@ Value Class_GetAttr(Value obj, ObjString *name) {
     Value value;
     if (tableGet(&class->methods, name, &value))
         return value;
+    if (IS_NONE(class->super))
+        return UNDEFINED_VAL;
     return valueGetAttribute(class->super, name);
 }
 

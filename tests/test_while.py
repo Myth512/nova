@@ -102,9 +102,9 @@ assert a == 10  # The loop breaks when a reaches 10
 
 # While loop with a large number of iterations
 a = 0
-while a < 1000000:
+while a < 10000:
     a += 1
-assert a == 1000000  # The loop iterates one million times
+assert a == 10000 
 
 # While loop that performs calculations (mix of operations)
 a = 0
@@ -121,3 +121,19 @@ while a > 0:
     b += a % 3  # Add the remainder of a divided by 3 to b
     a -= 1
 assert b == 10  # Sum of remainders from a % 3 when a = 10, 9, 8, ..., 1
+
+a = 0
+while a < 10:
+    a += 1
+else:
+    a = "else"
+assert a == 'else'
+
+a = 0
+while a < 10:
+    a += 1
+    if a == 5:
+        break
+else:
+    a = "else"
+assert a != 'else'

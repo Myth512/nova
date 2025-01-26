@@ -1,5 +1,6 @@
 #include "object_instance.h"
 #include "value_methods.h"
+#include "object_exception.h"
 #include "object_string.h"
 #include "vm.h"
 
@@ -108,6 +109,9 @@ Value Instance_GetAttr(Value obj, ObjString *name) {
 
     value = Class_GetAttr(OBJ_VAL(instance->class), name);
 
+    if (IS_UNDEFINED(value))
+        return createException(VAL_ATTRIBUTE_ERROR, "'%s' object has no attribute '%s'", AS_INSTANCE(obj)->class->name->chars, name->chars);
+
     return OBJ_VAL(createMethod(obj, AS_CLOSURE(value)));
 }
 
@@ -116,7 +120,10 @@ Value Instance_SetAttr(Value obj, ObjString *name, Value value) {
 }
 
 Value Instance_DelAttr(Value obj, ObjString *name) {
-    tableDelete(&AS_INSTANCE(obj)->attributes, name);
+    bool res = tableDelete(&AS_INSTANCE(obj)->attributes, name);
+    if (!res)
+        return createException(VAL_ATTRIBUTE_ERROR, "'%s' object has no attribute '%s'", AS_INSTANCE(obj)->class->name->chars, name->chars);
+    return NONE_VAL;
 }
 
 Value Instance_GetItem(Value obj, Value key) {
