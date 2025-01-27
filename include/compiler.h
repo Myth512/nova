@@ -6,7 +6,9 @@
 #include "object_function.h"
 #include "object_module.h"
 
-ObjModule* compile(const char *source, const char *name);
+ObjModule* compile(const char *source, const char *path, const char *name);
+
+void setBasePath(char *path);
 
 void markCompilerRoots();
 

@@ -14,6 +14,8 @@ typedef struct ObjModule {
     Obj obj;
     Table globals;
     ObjFunction *function;
+    const char *path;
+    const char *source;
 };
 
 #define MODULE_METHODS (ValueMethods) { \

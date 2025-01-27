@@ -16,13 +16,13 @@ void repl() {
 			break;
 		}
 
-		interpret(line);
+		interpret(line, "");
 	}
 }
 
 void runFile(const char *path) {
 	char *source = readFile(path);
-	InterpretResult result = interpret(source);
+	InterpretResult result = interpret(source, path);
 	free(source);
 
 	if (result == INTERPRET_COMPILE_ERROR)
@@ -34,7 +34,7 @@ void runFile(const char *path) {
 }
 
 int main(int argc, const char *argv[]) {
-	initVM();
+	initVM(argv[1]);
 
 	if (argc == 1) {
 		repl();

@@ -85,6 +85,11 @@ bool tableSet(Table *table, Value key, Value value) {
 
     Entry *entry = findEntry(table->entries, table->capacity, key);
 
+    if (entry == NULL) {
+        resizeTable(table, GROW_CAPACITY(table->capacity));
+        entry = findEntry(table->entries, table->capacity, key);
+    }
+
     bool isNew = IS_UNDEFINED(entry->key);
 
     if (isNew)

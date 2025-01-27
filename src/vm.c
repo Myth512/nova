@@ -2,6 +2,7 @@
 #include <string.h>
 #include <time.h>
 #include <stdarg.h>
+#include <libgen.h>
 
 #include "vm.h"
 #include "debug.h"
@@ -38,7 +39,7 @@ void printErrorInCode() {
     int column = frame->closure->function->code.columns[index];
     int length = frame->closure->function->code.lengths[index];
     if (line != 0)
-        printHighlightedPartInCode(vm.source, line, column, length); 
+        printHighlightedPartInCode(frame->closure->function->module->source, line, column, length); 
 }
 
 void reportRuntimeError(const char *format, ...) {
@@ -1053,12 +1054,21 @@ void initMagicStrings() {
     vm.magicStrings.str = copyString("_str_", 5);
 }
 
-void initVM() {
+void initPath(const char *scriptPath) {
+    char *buffer = malloc(256);
+    strncpy(buffer, scriptPath, 256);
+    char *directory = dirname(buffer);
+    vm.path = directory;
+    setBasePath(directory);
+}
+
+void initVM(const char *scriptPath) {
     vm.allowStackPrinting = false;
     resetStack();
     vm.objects = NULL;
     vm.bytesAllocated = 0;
     vm.nextGC = 1024 * 1024;
+    initPath(scriptPath);
     tableInit(&vm.builtin);
     initMagicStrings();
     defineNatives();
@@ -1072,8 +1082,8 @@ void freeVM() {
     return;
 }
 
-InterpretResult interpret(const char *source) {
-    ObjModule *module = compile(source, "__main__");
+InterpretResult interpret(const char *source, const char *path) {
+    ObjModule *module = compile(source, path, "__main__");
     if (module == NULL)
         return INTERPRET_COMPILE_ERROR;
     push(OBJ_VAL(module));
@@ -1083,7 +1093,6 @@ InterpretResult interpret(const char *source) {
         return INTERPRET_OK;
     #endif
 
-    vm.source = source;
     run();
     return INTERPRET_OK;
 }

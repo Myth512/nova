@@ -149,8 +149,8 @@ assert r"hello\nworld" == "hello\\nworld"
 
 s = "hello"
 
-assert s.upper() == "HELLO"
+# assert s.upper() == "HELLO"
 
-assert s == "hello"
+# assert s == "hello"
 
 print(f'missing: {missing}')

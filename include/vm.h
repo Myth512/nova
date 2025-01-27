@@ -100,7 +100,6 @@ typedef struct {
 } BaseTypes;
 
 typedef struct {
-    const char *source;
     CallFrame frames[FRAMES_SIZE];
     int frameSize;
     CodeVec *code;
@@ -115,6 +114,7 @@ typedef struct {
     size_t bytesAllocated;
     size_t nextGC;
     bool allowStackPrinting;
+    const char *path;
 } VM;
 
 typedef enum {
@@ -148,8 +148,6 @@ void operatorNotImplementedUnary(char *operator, Value a);
 
 void functionNotImplemented(char *function, Value a);
 
-void execute(ObjModule *module);
-
 void call(ObjClosure *closure, int argc, int kwargc, bool isMethod);
 
 Value callNovaValue(Value callee, int argc);
@@ -160,10 +158,10 @@ OptValue callNovaMethod1arg(Value obj, ObjString *methodName, Value arg);
 
 OptValue callNovaMethod2args(Value obj, ObjString *methodName, Value arg1, Value arg2);
 
-void initVM();
+void initVM(const char *scriptPath);
 
 void freeVM();
 
-InterpretResult interpret(const char *source);
+InterpretResult interpret(const char *source, const char *path);
 
 #endif

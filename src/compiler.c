@@ -183,10 +183,15 @@ static ParseRule* getRule(TokenType type, bool tuple) {
     return &rules[type];
 }
 
+char *basePath;
 Parser *parser;
 Compiler *current = NULL;
 ClassCompiler *currentClass = NULL;
 CodeVec *compilingCode;
+
+void setBasePath(char *path) {
+    basePath = path;
+}
 
 static CodeVec* currentCode() {
     return &current->function->code;
@@ -1674,19 +1679,16 @@ static void nonlocalStatement() {
 
 static void importStatement() {
     advance(false);
-    char *dirname = "/home/blank/projects/nova/samples";
     Token name = parser->current;
     char filename[50];
     strncpy(filename, name.start, name.length);
     filename[name.length] = '\0';
     advance(false);
     char fullname[256];
-    snprintf(fullname, sizeof(fullname), "%s%s%s%s", dirname, "/", filename, ".py");
-    printf("%s\n", filename);
-    printf("%s\n", fullname);
+    snprintf(fullname, sizeof(fullname), "%s%s%s%s", basePath, "/", filename, ".py");
 
     char *source = readFile(fullname);
-    ObjModule *module = compile(source, filename);
+    ObjModule *module = compile(source, fullname, filename);
 
     emitBytes(OP_CONSTANT, createConstant(OBJ_VAL(module)), parser->current);
     uint8_t getOp, setOp, arg;
@@ -1757,8 +1759,9 @@ static void statement(int breakPointer, int continuePointer) {
         synchronize();
 }
 
-ObjModule* compile(const char *source, const char *name) {
+ObjModule* compile(const char *source, const char *path, const char *name) {
     ObjModule *module = allocateModule(function);
+    module->path = path;
     Scanner s;
     initScanner(&s, source);
     Parser p;
