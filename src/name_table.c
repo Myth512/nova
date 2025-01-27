@@ -10,15 +10,15 @@
 
 #define TABLE_MAX_LOAD 0.75
 
-void initTable(NameTable *table) {
+void initNameTable(NameTable *table) {
     table->size = 0;
     table->capacity = 0;
     table->entries = NULL;
 }
 
-void freeTable(NameTable *table) {
+void freeNameTable(NameTable *table) {
     FREE_VEC(NameEntry, table->entries, table->capacity);
-    initTable(table);
+    initNameTable(table);
 }
 
 static NameEntry* findEntry(NameEntry *entries, int capacity, ObjString *key) {
@@ -66,7 +66,7 @@ static void adjustCapacity(NameTable *table, int capacity) {
     table->capacity = capacity;
 }
 
-bool tableSet(NameTable *table, ObjString *key, Value value) {
+bool nameTableSet(NameTable *table, ObjString *key, Value value) {
     if (table->size + 1 > table->capacity * TABLE_MAX_LOAD) {
         int capacity = GROW_CAPACITY(table->capacity);
         adjustCapacity(table, capacity);
@@ -82,7 +82,7 @@ bool tableSet(NameTable *table, ObjString *key, Value value) {
     return isNewKey;
 }
 
-bool tableGet(NameTable *table, ObjString *key, Value *value) {
+bool nameTableGet(NameTable *table, ObjString *key, Value *value) {
     if (table->size == 0)
         return false;
     
@@ -94,7 +94,7 @@ bool tableGet(NameTable *table, ObjString *key, Value *value) {
     return true;
 }
 
-bool tableDelete(NameTable *table, ObjString *key) {
+bool nameTableDelete(NameTable *table, ObjString *key) {
     if (table->size == 0)
         return false;
 
@@ -107,11 +107,11 @@ bool tableDelete(NameTable *table, ObjString *key) {
     return true;
 }
 
-void tableAddAll(NameTable *source, NameTable *destination) {
+void nameTableAddAll(NameTable *source, NameTable *destination) {
     for (int i = 0; i < source->capacity; i++) {
         NameEntry *entry = &source->entries[i];
         if (entry->key != NULL)
-            tableSet(destination, entry->key, entry->value);
+            nameTableSet(destination, entry->key, entry->value);
     }
 }
 
@@ -136,7 +136,7 @@ void tableAddAll(NameTable *source, NameTable *destination) {
 //     }
 // }
 
-void markTable(NameTable *table) {
+void markNameTable(NameTable *table) {
     for (int i = 0; i < table->capacity; i++) {
         NameEntry *entry = &table->entries[i];
         markObject((Obj*)entry->key);

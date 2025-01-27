@@ -8,7 +8,7 @@ ObjInstance *createInstance(ObjClass *class) {
     ObjInstance *instance = (ObjInstance*)allocateObject(sizeof(ObjInstance), VAL_INSTANCE);
     instance->class = class;
     instance->isInitiazed = false;
-    initTable(&instance->attributes);
+    initNameTable(&instance->attributes);
     return instance;
 }
 
@@ -104,7 +104,7 @@ Value Instance_GetAttr(Value obj, ObjString *name) {
     Value value;
     ObjInstance *instance = AS_INSTANCE(obj);
 
-    if (tableGet(&instance->attributes, name, &value))
+    if (nameTableGet(&instance->attributes, name, &value))
         return value;
 
     value = Class_GetAttr(OBJ_VAL(instance->class), name);
@@ -116,11 +116,11 @@ Value Instance_GetAttr(Value obj, ObjString *name) {
 }
 
 Value Instance_SetAttr(Value obj, ObjString *name, Value value) {
-    tableSet(&AS_INSTANCE(obj)->attributes, name, value);
+    nameTableSet(&AS_INSTANCE(obj)->attributes, name, value);
 }
 
 Value Instance_DelAttr(Value obj, ObjString *name) {
-    bool res = tableDelete(&AS_INSTANCE(obj)->attributes, name);
+    bool res = nameTableDelete(&AS_INSTANCE(obj)->attributes, name);
     if (!res)
         return createException(VAL_ATTRIBUTE_ERROR, "'%s' object has no attribute '%s'", AS_INSTANCE(obj)->class->name->chars, name->chars);
     return NONE_VAL;

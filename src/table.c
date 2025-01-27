@@ -10,16 +10,16 @@
 #define TOMBSTONE ((Value){.type=VAL_UNDEFINED, .as.integer=1})
 #define IS_TOMBSTONE(value) (value.type == VAL_UNDEFINED && value.as.integer == 1)
 
-void QuadraticTableInit(Table *table) {
+void tableInit(Table *table) {
     table->size = 0;
     table->capacity = 0;
     table->entries = NULL;
     table->order = NULL;
 }
 
-void QuadraticTableFree(Table *table) {
+void tableFree(Table *table) {
     reallocate(table->entries, table->capacity * sizeof(Entry), 0);
-    QuadraticTableInit(table);
+    tableInit(table);
 }
 
 static Entry *findEntry(Entry *entries, int capacity, Value key) {
@@ -71,14 +71,14 @@ static void resizeTable(Table *table, int capacity) {
     table->capacity = capacity;
 }
 
-Value QuadraticTableGet(Table *table, Value key) {
+Value tableGet(Table *table, Value key) {
     Entry *entry = findEntry(table->entries, table->capacity, key);
     if (entry == NULL || IS_TOMBSTONE(entry->key))
         return UNDEFINED_VAL;
     return entry->value;
 }
 
-bool QuadraticTableSet(Table *table, Value key, Value value) {
+bool tableSet(Table *table, Value key, Value value) {
     if (table->size + 1 >= table->capacity * MAX_LOAD_FACTOR) {
         resizeTable(table, GROW_CAPACITY(table->capacity));
     }
@@ -104,7 +104,7 @@ static void removeFromOrder(Table *table, Entry *entry) {
         table->order[i] = table->order[i + 1];
 }
 
-Value QuadraticTableDelete(Table *table, Value key) {
+Value tableDelete(Table *table, Value key) {
     if (table->size == 0)
         return UNDEFINED_VAL;
 
@@ -129,14 +129,14 @@ bool compareTables(Table *a, Table *b) {
     
     for (int i = 0; i < a->size; i++) {
         Entry *entry = a->order[i];
-        Value value = QuadraticTableGet(b, entry->key);
+        Value value = tableGet(b, entry->key);
         if (!valueToBool(valueEqual(entry->value, value)))
             return false;
     }
     return true;
 }
 
-void TableDebug(Table *table) {
+void tableDebug(Table *table) {
     printf("size: %d, capacity: %d\n", table->size, table->capacity);
 
     for (int i = 0; i < table->size; i++) {

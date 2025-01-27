@@ -3,6 +3,7 @@
 #include "common.h"
 #include "code.h"
 #include "debug.h"
+#include "scanner.h"
 #include "vm.h"
 
 void repl() {
@@ -17,33 +18,6 @@ void repl() {
 
 		interpret(line);
 	}
-}
-
-static char *readFile(const char *path) {
-	FILE *file = fopen(path, "rb");
-	if (file == NULL) {
-		fprintf(stderr, "Failed to open file '%s'\n", path);
-		exit(74);
-	}
-
-	fseek(file, 0L, SEEK_END);
-	size_t fileSize = ftell(file);
-	rewind(file);
-
-	char *buffer = (char*)malloc(fileSize + 1);
-	if (buffer == NULL) {
-		fprintf(stderr, "Failed to allocate memory for file '%s'\n", path);
-		exit(74);
-	}
-	size_t bytesRead = fread(buffer, sizeof(char), fileSize, file);
-	if (bytesRead < fileSize) {
-		fprintf(stderr, "Failed to read file '%s'\n", path);
-		exit(74);
-	}
-	buffer[bytesRead] = '\0';
-	
-	fclose(file);
-	return buffer;
 }
 
 void runFile(const char *path) {

@@ -19,6 +19,7 @@
 #include "object_range_iterator.h"
 #include "object_slice.h"
 #include "object_exception.h"
+#include "object_module.h"
 #include "vm.h"
 
 #define GET_METHOD(value, name) MethodTable[(value).type].name
@@ -79,6 +80,7 @@ ValueMethods MethodTable[] = {
     [VAL_RUNTIME_ERROR] = RUNTIME_ERROR_METHODS,
     [VAL_ASSERTION_ERROR] = ASSERTION_ERROR_METHODS,
     [VAL_NOT_IMPLEMENTED_ERROR] = NOT_IMPLEMENTED_ERROR_METHODS,
+    [VAL_MODULE] = MODULE_METHODS,
 };
 
 static void *getMethod(Value value, int offset) {

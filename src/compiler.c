@@ -13,10 +13,15 @@
 #include "object_string.h"
 #include "object_list.h"
 #include "error.h"
+#include "object_module.h"
+#include "unistd.h"
 
 #define NO_ARG -1
 
-typedef struct {
+typedef struct Parser {
+    struct Parser *enclosing;
+    ObjModule *module;
+    char *path;
     const char *source;
     Token current;
     Token next;
@@ -178,7 +183,7 @@ static ParseRule* getRule(TokenType type, bool tuple) {
     return &rules[type];
 }
 
-Parser parser;
+Parser *parser;
 Compiler *current = NULL;
 ClassCompiler *currentClass = NULL;
 CodeVec *compilingCode;
@@ -188,43 +193,43 @@ static CodeVec* currentCode() {
 }
 
 static bool check(TokenType type) {
-    return parser.current.type == type;
+    return parser->current.type == type;
 }
 
 static void advance(bool skip) {
-    if (parser.putPointer >= 0) {
-        parser.current = parser.putback.tokens[parser.putPointer++];
-        if (parser.putPointer == parser.putback.size)
-            parser.putPointer = -1;
+    if (parser->putPointer >= 0) {
+        parser->current = parser->putback.tokens[parser->putPointer++];
+        if (parser->putPointer == parser->putback.size)
+            parser->putPointer = -1;
         return;
     }
-    parser.current = parser.next; 
+    parser->current = parser->next; 
     if (skip && check(TOKEN_NEWLINE))
-        parser.current = scanToken(true);
-    parser.next = scanToken(false);
+        parser->current = scanToken(true);
+    parser->next = scanToken(false);
     #ifdef DEBUG_PRINT_TOKENS
-        printToken(&parser.current);
+        printToken(&parser->current);
     #endif
 }
 
 static void advancePut() {
     advance(false);
-    TokenVecPush(&parser.putback, parser.current);
+    TokenVecPush(&parser->putback, parser->current);
 }
 
 static void putback() {
-    parser.putPointer = 0;
+    parser->putPointer = 0;
 }
 
 static void discardPutback() {
-    parser.putback.size = 0;
+    parser->putback.size = 0;
 }
 
 static void synchronize() {
-    parser.panicMode = false;
+    parser->panicMode = false;
 
-    while (parser.current.type != TOKEN_EOF) {
-        switch (parser.current.type) {
+    while (parser->current.type != TOKEN_EOF) {
+        switch (parser->current.type) {
             case TOKEN_CLASS:
             case TOKEN_DEF:
             case TOKEN_FOR:
@@ -243,20 +248,20 @@ static void synchronize() {
 }
 
 static bool reportError(const char *message, Token *token) {
-    if (parser.panicMode)
+    if (parser->panicMode)
         return false;
-    parser.panicMode = true;
-    parser.errorCount++;
+    parser->panicMode = true;
+    parser->errorCount++;
     fprintf(stderr, "\033[31mSyntax Error\033[0m: %s\n", message);
     if (token != NULL)
-        printTokenInCode(parser.source, token);
+        printTokenInCode(parser->source, token);
     return true;
 }
 
 static bool checkNext(TokenType type, bool skip) {
-    if (skip && (parser.next.type == TOKEN_NEWLINE || parser.next.type == TOKEN_INDENT || parser.next.type == TOKEN_DEDENT) )
-        parser.next = scanToken(true);
-    return parser.next.type == type;
+    if (skip && (parser->next.type == TOKEN_NEWLINE || parser->next.type == TOKEN_INDENT || parser->next.type == TOKEN_DEDENT) )
+        parser->next = scanToken(true);
+    return parser->next.type == type;
 }
 
 static bool consume(TokenType type, bool skip) {
@@ -304,6 +309,9 @@ static void emitLoop(uint8_t instruction, int loopStart) {
 static void emitReturn() {
     if (current->type == TYPE_INITIALIZER) {
         emitBytes(OP_GET_LOCAL, 0, (Token){0});
+    } else if (current->type == TYPE_TOP_LEVEL)  {
+        emitByte(OP_UNLOAD_MODULE, (Token){0});
+        return;
     } else {
         emitByte(OP_NONE, (Token){0});
     }
@@ -349,6 +357,21 @@ static void emitConstant(Value value) {
     emitBytes(OP_CONSTANT, createConstant(value), (Token){0});
 }
 
+static void initParser(Parser *p, ObjModule *module, const char *source) {
+    p->errorCount = 0;
+    p->module = module;
+    p->panicMode = false;
+    p->source = source;
+    TokenVecInit(&p->putback);
+    p->putPointer = -1;
+    p->enclosing = parser;
+    parser = p;
+}
+
+static void endParser() {
+    parser = parser->enclosing;
+}
+
 static void initCompiler(Compiler *compiler, FunctionType type, Token name) {
     compiler->enclosing = current;
     compiler->function = createFunction();
@@ -364,12 +387,13 @@ static void initCompiler(Compiler *compiler, FunctionType type, Token name) {
 
 static ObjFunction* endCompiler() {
     ObjFunction *function = current->function;
+    function->module = parser->module;
     if (function->code.size == 0 ||
         function->code.code[function->code.size - 1] != OP_RETURN)
             emitReturn();
 
     #ifdef DEBUG_PRINT_CODE
-        if (parser.errorCount == 0)
+        if (parser->errorCount == 0)
             printCodeVec(currentCode(), function->name != NULL ? function->name->chars : "<top level>");
     #endif
 
@@ -385,10 +409,10 @@ static ObjFunction* endCompiler() {
 }
 
 static void parseExpression(Precedence precedence, bool assign, bool tuple, bool skip, bool del) {
-    ParseFn prefixFunc = getRule(parser.current.type, tuple)->prefix;
+    ParseFn prefixFunc = getRule(parser->current.type, tuple)->prefix;
 
     if (prefixFunc == NULL) {
-        reportError("Expect expression", &parser.current);
+        reportError("Expect expression", &parser->current);
         exit(1);
         return;
     }
@@ -397,8 +421,8 @@ static void parseExpression(Precedence precedence, bool assign, bool tuple, bool
 
     prefixFunc(assign, tuple, skip, del);
 
-    while (precedence < getRule(parser.current.type, tuple)->precedence) {
-        ParseFn infixFunc = getRule(parser.current.type, tuple)->infix;
+    while (precedence < getRule(parser->current.type, tuple)->precedence) {
+        ParseFn infixFunc = getRule(parser->current.type, tuple)->infix;
         infixFunc(assign, tuple, skip, del);
     }
 }
@@ -409,17 +433,17 @@ static void expression(bool tuple, bool skip) {
 
 static void literal(bool assign, bool tuple, bool skip, bool del) {
     if (del)
-        reportError("cannot delete literal", &parser.current);
+        reportError("cannot delete literal", &parser->current);
 
-    switch (parser.current.type) {
+    switch (parser->current.type) {
         case TOKEN_TRUE:
-            emitByte(OP_TRUE, parser.current); 
+            emitByte(OP_TRUE, parser->current); 
             break;
         case TOKEN_FALSE:
-            emitByte(OP_FALSE, parser.current);
+            emitByte(OP_FALSE, parser->current);
             break;
         case TOKEN_NONE:
-            emitByte(OP_NONE, parser.current);
+            emitByte(OP_NONE, parser->current);
             break;
         default:
             return;
@@ -429,9 +453,9 @@ static void literal(bool assign, bool tuple, bool skip, bool del) {
 
 static void number(bool assign, bool tuple, bool skip, bool del) {
     if (del)
-        reportError("cannot delete literal", &parser.current);
+        reportError("cannot delete literal", &parser->current);
 
-    double value = strtod(parser.current.start, NULL);
+    double value = strtod(parser->current.start, NULL);
     if ((long long)value == value)
         emitConstant(INT_VAL(value));
     else
@@ -441,23 +465,23 @@ static void number(bool assign, bool tuple, bool skip, bool del) {
 
 static void string(bool assign, bool tuple, bool skip, bool del) {
     if (del)
-        reportError("cannot delete literal", &parser.current);
+        reportError("cannot delete literal", &parser->current);
 
-    emitConstant(STRING_VAL(copyEscapedString(parser.current.start, parser.current.length)));
+    emitConstant(STRING_VAL(copyEscapedString(parser->current.start, parser->current.length)));
     advance(skip);
 }
 
 static void rstring(bool assign, bool tuple, bool skip, bool del) {
     if (del)
-        reportError("cannot delete literal", &parser.current);
+        reportError("cannot delete literal", &parser->current);
 
-    emitConstant(STRING_VAL(copyString(parser.current.start, parser.current.length)));
+    emitConstant(STRING_VAL(copyString(parser->current.start, parser->current.length)));
     advance(skip);
 }
 
 static void list(bool assign, bool tuple, bool skip, bool del) {
     if (del)
-        reportError("cannot delete literal", &parser.current);
+        reportError("cannot delete literal", &parser->current);
 
     size_t size = 0;
     advance(true);
@@ -469,14 +493,14 @@ static void list(bool assign, bool tuple, bool skip, bool del) {
     } while (consume(TOKEN_COMMA, true));
 
     if (!consume(TOKEN_RIGHT_BRACKET, false))
-        reportError("Expect ']'", &parser.current);
+        reportError("Expect ']'", &parser->current);
 
     emitBytes(OP_BUILD_LIST, (uint8_t)size, (Token){0});
 }
 
 static void tuple(bool assign, bool tuple, bool skip, bool del) {
     if (del)
-        reportError("cannot delete literal", &parser.current);
+        reportError("cannot delete literal", &parser->current);
 
     advance(true);
 
@@ -493,7 +517,7 @@ static void tuple(bool assign, bool tuple, bool skip, bool del) {
 
 static void dict(bool assign, bool tuple, bool skip, bool del) {
     if (del)
-        reportError("cannot delete literal", &parser.current);
+        reportError("cannot delete literal", &parser->current);
 
     advance(true);
 
@@ -503,25 +527,25 @@ static void dict(bool assign, bool tuple, bool skip, bool del) {
             break;
         expression(false, true);
         if (!consume(TOKEN_COLON, true))
-            reportError("':' expected after dictionary key", &parser.current);
+            reportError("':' expected after dictionary key", &parser->current);
         expression(false, true);
         size++;
     } while (consume(TOKEN_COMMA, true));
 
     if (!consume(TOKEN_RIGHT_BRACE, false))
-        reportError("Expect '}'", &parser.current);
+        reportError("Expect '}'", &parser->current);
 
     emitBytes(OP_BUILD_DICT, (uint8_t)size, (Token){0});
 }
 
 static void fstring(bool assign, bool tuple, bool skip, bool del) {
     if (del)
-        reportError("cannot delete literal", &parser.current);
+        reportError("cannot delete literal", &parser->current);
 
     int count = 0;
 
     while (!check(TOKEN_STRING)) {
-        if (parser.current.length > 0) {
+        if (parser->current.length > 0) {
             string(true, true, skip, false);
             count++;
         } else {
@@ -531,7 +555,7 @@ static void fstring(bool assign, bool tuple, bool skip, bool del) {
         count++;
     }
 
-    if (parser.current.length > 0) {
+    if (parser->current.length > 0) {
         string(true, true, skip, false);
         count++;
     } else {
@@ -542,7 +566,7 @@ static void fstring(bool assign, bool tuple, bool skip, bool del) {
 
 static void grouping(bool assign, bool tuple, bool skip, bool del) {
     if (del)
-        reportError("cannot delete expression", &parser.current);
+        reportError("cannot delete expression", &parser->current);
 
     advance(true);
 
@@ -559,9 +583,9 @@ static void grouping(bool assign, bool tuple, bool skip, bool del) {
 
 static void not(bool assign, bool tuple, bool skip, bool del) {
     if (del)
-        reportError("cannot delete expression", &parser.current);
+        reportError("cannot delete expression", &parser->current);
         
-    Token operator = parser.current;
+    Token operator = parser->current;
     advance(skip);
 
     expression(false, skip);
@@ -571,9 +595,9 @@ static void not(bool assign, bool tuple, bool skip, bool del) {
 
 static void unary(bool assign, bool tuple, bool skip, bool del) {
     if (del)
-        reportError("cannot delete expression", &parser.current);
+        reportError("cannot delete expression", &parser->current);
         
-    Token operator = parser.current;
+    Token operator = parser->current;
     advance(skip);
 
     parseExpression(getRule(operator.type, tuple)->precedence, false, false, skip, false);
@@ -598,9 +622,9 @@ static void unary(bool assign, bool tuple, bool skip, bool del) {
 
 static void binary(bool assign, bool tuple, bool skip, bool del) {
     if (del)
-        reportError("cannot delete expression", &parser.current);
+        reportError("cannot delete expression", &parser->current);
 
-    Token operator = parser.current;
+    Token operator = parser->current;
     advance(skip);
 
     parseExpression(getRule(operator.type, tuple)->precedence, false, false, skip, false);
@@ -670,9 +694,9 @@ static void binary(bool assign, bool tuple, bool skip, bool del) {
 
 static void is(bool assign, bool tuple, bool skip, bool del) {
     if (del)
-        reportError("cannot delete comparison", &parser.current);
+        reportError("cannot delete comparison", &parser->current);
 
-    Token operator = parser.current;
+    Token operator = parser->current;
     advance(skip);
 
     bool negate = consume(TOKEN_NOT, skip);
@@ -686,9 +710,9 @@ static void is(bool assign, bool tuple, bool skip, bool del) {
 
 static void in(bool assign, bool tuple, bool skip, bool del) {
     if (del)
-        reportError("cannot delete comparison", &parser.current);
+        reportError("cannot delete comparison", &parser->current);
 
-    Token operator = parser.current;
+    Token operator = parser->current;
     bool negate = consume(TOKEN_NOT, skip);
 
     if (!consume(TOKEN_IN, skip)) {
@@ -718,7 +742,7 @@ static void expressionStatement() {
     parseExpression(PREC_ASSIGNMENT, true, true, false, false);
     
     if (!consumeEOS())
-        reportError("Expect eos after statement", &parser.current);
+        reportError("Expect eos after statement", &parser->current);
 
     emitByte(OP_POP, (Token){0});
 }
@@ -935,8 +959,8 @@ static void assignment(uint8_t getOp, uint8_t setOp, int arg, Token operator) {
 }
 
 static void unpack(Token name) {
-    TokenVecPush(&parser.putback, name);
-    TokenVecPush(&parser.putback, parser.current);
+    TokenVecPush(&parser->putback, name);
+    TokenVecPush(&parser->putback, parser->current);
     int c = 1;
     while (check(TOKEN_COMMA)) {
         advancePut();
@@ -954,7 +978,7 @@ static void unpack(Token name) {
         for (int i = 0; i < c; i++) {
             emitConstant(INT_VAL(i));
             emitByte(OP_GET_ITEM_NO_POP, (Token){0});
-            Token name = parser.putback.tokens[j];
+            Token name = parser->putback.tokens[j];
             j+=2;
             uint8_t getOp, setOp, arg;
             defineVariable(name);
@@ -968,14 +992,14 @@ static void unpack(Token name) {
 
 static void variable(bool assign, bool tuple, bool skip, bool del) {
     uint8_t getOp, setOp, delOp, arg;
-    Token name = parser.current;
+    Token name = parser->current;
     advance(skip);
-    Token operator = parser.current;
+    Token operator = parser->current;
 
     if (isAssignment(operator)) {
         advance(skip);
         if (!assign)
-            reportError("invalid syntax. Maybe you meant '==' or ':=' instead of '='?", &parser.current);
+            reportError("invalid syntax. Maybe you meant '==' or ':=' instead of '='?", &parser->current);
         resolveVariableAssignment(&name, &getOp, &setOp, &arg);
         assignment(getOp, setOp, arg, operator);
     } else if (operator.type == TOKEN_COLON_EQUAL) {
@@ -985,7 +1009,7 @@ static void variable(bool assign, bool tuple, bool skip, bool del) {
     } else if (del && !check(TOKEN_DOT) && !check(TOKEN_LEFT_BRACKET)) {
         resolveVariableReference(&name, &getOp, &delOp, &arg);
         emitBytes(delOp, arg, name);
-    } else if (assign && check(TOKEN_COMMA) && parser.putPointer < 0) {
+    } else if (assign && check(TOKEN_COMMA) && parser->putPointer < 0) {
         unpack(name);
     } else {
         resolveVariableReference(&name, &getOp, &delOp, &arg);
@@ -999,7 +1023,7 @@ static void variable(bool assign, bool tuple, bool skip, bool del) {
 
 static void and(bool assign, bool tuple, bool skip, bool del) {
     if (del)
-        reportError("cannot delete expression", &parser.current);
+        reportError("cannot delete expression", &parser->current);
 
     advance(skip);
     int endJump = emitJump(OP_JUMP_FALSE);
@@ -1013,7 +1037,7 @@ static void and(bool assign, bool tuple, bool skip, bool del) {
 
 static void or(bool assign, bool tuple, bool skip, bool del){
     if (del)
-        reportError("cannot delete expression", &parser.current);
+        reportError("cannot delete expression", &parser->current);
 
     advance(skip);
     int endJump = emitJump(OP_JUMP_TRUE);
@@ -1026,11 +1050,11 @@ static void or(bool assign, bool tuple, bool skip, bool del){
 
 static void parseBlock(int breakPointer, int continuePointer) {
     if (!consume(TOKEN_COLON, false))
-        reportError("Expect ':' after condition", &parser.current);
+        reportError("Expect ':' after condition", &parser->current);
     
     if (consume(TOKEN_NEWLINE, false)) {
         if (!consume(TOKEN_INDENT, false))
-            reportError("Expect indentation block", &parser.current);
+            reportError("Expect indentation block", &parser->current);
         block(breakPointer, continuePointer);
     } else {
         oneLineBlock(breakPointer, continuePointer);
@@ -1046,7 +1070,7 @@ static void ifStatement(int breakPointer, int continuePointer) {
 
     parseBlock(breakPointer, continuePointer);
 
-    if (parser.current.type == TOKEN_ELIF) {
+    if (parser->current.type == TOKEN_ELIF) {
         jumpToEnd = emitJump(OP_JUMP);
         while (consume(TOKEN_ELIF, false)) {
             patchJump(jumpToNextBranch);
@@ -1072,26 +1096,26 @@ static void ifStatement(int breakPointer, int continuePointer) {
 
 static void breakStatement(int breakPointer) {
     if (breakPointer == -1)
-        reportError("Can't use 'break' outside of loop body", &parser.current);
+        reportError("Can't use 'break' outside of loop body", &parser->current);
 
     advance(false);
     
     emitLoop(OP_LOOP, breakPointer - 1);
 
     if (!consumeEOS())
-        reportError("Expect eos after 'break'", &parser.current);
+        reportError("Expect eos after 'break'", &parser->current);
 }
 
 static void continueStatement(int continuePointer) {
     if (continuePointer == -1)
-        reportError("Can't use 'continue' outside of loop body", &parser.current);
+        reportError("Can't use 'continue' outside of loop body", &parser->current);
     
     advance(false);
 
     emitLoop(OP_LOOP, continuePointer);
 
     if (!consumeEOS())
-        reportError("Expect eos after 'continue'", &parser.current);
+        reportError("Expect eos after 'continue'", &parser->current);
 }
 
 static int breakJump() {
@@ -1127,7 +1151,7 @@ static void whileStatement() {
 static void forStatement() {
     advance(false);
 
-    Token name = parser.current;
+    Token name = parser->current;
     if (!consume(TOKEN_IDENTIFIER, false))
         reportError("Syntax error", &name);
 
@@ -1176,7 +1200,7 @@ static void tryStatement(int breakPointer, int continuePointer) {
     jumpToExcept = emitJump(OP_SETUP_TRY);
 
     if (!check(TOKEN_EXCEPT) && !check(TOKEN_FINALLY))
-        reportError("expected 'except' or 'finally' block", &parser.current);
+        reportError("expected 'except' or 'finally' block", &parser->current);
 
     int jumpToNextBranch = -1;
 
@@ -1192,9 +1216,9 @@ static void tryStatement(int breakPointer, int continuePointer) {
             jumpToNextBranch = emitJump(OP_JUMP_FALSE_POP);
 
             if (consume(TOKEN_AS, false)) {
-                name = parser.current;
+                name = parser->current;
                 if (!consume(TOKEN_IDENTIFIER, false))
-                    reportError("invalid syntax", &parser.current);
+                    reportError("invalid syntax", &parser->current);
                 
                 uint8_t getOp, setOp, arg;
                 resolveVariableAssignment(&name, &getOp, &setOp, &arg);
@@ -1256,7 +1280,7 @@ static void raiseStatement() {
     if (!consumeEOS())
         expression(false, false);
 
-    emitByte(OP_RAISE, parser.current);
+    emitByte(OP_RAISE, parser->current);
 }
 
 // ======================================
@@ -1276,12 +1300,12 @@ static void parseArgs(Compiler *compiler, FunctionType type, Token name) {
     if (!check(TOKEN_RIGHT_PAREN)) {
         do {
             if (arity > 255) {
-                reportError("Can't have more than 255 parameters", &parser.current);
+                reportError("Can't have more than 255 parameters", &parser->current);
             }
 
             if (consume(TOKEN_STAR, true)) {
                 if (extraArgs != -1)
-                    reportError("* argument may appear only once", &parser.current);
+                    reportError("* argument may appear only once", &parser->current);
                 extraArgs = arity;
             }
 
@@ -1289,26 +1313,26 @@ static void parseArgs(Compiler *compiler, FunctionType type, Token name) {
                 extraKwargs = arity;
             }
 
-            TokenVecPush(&names, parser.current);
+            TokenVecPush(&names, parser->current);
             advance(true);
 
             if (consume(TOKEN_EQUAL, true)) {
                 if (defaultCount == 0)
                     defaultStart = arity;
                 if (extraArgs == arity)
-                    reportError("var-positional argument cannot have default value", &parser.current);
+                    reportError("var-positional argument cannot have default value", &parser->current);
                 if (extraKwargs == arity)
-                    reportError("var-keyword argument cannot have default value", &parser.current);
+                    reportError("var-keyword argument cannot have default value", &parser->current);
                 expression(false, true);
                 defaultCount++;
             } else if (defaultCount > 0 && extraArgs == -1)
-                reportError("Non-default argument follows default argument", &parser.current);
+                reportError("Non-default argument follows default argument", &parser->current);
             arity++;
 
         } while (consume(TOKEN_COMMA, true));
     }
 
-    emitBytes(OP_BUILD_TUPLE, (uint8_t)defaultCount, parser.current);
+    emitBytes(OP_BUILD_TUPLE, (uint8_t)defaultCount, parser->current);
 
     initCompiler(compiler, type, name);
 
@@ -1326,16 +1350,16 @@ static void parseArgs(Compiler *compiler, FunctionType type, Token name) {
 
 static void function(FunctionType type) {
     Compiler compiler;
-    Token name = parser.current;
+    Token name = parser->current;
     advance(false);
 
     if (!consume(TOKEN_LEFT_PAREN, false))
-        reportError("Expect '(' after function name", &parser.current);
+        reportError("Expect '(' after function name", &parser->current);
 
     parseArgs(&compiler, type, name);
 
     if (!consume(TOKEN_RIGHT_PAREN, true))
-        reportError("Expect ')' after parameters", &parser.current);
+        reportError("Expect ')' after parameters", &parser->current);
     
     parseBlock(-1, -1);
 
@@ -1351,7 +1375,7 @@ static void function(FunctionType type) {
 
 static void funcDeclaration() {
     advance(false);
-    Token name = parser.current;
+    Token name = parser->current;
     declareVariable(name);
     function(TYPE_FUNCTION);
     defineVariable(name);
@@ -1359,7 +1383,7 @@ static void funcDeclaration() {
 
 static void lambda(bool assign, bool tuple, bool skip, bool del) {
     if (del)
-        reportError("cannot delete lambda", &parser.current);
+        reportError("cannot delete lambda", &parser->current);
 
     Compiler compiler;
     Token name; 
@@ -1370,7 +1394,7 @@ static void lambda(bool assign, bool tuple, bool skip, bool del) {
     parseArgs(&compiler, TYPE_FUNCTION, name);
 
     if (!consume(TOKEN_COLON, true))
-        reportError("Expect ':' after parameters", &parser.current);
+        reportError("Expect ':' after parameters", &parser->current);
 
     expression(false, skip);
     emitByte(OP_RETURN, name);
@@ -1401,7 +1425,7 @@ static uint16_t parseArguments() {
                 kwargc++;
             } else{
                 if (kwargc > 0)
-                    reportError("positional argument follows keyword argument", &parser.current);
+                    reportError("positional argument follows keyword argument", &parser->current);
                 expression(false, true);
                 argc++;
             }
@@ -1409,16 +1433,16 @@ static uint16_t parseArguments() {
     }
 
     if (!consume(TOKEN_RIGHT_PAREN, false))
-        reportError("Expect ')' after arguments", &parser.current);
+        reportError("Expect ')' after arguments", &parser->current);
 
     return (argc << 8) | kwargc;
 }
 
 static void call(bool assign, bool tuple, bool skip, bool del) {
     if (del)
-        reportError("cannot delete function call", &parser.current);
+        reportError("cannot delete function call", &parser->current);
 
-    Token name = parser.current;
+    Token name = parser->current;
     advance(skip);
     uint16_t args = parseArguments();
     uint8_t argc = args >> 8;
@@ -1428,7 +1452,7 @@ static void call(bool assign, bool tuple, bool skip, bool del) {
 }
 
 static void method() {
-    Token name = parser.current;
+    Token name = parser->current;
     
     uint8_t constant = identifierConstant(&name);
     FunctionType type = TYPE_METHOD;
@@ -1440,18 +1464,18 @@ static void method() {
 
 static void classDeclaration() {
     advance(false);
-    Token name = parser.current;
+    Token name = parser->current;
     Token super = (Token){.type=TOKEN_EOF}; 
     if (!consume(TOKEN_IDENTIFIER, false))
-        reportError("Expect class name", &parser.current);
+        reportError("Expect class name", &parser->current);
     
     if (consume(TOKEN_LEFT_PAREN, false)) {
         if (!consume(TOKEN_RIGHT_PAREN, false)) {
-            super = parser.current;
+            super = parser->current;
             if (!consume(TOKEN_IDENTIFIER, false))
-                reportError("Expect super class name", &parser.current);
+                reportError("Expect super class name", &parser->current);
             if (!consume(TOKEN_RIGHT_PAREN, false))    
-                reportError("Expect ')' after super class name", &parser.current);
+                reportError("Expect ')' after super class name", &parser->current);
         }
     }
 
@@ -1477,11 +1501,11 @@ static void classDeclaration() {
     emitBytes(getOp, arg, name);
 
     if (!consume(TOKEN_COLON, false))
-        reportError("expect ':'", &parser.current);
+        reportError("expect ':'", &parser->current);
     
     if (consume(TOKEN_NEWLINE, false)) {
         if (!consume(TOKEN_INDENT, false))
-            reportError("expect indent", &parser.current);
+            reportError("expect indent", &parser->current);
         
         while (!check(TOKEN_DEDENT) && !check(TOKEN_EOF))
             if (consume(TOKEN_DEF, false))
@@ -1497,13 +1521,13 @@ static void classDeclaration() {
 
 static void dot(bool assign, bool tuple, bool skip, bool del) {
     advance(skip);
-    Token name = parser.current;
+    Token name = parser->current;
     if (!consume(TOKEN_IDENTIFIER, skip)) {
-        reportError("Expect property name after '.'", &parser.current);
+        reportError("Expect property name after '.'", &parser->current);
     }
     uint8_t arg = identifierConstant(&name);
 
-    Token operator = parser.current;
+    Token operator = parser->current;
     if (isAssignment(operator)) {
         if (!assign)
             reportError("Assignment is not allowed here", &operator);
@@ -1519,7 +1543,7 @@ static void dot(bool assign, bool tuple, bool skip, bool del) {
 
 static void item(bool assign, bool tuple, bool skip, bool del) {
     advance(true);
-    Token index = parser.current;
+    Token index = parser->current;
     bool isSlice = false;
 
     if (!check(TOKEN_COLON))
@@ -1550,7 +1574,7 @@ static void item(bool assign, bool tuple, bool skip, bool del) {
     if (isSlice)
         emitByte(OP_BUILD_SLICE, (Token){0});
 
-    Token operator = parser.current;
+    Token operator = parser->current;
 
     if (isAssignment(operator)) {
         advance(true);
@@ -1567,16 +1591,16 @@ static void item(bool assign, bool tuple, bool skip, bool del) {
 static void returnStatement() {
     advance(false);
     if (current->type == TYPE_TOP_LEVEL)
-        reportError("Can't return from top-level code", &parser.current);
+        reportError("Can't return from top-level code", &parser->current);
     
     if (consumeEOS()) {
         emitReturn();
     } else {
         expression(true, false);
         if (!consumeEOS()) {
-            reportError("Expect eos after value", &parser.current);
+            reportError("Expect eos after value", &parser->current);
         }
-        emitByte(OP_RETURN, parser.current);
+        emitByte(OP_RETURN, parser->current);
     }
 }
 
@@ -1589,38 +1613,38 @@ static void delStatement() {
 
 static void assertStatement() {
     advance(false);
-    int line = parser.current.line;
-    int column = parser.current.column;
+    int line = parser->current.line;
+    int column = parser->current.column;
 
     expression(false, false);
 
     if (consume(TOKEN_COMMA, false))
         expression(false, false);
     else
-        emitByte(OP_NONE, parser.current);
+        emitByte(OP_NONE, parser->current);
 
-    int len = parser.current.column - column;
+    int len = parser->current.column - column;
 
     emitByte(OP_ASSERT, (Token){.line=line, .column=column, .length=len});
 
     if (!consumeEOS())
-        reportError("invalid syntax", &parser.current);
+        reportError("invalid syntax", &parser->current);
 }
 
 static void globalStatement() {
     if (current->type == TYPE_TOP_LEVEL)
-        reportError("global declaration not allowed at module level", &parser.current);
+        reportError("global declaration not allowed at module level", &parser->current);
     advance(false);
 
-    Token name = parser.current;
+    Token name = parser->current;
     if (!consume(TOKEN_IDENTIFIER, false))
-        reportError("invalid syntax", &parser.current);
+        reportError("invalid syntax", &parser->current);
 
     if (isNonlocal(current, &name))
-        reportError("name is nonlocal and global", &parser.current);
+        reportError("name is nonlocal and global", &parser->current);
     
     if (resolveLocal(current, &name, false) != -1)
-        reportError("name 'x' is assigned to before global declaration", &parser.current);
+        reportError("name 'x' is assigned to before global declaration", &parser->current);
 
     current->globalNames[current->globalCount++] = name;
     consumeEOS();
@@ -1628,28 +1652,53 @@ static void globalStatement() {
 
 static void nonlocalStatement() {
     if (current->type == TYPE_TOP_LEVEL)
-        reportError("nonlocal declaration not allowed at module level", &parser.current);
+        reportError("nonlocal declaration not allowed at module level", &parser->current);
     advance(false);
 
-    Token name = parser.current;
+    Token name = parser->current;
     if (!consume(TOKEN_IDENTIFIER, false))
-        reportError("invalid syntax", &parser.current);
+        reportError("invalid syntax", &parser->current);
 
     if (isGlobal(current, &name))
-        reportError("name is nonlocal and global", &parser.current);
+        reportError("name is nonlocal and global", &parser->current);
 
     if (resolveUpvalue(current, &name) == -1)
-        reportError("no binding for nonlocal 'x' found", &parser.current);
+        reportError("no binding for nonlocal 'x' found", &parser->current);
 
     if (resolveLocal(current, &name, false) != -1)
-        reportError("name 'x' is assigned to before global declaration", &parser.current);
+        reportError("name 'x' is assigned to before global declaration", &parser->current);
 
     current->nonlocalNames[current->nonlocalCount++] = name;
     consumeEOS();
 }
 
+static void importStatement() {
+    advance(false);
+    char *dirname = "/home/blank/projects/nova/samples";
+    Token name = parser->current;
+    char filename[50];
+    strncpy(filename, name.start, name.length);
+    filename[name.length] = '\0';
+    advance(false);
+    char fullname[256];
+    snprintf(fullname, sizeof(fullname), "%s%s%s%s", dirname, "/", filename, ".py");
+    printf("%s\n", filename);
+    printf("%s\n", fullname);
+
+    char *source = readFile(fullname);
+    ObjModule *module = compile(source, filename);
+
+    emitBytes(OP_CONSTANT, createConstant(OBJ_VAL(module)), parser->current);
+    uint8_t getOp, setOp, arg;
+    resolveVariableAssignment(&name, &getOp, &setOp, &arg);
+    emitBytes(setOp, arg, name);
+
+    emitByte(OP_LOAD_MODULE, parser->current);
+    consumeEOS();
+}
+
 static void statement(int breakPointer, int continuePointer) {
-    switch (parser.current.type) {
+    switch (parser->current.type) {
         case TOKEN_NEWLINE:
         case TOKEN_SEMICOLON:
         case TOKEN_PASS:
@@ -1697,35 +1746,41 @@ static void statement(int breakPointer, int continuePointer) {
         case TOKEN_NONLOCAL:
             nonlocalStatement();
             break;
+        case TOKEN_IMPORT:
+            importStatement();
+            break;
         default:
             expressionStatement();
             break;
     }
-    if (parser.panicMode)
+    if (parser->panicMode)
         synchronize();
 }
 
-ObjFunction* compile(const char *source) {
-    initScanner(source);
+ObjModule* compile(const char *source, const char *name) {
+    ObjModule *module = allocateModule(function);
+    Scanner s;
+    initScanner(&s, source);
+    Parser p;
+    initParser(&p, module, source);
     Compiler compiler;
-    initCompiler(&compiler, TYPE_TOP_LEVEL, parser.current);
-
-    parser.errorCount = 0;
-    parser.panicMode = false;
-    parser.source = source;
-    TokenVecInit(&parser.putback);
-    parser.putPointer = -1;
+    initCompiler(&compiler, TYPE_TOP_LEVEL, parser->current);
 
     advance(false);
     advance(false);
 
-    while (parser.current.type != TOKEN_EOF)
+    while (parser->current.type != TOKEN_EOF)
         statement(-1, -1);
 
     ObjFunction *function = endCompiler();
+    int errorCount = parser->errorCount;
+    endParser();
+    endScanner();
     function->defaultStart = 0;
     function->defaults = allocateTuple(0);
-    return parser.errorCount != 0 ? NULL : function;
+    function->name = copyString(name, 0);
+    module->function = function;
+    return errorCount != 0 ? NULL : module;
 }
 
 void markCompilerRoots() {

@@ -3,10 +3,11 @@
 
 #include "common.h"
 #include "code.h"
-#include "name_table.h"
+#include "table.h"
 #include "object.h"
 #include "object_function.h"
 #include "object_class.h"
+#include "object_module.h"
 
 #define FRAMES_SIZE 64
 #define STACK_SIZE (FRAMES_SIZE * UINT8_MAX)
@@ -106,8 +107,7 @@ typedef struct {
     uint8_t *ip;
     Value stack[STACK_SIZE];
     Value *top;
-    NameTable globals;
-    NameTable strings;
+    Table builtin;
     MagicStrings magicStrings;
     BaseTypes types;
     ObjUpvalue *openUpvalues;
@@ -147,6 +147,8 @@ void operatorNotImplemented(char *operator, Value a, Value b);
 void operatorNotImplementedUnary(char *operator, Value a);
 
 void functionNotImplemented(char *function, Value a);
+
+void execute(ObjModule *module);
 
 void call(ObjClosure *closure, int argc, int kwargc, bool isMethod);
 

@@ -4,8 +4,9 @@
 #include "code.h"
 #include "object.h"
 #include "object_function.h"
+#include "object_module.h"
 
-ObjFunction* compile(const char *source);
+ObjModule* compile(const char *source, const char *name);
 
 void markCompilerRoots();
 

@@ -9,7 +9,7 @@
 
 ObjDict *allocateDict() {
     ObjDict *dict = (ObjDict*)allocateObject(sizeof(ObjDict), VAL_DICT);
-    QuadraticTableInit(&dict->table);
+    tableInit(&dict->table);
     return dict;
 }
 
@@ -22,7 +22,7 @@ Value Dict_NotEqual(Value a, Value b) {
 }
 
 Value Dict_Contains(Value a, Value b) {
-    Value res = QuadraticTableGet(&AS_DICT(a)->table, b);
+    Value res = tableGet(&AS_DICT(a)->table, b);
     return BOOL_VAL(!IS_UNDEFINED(res));
 }
 
@@ -39,19 +39,19 @@ Value Dict_GetAttr(Value obj, ObjString *name) {
 }
 
 Value Dict_GetItem(Value obj, Value key) {
-    Value res = QuadraticTableGet(&AS_DICT(obj)->table, key);
+    Value res = tableGet(&AS_DICT(obj)->table, key);
     if (IS_UNDEFINED(res))
         return createException(VAL_KEY_ERROR, "'%s'", valueToStr(key)->chars);
     return res;
 }
 
 Value Dict_SetItem(Value obj, Value key, Value value) {
-    QuadraticTableSet(&AS_DICT(obj)->table, key, value);
+    tableSet(&AS_DICT(obj)->table, key, value);
     return NONE_VAL;
 }
 
 Value Dict_DelItem(Value obj, Value key) {
-    Value res = QuadraticTableDelete(&AS_DICT(obj)->table, key);
+    Value res = tableDelete(&AS_DICT(obj)->table, key);
     if (IS_UNDEFINED(res))
         return createException(VAL_KEY_ERROR, "'%s'", valueToStr(key)->chars);
     return NONE_VAL;

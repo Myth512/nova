@@ -7,6 +7,8 @@
 
 typedef struct Obj Obj;
 typedef struct ObjString ObjString;
+typedef struct ObjFunction ObjFunction;
+typedef struct ObjModule ObjModule;
 
 typedef enum {
     // Values
@@ -52,6 +54,7 @@ typedef enum {
     VAL_RUNTIME_ERROR,
     VAL_ASSERTION_ERROR,
     VAL_NOT_IMPLEMENTED_ERROR,
+    VAL_MODULE,
 } ValueType;
 
 typedef struct {

@@ -3,6 +3,7 @@
 
 #include "object.h"
 #include "object_tuple.h"
+#include "object_module.h"
 
 #define CLOSURE_VAL(closure)     ((Value){.type=VAL_CLOSURE, .as.object=(Obj*)closure})
 
@@ -22,7 +23,7 @@ typedef struct ObjUpvalue {
     struct ObjUpvalue *next;
 } ObjUpvalue;
 
-typedef struct {
+typedef struct ObjFunction {
     Obj obj;
     int arity;
     int extraArgs;
@@ -33,7 +34,8 @@ typedef struct {
     int upvalueCount;
     CodeVec code;
     ObjString *name;
-} ObjFunction;
+    ObjModule *module;
+};
 
 typedef struct {
     Obj obj;

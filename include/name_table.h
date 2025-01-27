@@ -14,20 +14,20 @@ typedef struct {
     NameEntry *entries;
 } NameTable;
 
-void initTable(NameTable *table);
+void initNameTable(NameTable *table);
 
-void freeTable(NameTable *table);
+void freeNameTable(NameTable *table);
 
-bool tableSet(NameTable *table, ObjString *key, Value value);
+bool nameTableSet(NameTable *table, ObjString *key, Value value);
 
-bool tableGet(NameTable *table, ObjString *key, Value *value);
+bool nameTableGet(NameTable *table, ObjString *key, Value *value);
 
-bool tableDelete(NameTable *table, ObjString *key);
+bool nameTableDelete(NameTable *table, ObjString *key);
 
-void tableAddAll(NameTable *source, NameTable *destination);
+void nameTableAddAll(NameTable *source, NameTable *destination);
 
-void markTable(NameTable *table);
+void markNameTable(NameTable *table);
 
-void printTable(NameTable *table);
+void printNameTable(NameTable *table);
 
 #endif

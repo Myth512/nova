@@ -1,58 +1,71 @@
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 
 #include "scanner.h"
 #include "error.h"
 #include "keywords.h"
 
-typedef struct {
-    const char *source;
-    const char *start;
-    const char *current;
-    int line;
-    int column;
-    int startLine;
-    int startColumn;
-    int indentationStack[256];
-    int indentationPointer;
-    int indent;
-    bool inFormattedString;
-    char stop;
-} Scanner;
+Scanner *scanner;
 
-Scanner scanner;
+char *readFile(const char *path) {
+	FILE *file = fopen(path, "rb");
+	if (file == NULL) {
+		fprintf(stderr, "Failed to open file '%s'\n", path);
+		exit(74);
+	}
+
+	fseek(file, 0L, SEEK_END);
+	size_t fileSize = ftell(file);
+	rewind(file);
+
+	char *buffer = (char*)malloc(fileSize + 1);
+	if (buffer == NULL) {
+		fprintf(stderr, "Failed to allocate memory for file '%s'\n", path);
+		exit(74);
+	}
+	size_t bytesRead = fread(buffer, sizeof(char), fileSize, file);
+	if (bytesRead < fileSize) {
+		fprintf(stderr, "Failed to read file '%s'\n", path);
+		exit(74);
+	}
+	buffer[bytesRead] = '\0';
+	
+	fclose(file);
+	return buffer;
+}
 
 static bool reachEnd() {
-    return *scanner.current == '\0';
+    return *scanner->current == '\0';
 }
 
 static char advance() {
-    scanner.current++;
-    scanner.column++;
-    return scanner.current[-1];
+    scanner->current++;
+    scanner->column++;
+    return scanner->current[-1];
 }
 
 static void skipChar() {
-    scanner.startColumn++;
-    scanner.start++;
+    scanner->startColumn++;
+    scanner->start++;
 }
 
 static bool match(char expected) {
     if (reachEnd())
         return false;
-    if (*scanner.current != expected)
+    if (*scanner->current != expected)
         return false;
     
-    scanner.current++;
-    scanner.column++;
+    scanner->current++;
+    scanner->column++;
     return true;
 }
 
 static char peek(int distance) {
     for (int i = 0; i < distance; i++)
-        if (scanner.current[i] == '\0')
+        if (scanner->current[i] == '\0')
             return '\0';
-    return scanner.current[distance];
+    return scanner->current[distance];
 }
 
 static bool isAlpha(char c) {
@@ -66,15 +79,15 @@ static bool isDigit(char c) {
 }
 
 static void pushIndent(int level) {
-    scanner.indentationStack[scanner.indentationPointer++] = level;
+    scanner->indentationStack[scanner->indentationPointer++] = level;
 }
 
 static int popIndent() {
-    return scanner.indentationStack[--scanner.indentationPointer];
+    return scanner->indentationStack[--scanner->indentationPointer];
 }
 
 static int peekIndent() {
-    return scanner.indentationStack[scanner.indentationPointer - 1];
+    return scanner->indentationStack[scanner->indentationPointer - 1];
 }
 
 static void skipWhitespace(bool skip) {
@@ -94,8 +107,8 @@ static void skipWhitespace(bool skip) {
             case '\\':
                 advance();
                 advance();
-                scanner.line++;
-                scanner.column = 1;  
+                scanner->line++;
+                scanner->column = 1;  
                 break;
             case '\n':
                 if (!skip)
@@ -111,10 +124,10 @@ static void skipWhitespace(bool skip) {
 static Token createToken(TokenType type) {
     Token token;
     token.type = type;
-    token.start = scanner.start;
-    token.length = (int)(scanner.current - scanner.start);
-    token.line = scanner.startLine;
-    token.column = scanner.startColumn;
+    token.start = scanner->start;
+    token.length = (int)(scanner->current - scanner->start);
+    token.line = scanner->startLine;
+    token.column = scanner->startColumn;
     return token;
 }
 
@@ -123,8 +136,8 @@ static Token createErrorToken(const char *message) {
     token.type = TOKEN_ERROR;
     token.start = message;
     token.length = (int)strlen(message);
-    token.line = scanner.line;
-    token.column = scanner.column;
+    token.line = scanner->line;
+    token.column = scanner->column;
     return token;
 }
 
@@ -149,8 +162,8 @@ static Token scanIdentifier() {
     while (isAlpha(peek(0)) || isDigit(peek(0)))
         advance();
 
-    int length = scanner.current - scanner.start;
-    const struct Keyword *keyword = in_keyword_set(scanner.start, length);
+    int length = scanner->current - scanner->start;
+    const struct Keyword *keyword = in_keyword_set(scanner->start, length);
 
     if (keyword)
         return createToken(keyword->type);
@@ -168,8 +181,8 @@ static Token scanString(char stop) {
 
     while (!reachEnd()) {
         if (peek(0) == '\n') {
-            scanner.line++;
-            scanner.column = 1;
+            scanner->line++;
+            scanner->column = 1;
             if (!multi)
                 break;
         }
@@ -217,8 +230,8 @@ static Token scanFormattedString(char stop) {
         if (peek(0) == '\\' && peek(1) == stop)
             advance();
         if (peek(0) == '{' && peek(1) != '{') {
-            scanner.inFormattedString = true;
-            scanner.stop = stop;
+            scanner->inFormattedString = true;
+            scanner->stop = stop;
             Token token = createToken(TOKEN_FSTRING);
             advance();
             return token;
@@ -231,7 +244,7 @@ static Token scanFormattedString(char stop) {
     if (!match(stop))
         return createErrorToken("Unterminated string");
     
-    scanner.inFormattedString = false;
+    scanner->inFormattedString = false;
     return string; 
 }
 
@@ -239,33 +252,39 @@ static bool isQuote(char c) {
     return c == '\'' || c == '"';
 }
 
-void initScanner(const char *source) {
-    scanner.source = source;
-    scanner.start = source;
-    scanner.current = source;
-    scanner.line = 1;
-    scanner.column = 1;
-    scanner.startLine = 1;
-    scanner.startColumn = 1;
+void initScanner(Scanner *s, const char *source) {
+    s->source = source;
+    s->start = source;
+    s->current = source;
+    s->line = 1;
+    s->column = 1;
+    s->startLine = 1;
+    s->startColumn = 1;
+    s->enclosing = scanner;
+    scanner = s;
     pushIndent(0);
+}
+
+void endScanner() {
+    scanner = scanner->enclosing;
 }
 
 Token scanToken(bool skip) {
     if (!skip) {
-        if (scanner.column == 1) {
+        if (scanner->column == 1) {
             int indent = 0;
             while (match(' '))
                 indent++;
             if (peek(0) != '\n' && peek(0) != '#')
-                scanner.indent = indent;
+                scanner->indent = indent;
         }
 
-        if (scanner.indent > peekIndent()) {
-            pushIndent(scanner.indent);
+        if (scanner->indent > peekIndent()) {
+            pushIndent(scanner->indent);
             return createToken(TOKEN_INDENT);
         }
 
-        if (scanner.indent < peekIndent()) {
+        if (scanner->indent < peekIndent()) {
             popIndent();
             return createToken(TOKEN_DEDENT);
         }
@@ -273,17 +292,17 @@ Token scanToken(bool skip) {
 
     skipWhitespace(skip);
 
-    scanner.start = scanner.current;
-    scanner.startLine = scanner.line;
-    scanner.startColumn = scanner.column;
+    scanner->start = scanner->current;
+    scanner->startLine = scanner->line;
+    scanner->startColumn = scanner->column;
 
     if (reachEnd())
         return createToken(TOKEN_EOF);
 
     char c = advance();
 
-    if (scanner.inFormattedString && c == '}')
-        return scanFormattedString(scanner.stop);
+    if (scanner->inFormattedString && c == '}')
+        return scanFormattedString(scanner->stop);
 
     if (isDigit(c))
         return scanNumber();
@@ -401,8 +420,8 @@ Token scanToken(bool skip) {
             return createToken(TOKEN_COMMA);
         case '\n': {
             Token token = createToken(TOKEN_NEWLINE);
-            scanner.line++;
-            scanner.column = 1;
+            scanner->line++;
+            scanner->column = 1;
             return token;
         }
     }

@@ -115,7 +115,8 @@ static const char *ValueTypeToString[] = {
     [VAL_NATIVE_CLASS] = "<type native class>",
     [VAL_METHOD] = "<type method>",
     [VAL_NATIVE_METHOD] = "<type native method>",
-    [VAL_INSTANCE] = "<type instance>"
+    [VAL_INSTANCE] = "<type instance>",
+    [VAL_MODULE] = "<type module>",
 };
 
 static int simpleInstruction(const char *name, int offset) {
@@ -313,6 +314,10 @@ int printInstruction(CodeVec *vec, int offset) {
             return simpleInstruction("RAISE", offset);
         case OP_ASSERT:
             return simpleInstruction("ASSERT", offset);
+        case OP_LOAD_MODULE:
+            return simpleInstruction("LOAD MODULE", offset);
+        case OP_UNLOAD_MODULE:
+            return simpleInstruction("UNLOAD MODULE", offset);
         case OP_CALL:
             return callInstruction("CALL", vec, offset);
         case OP_CLOSURE: {
@@ -349,7 +354,7 @@ int printInstruction(CodeVec *vec, int offset) {
 }
 
 const char* decodeValueType(Value value) {
-    if (value.type < 0 || value.type > VAL_INSTANCE)
+    if (value.type < 0 || value.type > VAL_MODULE)
         return "<unknown type>";
     return ValueTypeToString[value.type];
  }

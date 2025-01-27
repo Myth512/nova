@@ -68,6 +68,8 @@ typedef enum {
     OP_END_TRY,
     OP_RAISE,
     OP_ASSERT,
+    OP_LOAD_MODULE,
+    OP_UNLOAD_MODULE,
     OP_CALL,
     OP_CLOSURE,
     OP_CLOSE_UPVALUE,

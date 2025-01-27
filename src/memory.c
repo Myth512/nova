@@ -6,6 +6,7 @@
 #include "object_string.h"
 #include "object_class.h"
 #include "object_instance.h"
+#include "name_table.h"
 #include "vm.h"
 
 #define GC_HEAP_GROW_FACTOR 2
@@ -84,7 +85,7 @@ static void freeObject(Obj *object) {
         }
         case VAL_INSTANCE: {
             ObjInstance *instance = (ObjInstance*)object;
-            freeTable(&instance->attributes);
+            freeNameTable(&instance->attributes);
             FREE(ObjInstance, object);
             break;
         }
@@ -165,7 +166,7 @@ static void markReferences(Obj *obj) {
         case VAL_INSTANCE: {
             ObjInstance *instance = (ObjInstance*)obj;
             markObject((Obj*)instance->class);
-            markTable(&instance->attributes);
+            // markTable(&instance->attributes);
             break;
         }
         case VAL_METHOD: {
@@ -238,7 +239,7 @@ static void mark() {
         printf("\033[34mmark globals\n");
         indent--;
     #endif
-    markTable(&vm.globals);
+    // markTable(&vm.globals);
 
     #ifdef DEBUG_LOG_GC
         indent--;

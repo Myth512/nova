@@ -17,6 +17,7 @@
 #include "object_function.h"
 #include "object_exception.h"
 #include "object_slice.h"
+#include "object_module.h"
 #include "memory.h"
 #include "compiler.h"
 #include "native.h"
@@ -182,6 +183,26 @@ void parseArgs(int argc, int kwargc, int arity, char *keywords[], ...) {
     va_end(args1);
 }
 
+void loadModule() {
+    ObjModule *module = AS_MODULE(peek(0));
+    tableSet(&module->globals, OBJ_VAL(copyString("__name__", 0)), OBJ_VAL(module->function->name));
+    frame = &vm.frames[vm.frameSize++];
+    frame->closure = createClosure(module->function);
+    frame->ip = module->function->code.code;
+    frame->slots = vm.top;
+}
+
+int unloadModule() {
+    vm.frameSize--;
+    if (!vm.frameSize)
+        return 0;
+    vm.top = frame->slots;
+    frame = &vm.frames[vm.frameSize - 1];
+    pop();
+    ObjModule *module = AS_MODULE(peek(0));
+    return vm.frameSize;
+}
+
 void call(ObjClosure *closure, int argc, int kwargc, bool isMethod) {
     if (vm.frameSize == FRAMES_SIZE)
         reportRuntimeError("Stack overflow");
@@ -282,7 +303,7 @@ static void defineNative(const char *name, NativeFn function) {
     push(STRING_VAL(copyString(name, (int)strlen(name))));
     ObjNative *native = createNative(function, name);
     push(NATIVE_VAL(native));
-    tableSet(&vm.globals, AS_STRING(vm.stack[0]), vm.stack[1]);
+    tableSet(&vm.builtin, vm.stack[0], vm.stack[1]);
     pop();
     pop();
 }
@@ -306,7 +327,7 @@ static void defineNatives() {
 static ObjNativeClass* defineNativeClass(const char *name, ValueType type, ValueType super) {
     ObjString *n = copyString(name, strlen(name));
     ObjNativeClass *class = createNativeClass(n, type, super);
-    tableSet(&vm.globals, n, OBJ_VAL(class));
+    tableSet(&vm.builtin, OBJ_VAL(n), OBJ_VAL(class));
     return class;
 }
 
@@ -393,7 +414,7 @@ static void closeUpvalues(Value *last) {
 static void defineMethod(ObjString* name) {
     Value method = peek(0);
     ObjClass *class = AS_CLASS(peek(1));
-    tableSet(&class->methods, name, method);
+    nameTableSet(&class->methods, name, method);
     pop();
 }
 
@@ -492,10 +513,11 @@ static bool return_() {
     Value result = pop();
     
     closeUpvalues(frame->slots);
-    if (strcmp(frame->closure->function->name->chars, "_init_") == 0)
-        AS_INSTANCE(result)->isInitiazed = true;
+    // if (strcmp(frame->closure->function->name->chars, "_init_") == 0)
+    //     AS_INSTANCE(result)->isInitiazed = true;
 
     vm.frameSize--;
+    frame->slots;
     vm.top = frame->slots - !frame->isMethod;
     frame = &vm.frames[vm.frameSize - 1];
 
@@ -642,7 +664,6 @@ static void delAttribute() {
 
 static Value run() {
     frame = &vm.frames[vm.frameSize - 1];
-    int startFrame = vm.frameSize - 1;
     while (true) {
 
         #ifdef DEBUG_TRACE_EXECUTION
@@ -664,23 +685,29 @@ static Value run() {
                 break;
             case OP_GET_GLOBAL: {
                 ObjString *name = READ_STRING();
-                Value value;
-                if (!tableGet(&vm.globals, name, &value)) {
-                    push(createException(VAL_NAME_ERROR, "name '%s' is not defined", name->chars));
-                    raise();
+                Value value = tableGet(&frame->closure->function->module->globals, OBJ_VAL(name));
+                if (!IS_UNDEFINED(value)) {
+                    push(value);
                     break;
                 }
-                push(value);
+                value = tableGet(&vm.builtin, OBJ_VAL(name));
+                if (!IS_UNDEFINED(value)) {
+                    push(value);
+                    break;
+                }
+                push(createException(VAL_NAME_ERROR, "name '%s' is not defined", name->chars));
+                raise();
                 break;
             }
             case OP_SET_GLOBAL: {
                 ObjString *name = READ_STRING();
-                tableSet(&vm.globals, name, peek(0));
+                tableSet(&frame->closure->function->module->globals, OBJ_VAL(name), peek(0));
                 break;
             }
             case OP_DEL_GLOBAL: {
                 ObjString *name = READ_STRING();
-                if (!tableDelete(&vm.globals, name)) {
+                Value value = tableDelete(&frame->closure->function->module->globals, OBJ_VAL(name));
+                if (IS_UNDEFINED(value)) {
                     push(createException(VAL_NAME_ERROR, "name '%s' is not defined", name->chars));
                     raise();
                 }
@@ -893,6 +920,13 @@ static Value run() {
                 }
                 break;
             }
+            case OP_LOAD_MODULE:
+                loadModule();
+                break;
+            case OP_UNLOAD_MODULE:
+                if (!unloadModule())
+                    return NONE_VAL;
+                break;
             case OP_CALL: {
                 int argc = READ_BYTE();
                 int kwargc = READ_BYTE();
@@ -1025,33 +1059,25 @@ void initVM() {
     vm.objects = NULL;
     vm.bytesAllocated = 0;
     vm.nextGC = 1024 * 1024;
-    initTable(&vm.globals);
-    initTable(&vm.strings);
+    tableInit(&vm.builtin);
     initMagicStrings();
     defineNatives();
     defineNativeTypes();
-    tableSet(&vm.globals, copyString("NotImplemented", 0), NOT_IMPLEMENTED_VAL);
+    tableSet(&vm.builtin, OBJ_VAL(copyString("NotImplemented", 0)), NOT_IMPLEMENTED_VAL);
     vm.allowStackPrinting = true;
 }
 
 void freeVM() {
     freeObjects();
-    initTable(&vm.globals);
-    freeTable(&vm.strings);
     return;
 }
 
 InterpretResult interpret(const char *source) {
-    ObjFunction *function = compile(source);
-    if (function == NULL)
+    ObjModule *module = compile(source, "__main__");
+    if (module == NULL)
         return INTERPRET_COMPILE_ERROR;
-    function->name = copyString("script", 7);
-
-    push(OBJ_VAL(function));
-    ObjClosure *closure = createClosure(function);
-    pop();
-    push(OBJ_VAL(closure));
-    call(closure, 0, 0, false);
+    push(OBJ_VAL(module));
+    loadModule();
 
     #ifdef DEBUG_DO_NOT_EXECUTE
         return INTERPRET_OK;

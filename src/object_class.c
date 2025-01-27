@@ -10,7 +10,7 @@ ObjClass *createClass(ObjString *name, Value super) {
     ObjClass *class = (ObjClass*)allocateObject(sizeof(ObjClass), VAL_CLASS);
     class->name = name;
     class->super = super;
-    initTable(&class->methods);
+    initNameTable(&class->methods);
     return class;
 }
 
@@ -45,7 +45,7 @@ Value Class_Call(Value callee, int argc, int kwargc, Value *argv) {
     ObjClass *class = AS_CLASS(callee);
     insert(argc, OBJ_VAL(createInstance(class)));
     Value initializer;
-    if (tableGet(&class->methods, vm.magicStrings.init, &initializer)) {
+    if (nameTableGet(&class->methods, vm.magicStrings.init, &initializer)) {
         call(AS_CLOSURE(initializer), argc + 1, kwargc, true);
     } else if (argc != 0) {
         return createException(VAL_TYPE_ERROR, "%s() takes no arguments", class->name->chars);
@@ -55,7 +55,7 @@ Value Class_Call(Value callee, int argc, int kwargc, Value *argv) {
 Value Class_GetAttr(Value obj, ObjString *name) {
     ObjClass *class = AS_CLASS(obj);
     Value value;
-    if (tableGet(&class->methods, name, &value))
+    if (nameTableGet(&class->methods, name, &value))
         return value;
     if (IS_NONE(class->super))
         return UNDEFINED_VAL;

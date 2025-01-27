@@ -17,18 +17,18 @@ typedef struct {
     Entry **order;
 } Table;
 
-void QuadraticTableInit(Table *table);
+void tableInit(Table *table);
 
-void QuadraticTableFree(Table *table);
+void tableFree(Table *table);
 
-Value QuadraticTableGet(Table *table, Value key);
+Value tableGet(Table *table, Value key);
 
-bool QuadraticTableSet(Table *table, Value key, Value value);
+bool tableSet(Table *table, Value key, Value value);
 
-Value QuadraticTableDelete(Table *table, Value key);
+Value tableDelete(Table *table, Value key);
 
 bool compareTables(Table *a, Table *b);
 
-void TableDebug(Table *table);
+void tableDebug(Table *table);
 
 #endif

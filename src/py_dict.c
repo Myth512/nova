@@ -12,8 +12,8 @@ Value PyDict_Clear(int argc, int kwargc) {
 
     ObjDict *dict = AS_DICT(self);
 
-    QuadraticTableFree(&dict->table);
-    QuadraticTableInit(&dict->table);
+    tableFree(&dict->table);
+    tableInit(&dict->table);
 
     return NONE_VAL;
 }
@@ -34,7 +34,7 @@ Value PyDict_Get(int argc, int kwargc) {
     if (IS_UNDEFINED(default_))
         default_ = NONE_VAL;
 
-    Value result = QuadraticTableGet(&AS_DICT(self)->table, key);
+    Value result = tableGet(&AS_DICT(self)->table, key);
 
     if (IS_UNDEFINED(result))
         return default_;
@@ -80,7 +80,7 @@ Value PyDict_Pop(int argc, int kwargc) {
     Value self, key, default_;
     PARSE_ARGS(&self, &key, &default_);
 
-    Value result = QuadraticTableDelete(&AS_DICT(self)->table, key);
+    Value result = tableDelete(&AS_DICT(self)->table, key);
 
     if (IS_UNDEFINED(result)) {
         if (IS_UNDEFINED(default_))
@@ -122,10 +122,10 @@ Value PyDict_SetDefault(int argc, int kwargc) {
 
     ObjDict *dict = AS_DICT(self);
 
-    Value result = QuadraticTableGet(&dict->table, key);
+    Value result = tableGet(&dict->table, key);
 
     if (IS_UNDEFINED(result)) {
-        QuadraticTableSet(&dict->table, key, default_);
+        tableSet(&dict->table, key, default_);
         return default_;
     }
 
@@ -145,7 +145,7 @@ Value PyDict_Update(int argc, int kwargc) {
 
     for (int i = 0; i < source->table.size; i++) {
         Entry *entry = source->table.order[i];
-        QuadraticTableSet(&dest->table, entry->key, entry->value);
+        tableSet(&dest->table, entry->key, entry->value);
     }
     return NONE_VAL;
 }
